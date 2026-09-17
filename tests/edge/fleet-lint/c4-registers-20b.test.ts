@@ -8,7 +8,7 @@ import { runRiskFactorEngine } from "../../../supabase/functions/run-cppa-risk-a
 import { deriveKeyDatesTable } from "../../../supabase/functions/run-cppa-risk-assessment-v2/_local/ltp/risk-skeleton-assemble.ts";
 import { assembleDpaDocument } from "../../../supabase/functions/generate-dpa/_local/clause-library/dpa-assemble.ts";
 import { ANNEX_HEADING, summarise } from "../../../supabase/functions/generate-dpa/_local/dpa-clause-coverage.ts";
-import { buildDpiaSkeletonTables } from "../../../supabase/functions/_shared/ltp/dpia-skeleton-tables.ts";
+import { buildDpiaSkeletonTables } from "../../../supabase/functions/run-dpia-framework/_local/ltp/dpia-skeleton-tables.ts";
 
 type Bag = Record<string, unknown>;
 

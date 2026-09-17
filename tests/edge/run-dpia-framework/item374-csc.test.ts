@@ -29,7 +29,7 @@ import {
   ASK_CATEGORY_INTAKE_KEYS,
   filterCategoriesAgainstRecord,
 } from "../../../supabase/functions/_shared/prose/ask-categories.ts";
-import { runDpiaCsc } from "../../../supabase/functions/_shared/ltp/dpia-csc.ts";
+import { runDpiaCsc } from "../../../supabase/functions/run-dpia-framework/_local/ltp/dpia-csc.ts";
 
 const EU = DPIA_PERFECT.find((c) => c.id === "dpia-perfect-eu-complete")!.intake as Record<string, unknown>;
 const UK = DPIA_PERFECT.find((c) => c.id === "dpia-perfect-uk-complete")!.intake as Record<string, unknown>;

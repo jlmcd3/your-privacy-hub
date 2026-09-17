@@ -6,7 +6,7 @@
 // body is byte-untouched until the CEO flips the env var at a Lovable
 // deploy. When true AND `DPIA_HOOKS` (corpus/maps/dpia-hooks.ts) carries at
 // least one ratified row, the skeleton assembler
-// (_shared/ltp/dpia-skeleton-assemble.ts) runs each nominated hook through
+// (run-dpia-framework/_local/ltp/dpia-skeleton-assemble.ts) runs each nominated hook through
 // the DPIA hook join (dpia-deliverables/dpia-hook-join.ts) and may append a
 // ratified persuasive-authority sentence beside the determination it bears
 // on — never before both the flag is on and a ratified hook exists (the

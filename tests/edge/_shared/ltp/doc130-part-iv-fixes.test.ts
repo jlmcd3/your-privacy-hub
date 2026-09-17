@@ -5,7 +5,7 @@
 
 import { assert, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import { buildDpiaDeliverables } from "../../../../supabase/functions/_shared/ltp/dpia-deliverables/build.ts";
-import { assembleDpiaSkeletonDocument } from "../../../../supabase/functions/_shared/ltp/dpia-skeleton-assemble.ts";
+import { assembleDpiaSkeletonDocument } from "../../../../supabase/functions/run-dpia-framework/_local/ltp/dpia-skeleton-assemble.ts";
 import { skeletonDocumentToText } from "../../../../supabase/functions/_shared/prose/skeleton-render.ts";
 
 const BASE_INTAKE = {

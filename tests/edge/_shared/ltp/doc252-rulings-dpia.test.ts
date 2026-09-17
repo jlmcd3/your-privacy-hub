@@ -8,9 +8,9 @@
 import { assert, assertEquals, assertStringIncludes } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import { buildDpiaDeliverables, readHumanInterventionSpan } from "../../../../supabase/functions/_shared/ltp/dpia-deliverables/build.ts";
 import { DPIA_RISK_SPECS } from "../../../../supabase/functions/_shared/ltp/dpia-deliverables/elements.ts";
-import { assembleDpiaSkeletonDocument, buildDpiaEnforcementPrecedentsTable } from "../../../../supabase/functions/_shared/ltp/dpia-skeleton-assemble.ts";
-import { DPIA_SKELETON_SECTIONS, DPIA_SKELETON_VERSION } from "../../../../supabase/functions/_shared/prose/plans/dpia.spine.ts";
-import { DPIA_CORPUS_MAP } from "../../../../supabase/functions/_shared/corpus/maps/dpia-corpus-map.ts";
+import { assembleDpiaSkeletonDocument, buildDpiaEnforcementPrecedentsTable } from "../../../../supabase/functions/run-dpia-framework/_local/ltp/dpia-skeleton-assemble.ts";
+import { DPIA_SKELETON_SECTIONS, DPIA_SKELETON_VERSION } from "../../../../supabase/functions/run-dpia-framework/_local/prose/plans/dpia.spine.ts";
+import { DPIA_CORPUS_MAP } from "../../../../supabase/functions/run-dpia-framework/_local/corpus/maps/dpia-corpus-map.ts";
 import { skeletonDocumentToText } from "../../../../supabase/functions/_shared/prose/skeleton-render.ts";
 
 type Bag = Record<string, unknown>;

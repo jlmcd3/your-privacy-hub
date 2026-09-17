@@ -14,10 +14,10 @@ import {
   assembleDpiaSkeletonDocument,
   CONDITIONAL_INTRO_TABLE_SURFACES,
   DPIA_GDPR_INSTRUMENT_BY_SCOPE,
-} from "../../../supabase/functions/_shared/ltp/dpia-skeleton-assemble.ts";
+} from "../../../supabase/functions/run-dpia-framework/_local/ltp/dpia-skeleton-assemble.ts";
 import { buildDpiaDeliverables, readDpiaRegimeScope } from "../../../supabase/functions/_shared/ltp/dpia-deliverables/build.ts";
-import { DPIA_SKELETON_SECTIONS, DPIA_SKELETON_VERSION } from "../../../supabase/functions/_shared/prose/plans/dpia.spine.ts";
-import { DPIA_SLOT_MAP } from "../../../supabase/functions/_shared/prose/plans/dpia.slotmap.ts";
+import { DPIA_SKELETON_SECTIONS, DPIA_SKELETON_VERSION } from "../../../supabase/functions/run-dpia-framework/_local/prose/plans/dpia.spine.ts";
+import { DPIA_SLOT_MAP } from "../../../supabase/functions/run-dpia-framework/_local/prose/plans/dpia.slotmap.ts";
 import { skeletonDocumentToText } from "../../../supabase/functions/_shared/prose/skeleton-render.ts";
 
 type Bag = Record<string, unknown>;

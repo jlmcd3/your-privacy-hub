@@ -78,7 +78,7 @@ export const SKELETON_CAL_RULE_IDS: readonly SkeletonCalRuleId[] = [
 
 /**
  * RATIFIED TEMPLATE REGISTRY — byte-pinned invariant spans of the CEO-ratified
- * assembler sentences (supabase/functions/_shared/ltp/dpia-skeleton-assemble.ts,
+ * assembler sentences (supabase/functions/run-dpia-framework/_local/ltp/dpia-skeleton-assemble.ts,
  * stamp dpia-skeleton-assembler@prompt8a-ratified-prose-2026-08-12, and the
  * PROMPT-10B coverage residual note).
  *

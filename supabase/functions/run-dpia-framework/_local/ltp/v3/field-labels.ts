@@ -3,7 +3,7 @@
 // intake path — unlike LIA's nested `purpose_details.*` shape, DPIA's intake
 // object is flat: `description`, `purpose`, `necessity_proportionality`, …,
 // confirmed against `src/pages/DPIAFramework.tsx` and `dpiaFreeText()`
-// (`_shared/ltp/dpia-skeleton-assemble.ts`) per doc 227 §2(a)).
+// (`run-dpia-framework/_local/ltp/dpia-skeleton-assemble.ts`) per doc 227 §2(a)).
 //
 // Mirrors LIA's `run-li-assessment/_local/ltp/v3/field-labels.ts` structure
 // (this file has no imports; pure data + accessors). `bears_on` names the

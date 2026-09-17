@@ -9,7 +9,7 @@ import { assert, assertEquals, assertStringIncludes } from "https://deno.land/st
 import {
   assembleDpiaSkeletonDocument,
   composeRiskBody,
-} from "../../../supabase/functions/_shared/ltp/dpia-skeleton-assemble.ts";
+} from "../../../supabase/functions/run-dpia-framework/_local/ltp/dpia-skeleton-assemble.ts";
 import { nWord } from "../../../supabase/functions/run-dpia-framework/_local/ltp/dpia-deliverables/build.ts";
 
 const BANNED = /\bthe record (identifies|names|puts|relies)\b/i;

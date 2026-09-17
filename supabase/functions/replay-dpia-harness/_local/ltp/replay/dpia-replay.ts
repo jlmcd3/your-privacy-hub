@@ -17,7 +17,7 @@ import { attachDpiaAttestation } from "../../../../_shared/ltp/dpia-deliverables
 import {
   assembleDpiaSkeletonDocument,
   DPIA_SKELETON_ASSEMBLER_STAMP,
-} from "../../../../_shared/ltp/dpia-skeleton-assemble.ts";
+} from "../dpia-skeleton-assemble.ts";
 
 export const DPIA_REPLAY_STAMP = "dpia-replay@so-harness-2026-08-17";
 

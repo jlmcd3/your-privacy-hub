@@ -20,7 +20,7 @@
 // DPIA_VERIFIED_AUTHORITIES (both EU and UK forms); the regime prefix is
 // applied downstream by the existing `toaRegimeForm` handling.
 
-import { DPIA_VERIFIED_AUTHORITIES } from "../registry/dpia-verified-authorities.ts";
+import { DPIA_VERIFIED_AUTHORITIES } from "../../../_shared/registry/dpia-verified-authorities.ts";
 
 /** Registry proposition keys whose subsections the ratified spine prose cites. */
 export const DPIA_SPINE_CITED_PROPOSITION_KEYS: readonly string[] = [

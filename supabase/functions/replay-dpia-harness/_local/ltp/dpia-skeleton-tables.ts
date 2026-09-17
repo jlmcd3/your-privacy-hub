@@ -14,9 +14,9 @@
 // labels through the fixed maps below — a token with no map entry prints as it
 // stands rather than being guessed at.
 
-import type { RenderedTable, SkeletonTables } from "../prose/skeleton-render.ts";
+import type { RenderedTable, SkeletonTables } from "../../../_shared/prose/skeleton-render.ts";
 import { DPIA_SKELETON_SECTIONS } from "../prose/plans/dpia.spine.ts";
-import { readDpiaRegime } from "./dpia-deliverables/build.ts";
+import { readDpiaRegime } from "../../../_shared/ltp/dpia-deliverables/build.ts";
 
 type Bag = Record<string, unknown>;
 

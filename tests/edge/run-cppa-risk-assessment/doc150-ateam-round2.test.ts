@@ -200,7 +200,7 @@ Deno.test("doc150 — no scope conflict without an exclusion cue naming a q4 cat
 Deno.test("doc150 — the AENA authority label carries both official identifiers in both corpus maps", async () => {
   for (const p of [
     "supabase/functions/_shared/corpus/maps/risk-corpus-map.ts",
-    "supabase/functions/_shared/corpus/maps/dpia-corpus-map.ts",
+    "supabase/functions/run-dpia-framework/_local/corpus/maps/dpia-corpus-map.ts",
   ]) {
     const src = await Deno.readTextFile(p);
     assert(src.includes("ref. PS/00431/2024 (Expte. EXP202304532)"), `${p}: paired AENA identifiers missing`);

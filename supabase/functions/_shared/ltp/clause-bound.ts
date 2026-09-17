@@ -235,3 +235,73 @@ export function extractionClause(text: string): string {
   return clauses[0].text;
 }
 
+/**
+ * doc 266 INV-5 (2026-09-17) — `firstSentences` and the quote-aware variant
+ * moved here from dpia-skeleton-assemble.ts (now the DPIA function's _local
+ * module) so the biometric, IR and registration assemblers, and the DPIA
+ * assembler itself, share them without any function importing another
+ * function's module. Bytes unchanged.
+ */
+export function firstSentences(text: string, n: number): string {
+  let rest = text.trim();
+  const out: string[] = [];
+  while (rest && out.length < n) {
+    const one = firstSentence(rest);
+    if (!one) break;
+    out.push(one);
+    rest = rest.slice(one.length).trim();
+  }
+  return out.join(" ");
+}
+
+/**
+ * Quote-aware sentence truncation. Periods inside a double-quoted span
+ * (straight " or curly “ ”) are never treated as sentence boundaries.
+ * Spans are masked before boundary counting and unmasked after slicing.
+ */
+const QUOTE_MASK_CHAR = "\u0001";
+
+export function firstSentencesQuoteAware(text: string, n: number): string {
+  const src = String(text ?? "");
+  const spans: string[] = [];
+  let masked = "";
+  let open: string | null = null;
+  let buf = "";
+  for (const ch of src) {
+    if (open === null) {
+      if (ch === '"' || ch === "\u201C") {
+        open = ch === '"' ? '"' : "\u201D";
+        buf = ch;
+      } else {
+        masked += ch;
+      }
+    } else {
+      buf += ch;
+      if (ch === open) {
+        spans.push(buf);
+        masked += QUOTE_MASK_CHAR.repeat(buf.length);
+        buf = "";
+        open = null;
+      }
+    }
+  }
+  if (open !== null) {
+    // Unterminated quote — mask the remainder so its periods never split.
+    spans.push(buf);
+    masked += QUOTE_MASK_CHAR.repeat(buf.length);
+  }
+
+  // Masking is length-preserving, so masked indices map 1:1 onto the source.
+  let idx = 0;
+  while (idx < masked.length && /\s/.test(masked[idx])) idx += 1;
+  const start = idx;
+  let taken = 0;
+  while (idx < masked.length && taken < n) {
+    const one = firstSentence(masked.slice(idx));
+    if (!one) break;
+    idx += one.length;
+    taken += 1;
+    while (idx < masked.length && /\s/.test(masked[idx])) idx += 1;
+  }
+  return src.slice(start, idx).trim();
+}

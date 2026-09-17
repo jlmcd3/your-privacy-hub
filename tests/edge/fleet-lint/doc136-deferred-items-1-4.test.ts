@@ -51,7 +51,7 @@ Deno.test("doc136 — ADMT: pathway-dependent condition asks for pathway-uniform
 
 // ── DPIA — Art. 35(3)(c) engagement-map wiring ──────────────────────────────
 
-import { assembleDpiaSkeletonDocument } from "../../../supabase/functions/_shared/ltp/dpia-skeleton-assemble.ts";
+import { assembleDpiaSkeletonDocument } from "../../../supabase/functions/run-dpia-framework/_local/ltp/dpia-skeleton-assemble.ts";
 import { buildDpiaEngagementMap } from "../../../supabase/functions/_shared/engagement-map.ts";
 
 function triggerRow(document: ReturnType<typeof assembleDpiaSkeletonDocument>["document"]): string | undefined {

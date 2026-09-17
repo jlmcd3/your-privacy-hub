@@ -102,7 +102,7 @@ Deno.test("DPIA-P3: a UK-regime record treats an EEA marker as outside the domes
 });
 
 Deno.test("DPIA-P2: matrix DESCRIPTIVE sentences follow row status — open asks read 'in part', never 'provided the necessary information'", async () => {
-  const mod = await import("../../../supabase/functions/_shared/ltp/dpia-skeleton-assemble.ts");
+  const mod = await import("../../../supabase/functions/run-dpia-framework/_local/ltp/dpia-skeleton-assemble.ts");
   // Exercise via the exported helper surface if present; otherwise assert on
   // an assembled matrix from a minimal report.
   const report: Bag = {

@@ -14,7 +14,7 @@ import {
   advisoryMatchesTable,
   matchAdvisoryRows,
 } from "../../../../supabase/functions/_shared/corpus/advisory-surfacing.ts";
-import { buildDpiaAdvisoryCorpusMatches } from "../../../../supabase/functions/_shared/ltp/dpia-skeleton-assemble.ts";
+import { buildDpiaAdvisoryCorpusMatches } from "../../../../supabase/functions/run-dpia-framework/_local/ltp/dpia-skeleton-assemble.ts";
 import { CYBER_CORPUS_MAP } from "../../../../supabase/functions/run-cppa-cybersecurity/_local/corpus/maps/cyber-corpus-map.ts";
 import { ADMT_CORPUS_MAP } from "../../../../supabase/functions/run-admt-checker-v2/_local/corpus/maps/admt-corpus-map.ts";
 import { RISK_CORPUS_MAP } from "../../../../supabase/functions/_shared/corpus/maps/risk-corpus-map.ts";

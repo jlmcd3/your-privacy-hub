@@ -73,7 +73,7 @@ export const DPIA_THIN_SPOTS: readonly ThinSpot[] = [
     consequence:
       "As written, the necessity section sets out the impact of the processing and compares only the options you have described. Your answer states no outcome the processing achieves, so the balance renders with one side only.",
     consequenceSource:
-      "src/pages/DPIAFramework.tsx necessity guidance; supabase/functions/_shared/ltp/dpia-csc.ts (necessity surface)",
+      "src/pages/DPIAFramework.tsx necessity guidance; supabase/functions/run-dpia-framework/_local/ltp/dpia-csc.ts (necessity surface)",
     advice:
       "Add the other half of the balance: what the processing achieves and for whom, next to what it costs the people affected. A two-sided answer names both — the shape is \"the check removes X, at the cost of Y for the people affected\".",
   },
@@ -89,7 +89,7 @@ export const DPIA_THIN_SPOTS: readonly ThinSpot[] = [
     consequence:
       "As written, the Art. 35(9) section reproduces what you enter here and the status you selected, and nothing further. It draws on no other part of your answers.",
     consequenceSource:
-      "supabase/functions/_shared/ltp/dpia-csc.ts buildDpiaDataSubjectViews (L201-212)",
+      "supabase/functions/run-dpia-framework/_local/ltp/dpia-csc.ts buildDpiaDataSubjectViews (L201-212)",
     advice:
       "Say how you asked, what came back, and what changed as a result. Where views were not sought, give the reason asking is not appropriate.",
   },
@@ -106,7 +106,7 @@ export const DPIA_THIN_SPOTS: readonly ThinSpot[] = [
     consequence:
       "As written, the consultation section states the advice exactly as you enter it — your wording, nothing added. This check noticed only that the entry is brief.",
     consequenceSource:
-      "supabase/functions/_shared/ltp/dpia-csc.ts (consultation surface); src/pages/DPIAFramework.tsx stage 4 guidance",
+      "supabase/functions/run-dpia-framework/_local/ltp/dpia-csc.ts (consultation surface); src/pages/DPIAFramework.tsx stage 4 guidance",
     advice:
       "Give the advice itself, the date it was given, and whether you followed it — and if not, the reason.",
   },

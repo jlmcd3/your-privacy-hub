@@ -14,7 +14,7 @@ import {
   completenessRecommendations,
   rightsByBasisSentence,
 } from "../../../../supabase/functions/generate-ropa-document/register/ropa-skeleton-assemble.ts";
-import { composeRiskSynthesis } from "../../../../supabase/functions/_shared/ltp/dpia-skeleton-assemble.ts";
+import { composeRiskSynthesis } from "../../../../supabase/functions/run-dpia-framework/_local/ltp/dpia-skeleton-assemble.ts";
 import { buildNoticeHtml } from "../../../../supabase/functions/generate-eu-notice/index.ts";
 import { buildTransferAnalysis } from "../../../../supabase/functions/run-governance-assessment/_local/ltp/governance-deliverables/build.ts";
 import { UK_JURISDICTION } from "../../../../supabase/functions/run-governance-assessment/_local/ltp/governance-deliverables/elements.ts";

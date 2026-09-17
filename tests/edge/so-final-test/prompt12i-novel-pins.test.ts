@@ -14,9 +14,9 @@ import {
   buildDpiaDeliverables,
 } from "../../../supabase/functions/_shared/ltp/dpia-deliverables/build.ts";
 import { attachDpiaAttestation } from "../../../supabase/functions/_shared/ltp/dpia-deliverables/attestation.ts";
-import { attachDpiaCsc } from "../../../supabase/functions/_shared/ltp/dpia-csc.ts";
+import { attachDpiaCsc } from "../../../supabase/functions/run-dpia-framework/_local/ltp/dpia-csc.ts";
 import { readDetectFindings } from "../../../supabase/functions/_shared/prose/detect-mode.ts";
-import { assembleDpiaSkeletonDocument } from "../../../supabase/functions/_shared/ltp/dpia-skeleton-assemble.ts";
+import { assembleDpiaSkeletonDocument } from "../../../supabase/functions/run-dpia-framework/_local/ltp/dpia-skeleton-assemble.ts";
 import { checkPerfectDpiaIntake, deficiencyLines } from "../../../supabase/functions/_shared/quality/perfect-closed-loop.ts";
 import { planPinnedOnly } from "../../../supabase/functions/quality-batch-orchestrator/_local/quality/pinned-only.shared.ts";
 import { DPIA_PERFECT_PINNED } from "../../../supabase/functions/quality-batch-orchestrator/_local/golden/dpia-perfect-pinned.ts";

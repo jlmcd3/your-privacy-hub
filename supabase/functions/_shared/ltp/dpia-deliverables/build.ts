@@ -4105,7 +4105,7 @@ export function buildDpiaDeliverables(intake: unknown): DpiaDeliverables {
  *
  * ROOT CAUSE: `risk_count_note` is built inside `buildDpiaDeliverables` from
  * the register as first built, but the CSC check C3
- * (`c3_secondary_use_predicate`, _shared/ltp/dpia-csc.ts) REMOVES register rows
+ * (`c3_secondary_use_predicate`, run-dpia-framework/_local/ltp/dpia-csc.ts) REMOVES register rows
  * whose predicate rests on secondary uses the record denies, and it runs after
  * the attach. Run 24de247c therefore persisted register_count = 4 against a
  * 3-row register.

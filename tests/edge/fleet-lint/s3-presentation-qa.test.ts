@@ -7,7 +7,7 @@
 // HTTP listener at import time.
 
 import { assert, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { buildDpiaTablesBySurface } from "../../../supabase/functions/_shared/ltp/dpia-skeleton-tables.ts";
+import { buildDpiaTablesBySurface } from "../../../supabase/functions/run-dpia-framework/_local/ltp/dpia-skeleton-tables.ts";
 import { buildRiskLedgerTable } from "../../../supabase/functions/run-cppa-risk-assessment-v2/_local/ltp/risk-factor-engine.ts";
 import { lowerFirstWordSafe } from "../../../supabase/functions/run-governance-assessment/_local/ltp/splice-case.ts";
 import { formatReportDateLong } from "../../../supabase/functions/_shared/report-dates.ts";
@@ -58,7 +58,7 @@ Deno.test("S3 VI.3 — risk ledger movement marks render as words", () => {
 // S2.10 — the DPIA status vocabulary states the ask, not the engine idiom.
 Deno.test("S4 S2.10 — DPIA record_insufficient label is the fleet ask", async () => {
   const src = await Deno.readTextFile(
-    new URL("../../../supabase/functions/_shared/ltp/dpia-skeleton-tables.ts", import.meta.url),
+    new URL("../../../supabase/functions/run-dpia-framework/_local/ltp/dpia-skeleton-tables.ts", import.meta.url),
   );
   assert(!src.includes('"The record does not carry the point"'), "engine idiom returned");
   assert(src.includes('record_insufficient: "Additional information required"'), "fleet label missing");
@@ -153,6 +153,6 @@ Deno.test("S3 I.1/I.3 — internal engine/corpus vocabulary stays out of compose
 });
 
 Deno.test("S3 IV.10 — DPIA blockers join with separators and a terminal stop", async () => {
-  const src = await read("supabase/functions/_shared/ltp/dpia-skeleton-assemble.ts");
+  const src = await read("supabase/functions/run-dpia-framework/_local/ltp/dpia-skeleton-assemble.ts");
   assert(src.includes('Sign-off is held open by the following: ${list.join("; ")}.'), "blockers run-on join reintroduced");
 });

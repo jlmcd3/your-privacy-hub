@@ -15,7 +15,7 @@ import {
   buildDpiaMeasuresRights,
   DPIA_CSC_VERSION,
   runDpiaCsc,
-} from "../../../supabase/functions/_shared/ltp/dpia-csc.ts";
+} from "../../../supabase/functions/run-dpia-framework/_local/ltp/dpia-csc.ts";
 import {
   categoryAnsweredByRecord,
   filterCategoriesAgainstRecord,

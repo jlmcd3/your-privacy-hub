@@ -57,7 +57,7 @@ import { formatReportDateLong } from "../../../_shared/report-dates.ts";
 // DOC 176 (2026-09-04) — Syllabus & Record (doc 151); Registration is the
 // seventh product migrated onto the fleet presentation system.
 import { dispositionTone, type SyllabusProjection } from "../../../_shared/prose/syllabus.ts";
-import { firstSentence, firstSentences } from "../../../_shared/ltp/dpia-skeleton-assemble.ts";
+import { firstSentence, firstSentences } from "../../../_shared/ltp/clause-bound.ts";
 
 export const REGISTRATION_SKELETON_ASSEMBLER_STAMP =
   "registration-skeleton-assembler@so8-wire-in-2026-08-10";

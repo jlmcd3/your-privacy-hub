@@ -121,7 +121,7 @@ const SETTLEDNESS_RANK: Readonly<Record<HookSettledness, number>> = { R1: 0, R2:
 /** {section} (doc 213 §5 pattern): which live skeleton section the hook's
  *  determination is documented in (doc 232's factor/determination → section
  *  map). The v4 EDPB-harmonised skeleton
- *  (`_shared/ltp/dpia-skeleton-assemble.ts`) does NOT use doc 230 §4.3's
+ *  (`run-dpia-framework/_local/ltp/dpia-skeleton-assemble.ts`) does NOT use doc 230 §4.3's
  *  literal "section_0_overview"/"section_2_analysis" ids for this content —
  *  those ids exist in `dpia.spine.ts` but carry no composed/"generated"
  *  prose block a hook sentence can attach beside. The live composed blocks
@@ -139,7 +139,7 @@ const SECTION_FOR_ELEMENT: Readonly<Record<string, string>> = {
 };
 
 /** DOC 232 — the DPIA composed block a hook bearing on `element` is
- *  appended beside, in `_shared/ltp/dpia-skeleton-assemble.ts`'s composed-key
+ *  appended beside, in `run-dpia-framework/_local/ltp/dpia-skeleton-assemble.ts`'s composed-key
  *  vocabulary (`"<section_id>:<block_index>"`). Exported so the assembler and
  *  this file's tests read the SAME mapping rather than a second, possibly
  *  drifting copy. */

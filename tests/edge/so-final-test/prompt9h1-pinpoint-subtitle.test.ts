@@ -6,7 +6,7 @@ import { buildLegalBasis } from "../../../supabase/functions/_shared/ltp/dpia-de
 import {
   DPIA_SKELETON_SUBTITLE_EU,
   DPIA_SKELETON_SUBTITLE_UK,
-} from "../../../supabase/functions/_shared/prose/plans/dpia.spine.ts";
+} from "../../../supabase/functions/run-dpia-framework/_local/prose/plans/dpia.spine.ts";
 import { DPIA_PERFECT_PINNED } from "../../../supabase/functions/quality-batch-orchestrator/_local/golden/dpia-perfect-pinned.ts";
 import { checkPerfectDpiaIntake } from "../../../supabase/functions/_shared/quality/perfect-closed-loop.ts";
 

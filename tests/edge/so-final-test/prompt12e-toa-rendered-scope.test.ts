@@ -11,7 +11,7 @@ import {
   attachDpiaDeliverables,
   buildDpiaDeliverables,
 } from "../../../supabase/functions/_shared/ltp/dpia-deliverables/build.ts";
-import { assembleDpiaSkeletonDocument } from "../../../supabase/functions/_shared/ltp/dpia-skeleton-assemble.ts";
+import { assembleDpiaSkeletonDocument } from "../../../supabase/functions/run-dpia-framework/_local/ltp/dpia-skeleton-assemble.ts";
 import {
   DPIA_RENDERED_CONCLUSION_SURFACES,
   dpiaRenderedConclusionText,

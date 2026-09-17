@@ -30,7 +30,7 @@ import { DPIA_SPINE_CITED_AUTHORITIES } from "../report-exhibits/dpia-spine-auth
 
 // PROMPT 9A — compact-label presentation (registry + R4 merge). Presentation
 // only: nothing here changes an ask, a template sentence, or the gap table.
-import { mergeLabeledAsks, renderMergedLabel } from "./dpia-ask-labels.ts";
+import { mergeLabeledAsks, renderMergedLabel } from "../../../_shared/ltp/dpia-ask-labels.ts";
 import {
   renderSkeletonDocument,
   skeletonDocumentToText,
@@ -40,23 +40,28 @@ import {
   type RenderedSkeletonDocument,
   type RenderedTable,
   type SlotValues,
-} from "../prose/skeleton-render.ts";
+} from "../../../_shared/prose/skeleton-render.ts";
 import { buildDpiaSkeletonTables, buildDpiaTablesBySurface } from "./dpia-skeleton-tables.ts";
 // DOC 171 (2026-09-04) — Syllabus & Record (doc 151); DPIA is the second
 // product migrated onto the fleet presentation system.
-import { dispositionTone, type SyllabusProjection } from "../prose/syllabus.ts";
+import { dispositionTone, type SyllabusProjection } from "../../../_shared/prose/syllabus.ts";
 // PROMPT 9H item 3 — the record's regime drives the ToA prefix and the header.
-import { DPIA_NECESSITY_TEST_SENTENCE, dpoFromPreparedBy, namesGdprJurisdiction, readDpiaRegime, readDpiaRegimeScope } from "./dpia-deliverables/build.ts";
-import { repairRegister } from "./register-repair.ts";
+import { DPIA_NECESSITY_TEST_SENTENCE, dpoFromPreparedBy, namesGdprJurisdiction, readDpiaRegime, readDpiaRegimeScope } from "../../../_shared/ltp/dpia-deliverables/build.ts";
+import { repairRegister } from "../../../_shared/ltp/register-repair.ts";
+import { dataSubjectsViewsSlot, dpoSentence } from "../../../_shared/ltp/dpia-deliverables/consultation-sentences.ts";
+export { dataSubjectsViewsSlot, dpoSentence };
 // PROMPT 9J — clause bounding and abbreviation-aware sentence heads live in
 // ONE module so dpia-deliverables/build.ts can share them without a cycle.
-import { boundedClause, boundedPassage, firstSentence, noStop } from "./clause-bound.ts";
-export { boundedClause, boundedPassage, firstSentence };
-import { spliceVerbatim, collapseSeam, humanizeDateISO } from "./verbatim-splice.ts";
-import { naturalCitationCompare } from "./citation-order.ts";
-import { attachCorpusRows } from "../corpus/cam-attach.ts";
+// The multi-sentence heads (`firstSentences`, `firstSentencesQuoteAware`) joined
+// them on 2026-09-17 (doc 266 INV-5) so the biometric, IR and registration
+// assemblers take them from there and stop importing this DPIA-only module.
+import { boundedClause, boundedPassage, firstSentence, firstSentences, firstSentencesQuoteAware, noStop } from "../../../_shared/ltp/clause-bound.ts";
+export { boundedClause, boundedPassage, firstSentence, firstSentences, firstSentencesQuoteAware };
+import { spliceVerbatim, collapseSeam, humanizeDateISO } from "../../../_shared/ltp/verbatim-splice.ts";
+import { naturalCitationCompare } from "../../../_shared/ltp/citation-order.ts";
+import { attachCorpusRows } from "../../../_shared/corpus/cam-attach.ts";
 import { DPIA_CORPUS_MAP } from "../corpus/maps/dpia-corpus-map.ts";
-import { ADVISORY_APPENDIX_PREAMBLE, advisoryMatchesTable, matchAdvisoryRows } from "../corpus/advisory-surfacing.ts";
+import { ADVISORY_APPENDIX_PREAMBLE, advisoryMatchesTable, matchAdvisoryRows } from "../../../_shared/corpus/advisory-surfacing.ts";
 
 // PROMPT 8A (CEO-ratified 2026-08-12) — CITATION STYLE RULING for all DPIA
 // composed prose: running prose spells "Article 35(1)"; parenthetical citations
@@ -124,70 +129,6 @@ function lowerEnumLabel(v: string): string {
   // Leave acronyms and any label whose second character is upper-case alone.
   if (/^[A-Z]{2,}/.test(v)) return v;
   return v.charAt(0).toLowerCase() + v.slice(1);
-}
-
-export function firstSentences(text: string, n: number): string {
-  let rest = text.trim();
-  const out: string[] = [];
-  while (rest && out.length < n) {
-    const one = firstSentence(rest);
-    if (!one) break;
-    out.push(one);
-    rest = rest.slice(one.length).trim();
-  }
-  return out.join(" ");
-}
-
-/**
- * Quote-aware sentence truncation. Periods inside a double-quoted span
- * (straight " or curly “ ”) are never treated as sentence boundaries.
- * Spans are masked before boundary counting and unmasked after slicing.
- */
-const QUOTE_MASK_CHAR = "\u0001";
-
-export function firstSentencesQuoteAware(text: string, n: number): string {
-  const src = String(text ?? "");
-  const spans: string[] = [];
-  let masked = "";
-  let open: string | null = null;
-  let buf = "";
-  for (const ch of src) {
-    if (open === null) {
-      if (ch === '"' || ch === "\u201C") {
-        open = ch === '"' ? '"' : "\u201D";
-        buf = ch;
-      } else {
-        masked += ch;
-      }
-    } else {
-      buf += ch;
-      if (ch === open) {
-        spans.push(buf);
-        masked += QUOTE_MASK_CHAR.repeat(buf.length);
-        buf = "";
-        open = null;
-      }
-    }
-  }
-  if (open !== null) {
-    // Unterminated quote — mask the remainder so its periods never split.
-    spans.push(buf);
-    masked += QUOTE_MASK_CHAR.repeat(buf.length);
-  }
-
-  // Masking is length-preserving, so masked indices map 1:1 onto the source.
-  let idx = 0;
-  while (idx < masked.length && /\s/.test(masked[idx])) idx += 1;
-  const start = idx;
-  let taken = 0;
-  while (idx < masked.length && taken < n) {
-    const one = firstSentence(masked.slice(idx));
-    if (!one) break;
-    idx += one.length;
-    taken += 1;
-    while (idx < masked.length && /\s/.test(masked[idx])) idx += 1;
-  }
-  return src.slice(start, idx).trim();
 }
 
 // ── Slot values ─────────────────────────────────────────────────────────────
@@ -321,42 +262,11 @@ export function descriptionSlots(
   };
 }
 
-/**
- * PROMPT 8 — Section 5. The spine reads "the company has recorded:
- * {dataSubjectsViews}". Absence is stated honestly rather than left blank.
- */
-export function dataSubjectsViewsSlot(intake: Bag): string {
-  const views = spliceVerbatim(s(intake.data_subjects_views));
-  if (views) return noStop(views);
-  const sought = s(intake.data_subjects_views_sought);
-  if (/^(no|not sought|none)/i.test(sought)) {
-    return "that the views of data subjects or their representatives were not sought for this processing";
-  }
-  return "no views of data subjects or their representatives";
-}
-
-export function dpoSentence(intake: Bag): string {
-  const advice = s(intake.dpo_advice);
-  const info = s(intake.dpo_info);
-  if (advice) return `The company has recorded the advice of its data protection officer as follows: ${noStop(advice)}`;
-  if (info) return `The company has recorded its data protection officer as ${noStop(info)}`;
-  // DOC 137 FIX 1 (2026-09-01, confirmed by reading the rendered PDF) —
-  // Section 0's assessment team and the Controller table both credit a DPO
-  // named only in the assessment team roster (via build.ts's
-  // `dpoFromPreparedBy` fallback, S1.8, doc 119) when no formal `dpo_info`
-  // record exists. Without this branch, Section 5 fell straight to the flat
-  // "not recorded … obtained" line with no reference to that named DPO,
-  // reading as a self-contradiction against Section 0/the Controller table
-  // even though the actual gap is narrower: naming a DPO is not the same as
-  // recording that DPO's advice was specifically sought FOR THIS ASSESSMENT.
-  // Reuses `dpoFromPreparedBy` rather than reimplementing it, so the two
-  // surfaces can never diverge on who is credited.
-  const credited = dpoFromPreparedBy(intake);
-  if (credited) {
-    return `The company has not recorded that the advice of ${credited} was specifically sought for this assessment`;
-  }
-  return "The company has not recorded that the advice of a data protection officer has been obtained";
-}
+// Section 5's consultation sentences (`dataSubjectsViewsSlot`, `dpoSentence`)
+// live in ./dpia-deliverables/consultation-sentences.ts since 2026-09-17
+// (doc 266 INV-5): minimal-units.ts reuses them and stays in _shared for the
+// quality harness, while this assembler now lives in the DPIA function's
+// _local tree. Imported with the other modules above and re-exported unchanged.
 
 // ── Composed blocks ─────────────────────────────────────────────────────────
 

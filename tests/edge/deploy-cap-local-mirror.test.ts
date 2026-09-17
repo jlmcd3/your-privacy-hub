@@ -36,6 +36,16 @@ export const DEPLOY_CAP_RELOCATIONS: ReadonlyArray<readonly [string, readonly st
     "run-cppa-cybersecurity",
   ]],
   ["ltp/release-ledger.ts", ["run-cppa-risk-assessment-v2", "ltp-risk-doc-gen", "run-dpia-framework"]],
+  // DPIA renderer (doc 266 INV-5, 2026-09-17) — the DPIA generator and its replay
+  // harness; the quality harness keeps dpia-deliverables/ in _shared and takes
+  // nothing from these.
+  ["ltp/dpia-skeleton-assemble.ts", ["run-dpia-framework", "replay-dpia-harness"]],
+  ["ltp/dpia-skeleton-tables.ts", ["run-dpia-framework", "replay-dpia-harness"]],
+  ["prose/plans/dpia.spine.ts", ["run-dpia-framework", "replay-dpia-harness"]],
+  ["prose/plans/dpia.slotmap.ts", ["run-dpia-framework", "replay-dpia-harness"]],
+  ["report-exhibits/dpia-spine-authorities.ts", ["run-dpia-framework", "replay-dpia-harness"]],
+  ["corpus/maps/dpia-corpus-map.ts", ["run-dpia-framework", "replay-dpia-harness"]],
+  ["ltp/dpia-csc.ts", ["run-dpia-framework"]],
   // governance / admt-v2 / report-pdf
   ["ltp/governance-readiness.ts", ["run-governance-assessment", "generate-report-pdf"]],
   ["ltp/splice-case.ts", ["run-governance-assessment", "run-admt-checker-v2"]],

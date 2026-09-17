@@ -15,8 +15,8 @@ import {
   DPIA_SKELETON_VERSION,
   DPIA_SPINE_HASH,
   serializeDpiaSpine,
-} from "../../../supabase/functions/_shared/prose/plans/dpia.spine.ts";
-import { assembleDpiaSkeletonDocument } from "../../../supabase/functions/_shared/ltp/dpia-skeleton-assemble.ts";
+} from "../../../supabase/functions/run-dpia-framework/_local/prose/plans/dpia.spine.ts";
+import { assembleDpiaSkeletonDocument } from "../../../supabase/functions/run-dpia-framework/_local/ltp/dpia-skeleton-assemble.ts";
 import { skeletonDocumentToText } from "../../../supabase/functions/_shared/prose/skeleton-render.ts";
 
 type Bag = Record<string, unknown>;

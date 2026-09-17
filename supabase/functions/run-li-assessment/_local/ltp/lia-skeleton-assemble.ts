@@ -716,7 +716,7 @@ export function precedentClassSentence(report: Bag, deterministic = false): stri
 
 // DOC 137 (2026-09-01) — the ePrivacy/PECR engagement-map overlay. Same
 // "computed but never rendered" pattern doc 136 fixed for DPIA's Art.
-// 35(3)(c) entry (_shared/ltp/dpia-skeleton-assemble.ts's
+// 35(3)(c) entry (run-dpia-framework/_local/ltp/dpia-skeleton-assemble.ts's
 // DPIA_MATRIX_ROWS[0].reportDetermination): engagement-map.ts's
 // R_EPRIVACY_PECR entry has been attached to report.engagement_map since it
 // shipped, but no LIA renderer ever read it — confirmed absent from a live

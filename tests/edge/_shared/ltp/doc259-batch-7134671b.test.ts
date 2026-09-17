@@ -19,7 +19,7 @@ import { buildDomainFindingsTyped, composeExecutiveSummaryTyped } from "../../..
 import { buildGovernanceDeliverables } from "../../../../supabase/functions/run-governance-assessment/_local/ltp/governance-deliverables/build.ts";
 import { buildLiaDeliverables } from "../../../../supabase/functions/run-li-assessment/_local/ltp/lia-deliverables/build.ts";
 import { applyApprovalCurrency, buildDpiaDeliverables } from "../../../../supabase/functions/_shared/ltp/dpia-deliverables/build.ts";
-import { assembleDpiaSkeletonDocument } from "../../../../supabase/functions/_shared/ltp/dpia-skeleton-assemble.ts";
+import { assembleDpiaSkeletonDocument } from "../../../../supabase/functions/run-dpia-framework/_local/ltp/dpia-skeleton-assemble.ts";
 import { AUTOMATED_DECISION_HUMAN_REVIEW_RE, DPIA_RISK_SPECS } from "../../../../supabase/functions/_shared/ltp/dpia-deliverables/elements.ts";
 import { DPIA_AUTOMATED_DECISION_NATURE, dpiaFrameworkContract } from "../../../../supabase/functions/_shared/intake-contracts/dpia-framework.ts";
 import { buildNoticeHtml as buildEuNoticeHtml } from "../../../../supabase/functions/generate-eu-notice/index.ts";

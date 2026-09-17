@@ -34,15 +34,15 @@ import {
   frameBodyNeedles,
   MACHINE_ABSENCE_SENTENCES,
   PARTIAL_DISCHARGE_RE,
-} from "./csc-absence.ts";
+} from "../../../_shared/ltp/csc-absence.ts";
 export { ABSENCE_CLASS_RE, carriesAbsenceLanguage, frameBodyNeedles, MACHINE_ABSENCE_SENTENCES, PARTIAL_DISCHARGE_RE };
-import type { FrameSet } from "../prose/frames.ts";
-import { detectOnlyRun, recordDetectFindings } from "../prose/detect-mode.ts";
+import type { FrameSet } from "../../../_shared/prose/frames.ts";
+import { detectOnlyRun, recordDetectFindings } from "../../../_shared/prose/detect-mode.ts";
 
 import {
   buildDpiaAssessmentTeam,
   buildDpiaValidationApproval,
-} from "./dpia-deliverables/attestation.ts";
+} from "../../../_shared/ltp/dpia-deliverables/attestation.ts";
 
 export const DPIA_CSC_VERSION = "dpia-csc-2026-08-05-item380r3";
 

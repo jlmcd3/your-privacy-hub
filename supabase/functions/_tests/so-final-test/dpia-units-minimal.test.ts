@@ -13,8 +13,8 @@ import {
   buildEnforcementAnnotations,
   buildRiskRegister,
 } from "../../run-dpia-framework/_local/ltp/dpia-deliverables/build.ts";
-import { assembleDpiaSkeletonDocument } from "../../_shared/ltp/dpia-skeleton-assemble.ts";
-import { runDpiaCsc } from "../../_shared/ltp/dpia-csc.ts";
+import { assembleDpiaSkeletonDocument } from "../../run-dpia-framework/_local/ltp/dpia-skeleton-assemble.ts";
+import { runDpiaCsc } from "../../run-dpia-framework/_local/ltp/dpia-csc.ts";
 import { runEmitGate } from "../../_shared/emit-gate.ts";
 
 const RETIRED_NOTE =

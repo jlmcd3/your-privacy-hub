@@ -23,7 +23,7 @@ import {
   buildDpiaDeliverables,
   blockerSlot,
 } from "../../../supabase/functions/_shared/ltp/dpia-deliverables/build.ts";
-import { assembleDpiaSkeletonDocument } from "../../../supabase/functions/_shared/ltp/dpia-skeleton-assemble.ts";
+import { assembleDpiaSkeletonDocument } from "../../../supabase/functions/run-dpia-framework/_local/ltp/dpia-skeleton-assemble.ts";
 import { skeletonDocumentToText } from "../../../supabase/functions/_shared/prose/skeleton-render.ts";
 
 // ── 1. THE RATIFIED BYTES ───────────────────────────────────────────────────

@@ -10,7 +10,7 @@ import { mapInvariants } from "../../../archive/unwired/_shared/corpus/cam-verif
 import type { CamRow, CorpusMap } from "../../../supabase/functions/_shared/corpus/cam-types.ts";
 import { RISK_CORPUS_MAP } from "../../../supabase/functions/_shared/corpus/maps/risk-corpus-map.ts";
 import { ADMT_CORPUS_MAP } from "../../../supabase/functions/run-admt-checker-v2/_local/corpus/maps/admt-corpus-map.ts";
-import { DPIA_CORPUS_MAP } from "../../../supabase/functions/_shared/corpus/maps/dpia-corpus-map.ts";
+import { DPIA_CORPUS_MAP } from "../../../supabase/functions/run-dpia-framework/_local/corpus/maps/dpia-corpus-map.ts";
 import {
   CYBER_CORPUS_MAP,
   CYBER_PROCEDURAL_FACTORS,
@@ -467,7 +467,7 @@ Deno.test("ADMT_CORPUS_MAP: every factor_id matches a real Appendix B factor lab
 
 Deno.test("DPIA_CORPUS_MAP: every factor_id matches a real DPIA_MATRIX_ROWS label", async () => {
   const src = await Deno.readTextFile(
-    "supabase/functions/_shared/ltp/dpia-skeleton-assemble.ts",
+    "supabase/functions/run-dpia-framework/_local/ltp/dpia-skeleton-assemble.ts",
   );
   const knownLabels = new Set<string>();
   for (const m of src.matchAll(/label:\s*"([^"]+)"/g)) knownLabels.add(m[1]);

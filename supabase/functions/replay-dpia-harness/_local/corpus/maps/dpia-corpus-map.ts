@@ -2,7 +2,7 @@
 // Built per doc 52 §6 against the live EDPB corpus (queried 2026-08-22,
 // snapshot: tests/edge/corpus/__snapshots__/corpus-snapshot-dpia.json).
 // factor_id values are the EXACT labels in DPIA_MATRIX_ROWS
-// (supabase/functions/_shared/ltp/dpia-skeleton-assemble.ts).
+// (supabase/functions/run-dpia-framework/_local/ltp/dpia-skeleton-assemble.ts).
 //
 // WP248 criteria ↔ REASONS_TO_CONDUCT sweep (doc 52 §6 required set):
 // REASONS_TO_CONDUCT (src/pages/DPIAFramework.enums.ts) offers a direct
@@ -18,7 +18,7 @@
 // monitoring its EMPLOYEES' workstations and internet activity — neither
 // large-scale nor a public area. Filed as PN-CORPUS-L-DPIA-1.
 
-import type { CorpusMap } from "../cam-types.ts";
+import type { CorpusMap } from "../../../../_shared/corpus/cam-types.ts";
 
 // WAVE C2 (2026-08-23, doc 57 / doc 63 §4 — CEO-ratified via the Fable
 // block's advance acceptance): the determinism fix's build-time record,
@@ -133,7 +133,7 @@ export const DPIA_CORPUS_MAP: CorpusMap = {
       logic_bearing: true,
       logic_disposition: {
         kind: "implemented",
-        branch_ref: "supabase/functions/_shared/ltp/dpia-skeleton-assemble.ts:section2_coverage",
+        branch_ref: "supabase/functions/run-dpia-framework/_local/ltp/dpia-skeleton-assemble.ts:section2_coverage",
       },
       provenance: { verified_on: "2026-08-22" },
       curation_note:
@@ -153,7 +153,7 @@ export const DPIA_CORPUS_MAP: CorpusMap = {
       logic_bearing: true,
       logic_disposition: {
         kind: "implemented",
-        branch_ref: "supabase/functions/_shared/ltp/dpia-skeleton-assemble.ts:section2_coverage",
+        branch_ref: "supabase/functions/run-dpia-framework/_local/ltp/dpia-skeleton-assemble.ts:section2_coverage",
       },
       provenance: { verified_on: "2026-08-22" },
       curation_note:
@@ -173,7 +173,7 @@ export const DPIA_CORPUS_MAP: CorpusMap = {
       logic_bearing: true,
       logic_disposition: {
         kind: "implemented",
-        branch_ref: "supabase/functions/_shared/ltp/dpia-skeleton-assemble.ts:composeArt36Sentence",
+        branch_ref: "supabase/functions/run-dpia-framework/_local/ltp/dpia-skeleton-assemble.ts:composeArt36Sentence",
       },
       provenance: { verified_on: "2026-08-22" },
       curation_note:
@@ -195,7 +195,7 @@ export const DPIA_CORPUS_MAP: CorpusMap = {
       logic_bearing: true,
       logic_disposition: {
         kind: "implemented",
-        branch_ref: "supabase/functions/_shared/ltp/dpia-skeleton-assemble.ts:dataSubjectsViewsSlot",
+        branch_ref: "supabase/functions/run-dpia-framework/_local/ltp/dpia-skeleton-assemble.ts:dataSubjectsViewsSlot",
       },
       provenance: { verified_on: "2026-08-23" },
       curation_note:
@@ -217,7 +217,7 @@ export const DPIA_CORPUS_MAP: CorpusMap = {
       logic_bearing: true,
       logic_disposition: {
         kind: "implemented",
-        branch_ref: "supabase/functions/_shared/ltp/dpia-skeleton-assemble.ts:label: \"DPIA requirement / high-risk trigger\"",
+        branch_ref: "supabase/functions/run-dpia-framework/_local/ltp/dpia-skeleton-assemble.ts:label: \"DPIA requirement / high-risk trigger\"",
       },
       provenance: { verified_on: "2026-08-23" },
       curation_note:

@@ -165,7 +165,7 @@ Deno.test("doc135 — DPIA: processor-inventory gap now uses the terms-coverage 
 
 Deno.test("doc135 — DPIA: sign-off guard now names the current residual-risk band counts", async () => {
   const src = await Deno.readTextFile(
-    new URL("../../../supabase/functions/_shared/ltp/dpia-skeleton-assemble.ts", import.meta.url),
+    new URL("../../../supabase/functions/run-dpia-framework/_local/ltp/dpia-skeleton-assemble.ts", import.meta.url),
   );
   assert(src.includes("bandSummary"), "current-band summary variable missing from composeSignoffBody");
 });

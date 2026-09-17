@@ -3192,7 +3192,7 @@ async function runStitch(dpia_id: string): Promise<void> {
     // reader receives agrees with the record it was built from. Telemetry
     // rides `_meta.internal.dpia_csc`. Fail-open.
     try {
-      const { attachDpiaCsc } = await import("../_shared/ltp/dpia-csc.ts");
+      const { attachDpiaCsc } = await import("./_local/ltp/dpia-csc.ts");
       const csc = attachDpiaCsc(reportData as Record<string, unknown>, {
         intake: dpiaIntake ?? {},
         frameSet: dpiaFrameSet,
@@ -3368,7 +3368,7 @@ async function runStitch(dpia_id: string): Promise<void> {
       // and Art. 35(11) in long form, which the short-form harvest above never
       // matched. They are authorities of every record and join the exhibit.
       const { withDpiaSpineAuthorities } = await import(
-        "../_shared/report-exhibits/dpia-spine-authorities.ts"
+        "./_local/report-exhibits/dpia-spine-authorities.ts"
       );
       const exhibit = buildAuthorityExhibit(
         withDpiaSpineAuthorities(cited),
@@ -3444,7 +3444,7 @@ async function runStitch(dpia_id: string): Promise<void> {
     // assembled document survives it. Fail-open.
     try {
       const { assembleDpiaSkeletonDocument, DPIA_SKELETON_ASSEMBLER_STAMP } =
-        await import("../_shared/ltp/dpia-skeleton-assemble.ts");
+        await import("./_local/ltp/dpia-skeleton-assemble.ts");
       // DOC 230 B6 / DOC 232 — the v3 hook-sentence append (§9-2
       // ORCHESTRATOR DEFAULT). `dpiaV3Append` is `{obligation_sentences:
       // [], adequacy_sentences: []}` whenever DPIA_V3_ENABLED is false or no

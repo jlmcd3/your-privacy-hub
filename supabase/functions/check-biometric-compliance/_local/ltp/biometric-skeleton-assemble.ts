@@ -43,7 +43,7 @@ import {
 } from "../../../_shared/prose/skeleton-render.ts";
 import { repairRegister } from "../../../_shared/ltp/register-repair.ts";
 import { isSentenceValued } from "../../../_shared/prose/slots.ts";
-import { firstSentence, firstSentences } from "../../../_shared/ltp/dpia-skeleton-assemble.ts";
+import { firstSentence, firstSentences } from "../../../_shared/ltp/clause-bound.ts";
 
 export const BIOMETRIC_SKELETON_ASSEMBLER_STAMP = "biometric-skeleton-assembler@so6-wire-in-2026-08-10";
 

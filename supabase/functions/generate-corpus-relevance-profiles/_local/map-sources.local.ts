@@ -3,7 +3,7 @@
 import type { GeneratorCamRow } from "./generate.ts";
 import { LIA_CORPUS_MAP, LIA_FACTOR_VOCABULARY } from "../../run-li-assessment/_local/corpus/maps/lia-corpus-map.ts";
 import { RISK_CORPUS_MAP } from "../../_shared/corpus/maps/risk-corpus-map.ts";
-import { DPIA_CORPUS_MAP } from "../../_shared/corpus/maps/dpia-corpus-map.ts";
+import { DPIA_CORPUS_MAP } from "../../run-dpia-framework/_local/corpus/maps/dpia-corpus-map.ts";
 import { ADMT_CORPUS_MAP } from "../../run-admt-checker-v2/_local/corpus/maps/admt-corpus-map.ts";
 import type { CorpusMap } from "../../_shared/corpus/cam-types.ts";
 

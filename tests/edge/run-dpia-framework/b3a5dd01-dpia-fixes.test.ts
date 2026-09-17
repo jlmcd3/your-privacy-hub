@@ -10,7 +10,7 @@
 //       qualifier — a specific named qualifier reads as a genuine
 //       assessment, not an assurance.
 import { assert, assertEquals, assertStringIncludes } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { composeNecessityDetermination } from "../../../supabase/functions/_shared/ltp/dpia-skeleton-assemble.ts";
+import { composeNecessityDetermination } from "../../../supabase/functions/run-dpia-framework/_local/ltp/dpia-skeleton-assemble.ts";
 
 type Bag = Record<string, unknown>;
 

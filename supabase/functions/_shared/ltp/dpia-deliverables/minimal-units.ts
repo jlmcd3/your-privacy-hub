@@ -15,7 +15,8 @@
  * bytes must not change.
  *
  * SINGLE-SOURCE LAW: the DPO sentence and the data-subject-views sentence
- * are the assembler's own (`dpoSentence`, `dataSubjectsViewsSlot`) — reused,
+ * are the assembler's own (`dpoSentence`, `dataSubjectsViewsSlot`, housed in
+ * ./consultation-sentences.ts since 2026-09-17, doc 266 INV-5) — reused,
  * never re-written here.
  *
  * DO NOT TOUCH: sign-off / approval leaf keys (name, role, approved_by_name,
@@ -26,7 +27,7 @@
 import {
   dataSubjectsViewsSlot,
   dpoSentence,
-} from "../dpia-skeleton-assemble.ts";
+} from "./consultation-sentences.ts";
 import type { DpiaDecision, DpiaDetermination } from "./types.ts";
 
 export const DPIA_MINIMAL_UNITS_VERSION = "dpia-minimal-unit-surfaces-2026-08-12-prompt10";

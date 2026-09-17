@@ -288,7 +288,7 @@ Deno.test("DPIA-1: consent or contract satisfies condition 1 but leaves 2 unreso
 // cell stays "No follow-up required" (the status is closed by design — no
 // intake field exists that could resolve it).
 Deno.test("DOC 142: the Article 20 row renders 'Not independently assessed' with no follow-up", async () => {
-  const { buildDpiaTablesBySurface } = await import("../../_shared/ltp/dpia-skeleton-tables.ts");
+  const { buildDpiaTablesBySurface } = await import("../../run-dpia-framework/_local/ltp/dpia-skeleton-tables.ts");
   const cov = coverage({ legal_basis_proposed: "Contract (Art. 6(1)(b))" });
   const tables = buildDpiaTablesBySurface({ section2_coverage: cov }, intake());
   const t = tables["section2_coverage.measures_rights"];

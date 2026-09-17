@@ -3,7 +3,7 @@
 // side (dpia-skeleton-assemble.ts); the spine and its bytes are untouched.
 
 import { assert, assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { assembleDpiaSkeletonDocument } from "../../../supabase/functions/_shared/ltp/dpia-skeleton-assemble.ts";
+import { assembleDpiaSkeletonDocument } from "../../../supabase/functions/run-dpia-framework/_local/ltp/dpia-skeleton-assemble.ts";
 import { buildDpiaDeliverables } from "../../../supabase/functions/_shared/ltp/dpia-deliverables/build.ts";
 import { DPIA_PERFECT_SET } from "../../../supabase/functions/quality-batch-orchestrator/_local/golden/registry.ts";
 

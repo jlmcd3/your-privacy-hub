@@ -22,9 +22,9 @@ import {
   composeNecessityBody,
   composeNecessityDetermination,
   DPIA_S3_STEP4_IMPACT_LEAD,
-} from "../../../../supabase/functions/_shared/ltp/dpia-skeleton-assemble.ts";
-import { buildDpiaTablesBySurface } from "../../../../supabase/functions/_shared/ltp/dpia-skeleton-tables.ts";
-import { DPIA_SKELETON_SECTIONS } from "../../../../supabase/functions/_shared/prose/plans/dpia.spine.ts";
+} from "../../../../supabase/functions/run-dpia-framework/_local/ltp/dpia-skeleton-assemble.ts";
+import { buildDpiaTablesBySurface } from "../../../../supabase/functions/run-dpia-framework/_local/ltp/dpia-skeleton-tables.ts";
+import { DPIA_SKELETON_SECTIONS } from "../../../../supabase/functions/run-dpia-framework/_local/prose/plans/dpia.spine.ts";
 
 type Bag = Record<string, unknown>;
 const OP = "AI-Driven User Content Recommendation Engine";
@@ -110,7 +110,7 @@ Deno.test("CEO 2026-09-10 — DPIA sections are numbered 1–7 (the overview is 
 
 Deno.test("CEO 2026-09-10 — every customer-facing cross-reference moved with the renumbering; the cover subtitle takes the Risk cover's form", async () => {
   const read = (rel: string) => Deno.readTextFile(new URL(`../../../../supabase/functions/${rel}`, import.meta.url));
-  const assemble = await read("_shared/ltp/dpia-skeleton-assemble.ts");
+  const assemble = await read("run-dpia-framework/_local/ltp/dpia-skeleton-assemble.ts");
   assertStringIncludes(assemble, "The “Processing,” assessed under ${regime === \"UK\" ? \"UK GDPR\" : \"GDPR\"} Art. 35");
   assert(!assemble.includes("Art. 35 · the “Processing”"), "the old subtitle form is gone");
   for (const moved of ["(Section 5)`", "(Section 7)`", "(Section 7)\"", "are stated in Section 7.", "set out in Section 5${"]) {
@@ -119,10 +119,10 @@ Deno.test("CEO 2026-09-10 — every customer-facing cross-reference moved with t
   for (const stale of ["(Section 4)", "(Section 6)", "stated in Section 6.", "set out in Section 4${"]) {
     assert(!assemble.includes(stale), `stale cross-reference survived: ${stale}`);
   }
-  const tables = await read("_shared/ltp/dpia-skeleton-tables.ts");
+  const tables = await read("run-dpia-framework/_local/ltp/dpia-skeleton-tables.ts");
   assertStringIncludes(tables, "the decision on the processing itself is stated in Section 7.");
   assert(!tables.includes("stated in Section 6."), "Section 0's approval note must point at Section 7");
-  const csc = await read("_shared/ltp/dpia-csc.ts");
+  const csc = await read("run-dpia-framework/_local/ltp/dpia-csc.ts");
   assertStringIncludes(csc, "recorded with the decision in Section 7.");
   const build = await read("_shared/ltp/dpia-deliverables/build.ts");
   assertStringIncludes(build, "are recorded in the Section 2 inventory.");

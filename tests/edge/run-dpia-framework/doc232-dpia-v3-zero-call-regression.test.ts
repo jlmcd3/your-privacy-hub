@@ -31,7 +31,7 @@ import { DPIA_HOOKS_DEFAULT, DPIA_HOOKS_ENABLED } from "../../../supabase/functi
 import { DPIA_HOOKS } from "../../../supabase/functions/run-dpia-framework/_local/corpus/maps/dpia-hooks.ts";
 import { planDpiaHookSelection } from "../../../supabase/functions/run-dpia-framework/_local/ltp/dpia-deliverables/dpia-hook-join.ts";
 import { buildDpiaRuleStates } from "../../../supabase/functions/run-dpia-framework/_local/ltp/dpia-deliverables/rule-states.ts";
-import { assembleDpiaSkeletonDocument } from "../../../supabase/functions/_shared/ltp/dpia-skeleton-assemble.ts";
+import { assembleDpiaSkeletonDocument } from "../../../supabase/functions/run-dpia-framework/_local/ltp/dpia-skeleton-assemble.ts";
 
 // ── 1. Flag defaults ────────────────────────────────────────────────────
 

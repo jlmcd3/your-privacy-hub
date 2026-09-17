@@ -10,7 +10,7 @@ import {
   buildSection2Coverage,
   UK_SCH1_EMPLOYMENT_SENTENCE,
 } from "../../../supabase/functions/_shared/ltp/dpia-deliverables/build.ts";
-import { dpiaToa } from "../../../supabase/functions/_shared/ltp/dpia-skeleton-assemble.ts";
+import { dpiaToa } from "../../../supabase/functions/run-dpia-framework/_local/ltp/dpia-skeleton-assemble.ts";
 
 const EMPLOYMENT_CONDITION = "Employment, social security & social protection law (Art. 9(2)(b))";
 

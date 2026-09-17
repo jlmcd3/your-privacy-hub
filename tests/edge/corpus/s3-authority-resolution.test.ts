@@ -103,7 +103,7 @@ const CHECKS: readonly ProductCheck[] = [
   },
   {
     product: "dpia",
-    authorityFile: "supabase/functions/_shared/ltp/dpia-skeleton-assemble.ts",
+    authorityFile: "supabase/functions/run-dpia-framework/_local/ltp/dpia-skeleton-assemble.ts",
     authorityRegex: /authority:\s*"([^"]+)"/g,
     registryFile: "supabase/functions/_shared/registry/dpia-verified-authorities.ts",
     keyword: "Art",

@@ -213,7 +213,7 @@ Deno.test("blockers merge across operations with the R4 scope suffix", () => {
 
 
 Deno.test("legacy report without `decision` still composes via the fallback", async () => {
-  const { assembleDpiaSkeletonDocument } = await import("../../_shared/ltp/dpia-skeleton-assemble.ts");
+  const { assembleDpiaSkeletonDocument } = await import("../../run-dpia-framework/_local/ltp/dpia-skeleton-assemble.ts");
   assert(typeof assembleDpiaSkeletonDocument === "function");
   const out = assembleDpiaSkeletonDocument(
     {
