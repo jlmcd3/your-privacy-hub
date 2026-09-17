@@ -125,7 +125,7 @@ export const CPPA_RISK_GATES: readonly GateSpec[] = [
   {
     id: "G.applicability.train_admt",
     jurisdiction_tag: CPPA,
-    description: "Applicability gate — § 7150(b)(6) processing personal information to train an ADMT or identification technology.",
+    description: "Applicability gate — § 7150(b)(6) processing personal information to train an ADMT for a significant decision concerning a consumer, or to train identification technology.",
     intake_fields: ["q_trains_admt"],
     on_block: "suppress_assertions",
     anchor_pinpoint: "11 CCR § 7150(b)(6)",

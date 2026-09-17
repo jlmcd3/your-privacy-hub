@@ -327,7 +327,7 @@ function validationApprovalTable(report: Bag): RenderedTable | null {
   // FACT the record carries — an approval date — not the presence of a name.
   const approvalRecorded = s(v.approval_date) !== "";
   return particulars("validation_approval", "Validation and approval", [
-    ["Attested", v.attested === true ? "Yes" : "Not attested on the record"],
+    ["Attested", v.attested === true ? "Yes — the record names the approver, their title and the approval date" : "Not attested on the record"],
     [approvalRecorded ? "Approved by" : "Named as approver (approval not recorded)", s(v.approved_by_name)],
     ["Title", s(v.approved_by_title)],
     ["Date of approval", s(v.approval_date) || "Not recorded"],
@@ -354,7 +354,7 @@ function dataItemsTable(inv: Bag): RenderedTable | null {
   const rows = asArray(inv.data_items).map((d) => [
     cell(d.item),
     // DOC 257 (2026-09-11, ChatGPT v2 DPIA-R2-04): "Other" names no data item.
-    /^other$/i.test(cell(d.item)) ? "Not classified — “Other” names no data item; state the item" : d.special_category === true ? "Special category" : "Not a special category",
+    /^other$/i.test(cell(d.item)) ? "Not classified — “Other” names no data item; state the item" : /^other — /i.test(cell(d.item)) ? "Not a special category (item named by the company)" : d.special_category === true ? "Special category" : "Not a special category",
     cell(d.art9_condition_label),
     label(d.status),
     needed(d.information_needed, d.status),
@@ -607,7 +607,12 @@ function riskRegisterTable(rowsIn: Bag[]): RenderedTable | null {
     label(r.likelihood),
     label(r.severity),
     label(r.inherent_band),
-    strList(r.measures).join("; ") || "No measure is recorded against this risk.",
+    strList(r.measures).join("; ") ||
+      // doc 263 run 1 (2026-09-17, batch eac083a5 f46) — a measure the company
+      // described in its own words is not "no measure".
+      (typeof r.other_measure_recorded === "string" && r.other_measure_recorded.trim()
+        ? `No listed safeguard is mapped to this risk; the company also records: ${r.other_measure_recorded.trim().replace(/[.\s]+$/, "")}.`
+        : "No measure is recorded against this risk."),
     label(r.residual_band),
   ]);
   return table("risk_register", "Risk register", [

@@ -751,7 +751,7 @@ export const PANEL_GOVERNANCE: PanelFixture[] = [
       transfer_mechanism: "EU Standard Contractual Clauses (SCCs)",
       territorial_scope_basis: ["Established in the EU or EEA", "We offer goods or services to people in the EU or UK"],
       processor_count: "4 — Microsoft 365 / Copilot, Salesforce + Einstein, HubSpot, Adobe Creative Cloud",
-      transfer_routes: "Microsoft 365 / Copilot — EU Standard Contractual Clauses (SCCs)\nSalesforce + Einstein — EU Standard Contractual Clauses (SCCs)\nHubSpot — EU Standard Contractual Clauses (SCCs)\nAdobe Creative Cloud — EU Standard Contractual Clauses (SCCs)",
+      transfer_routes: "Microsoft 365 / Copilot — EU Standard Contractual Clauses (SCCs)\nSalesforce + Einstein — EU Standard Contractual Clauses (SCCs) with the UK Addendum for the UK leg\nHubSpot — EU Standard Contractual Clauses (SCCs)\nAdobe Creative Cloud — EU Standard Contractual Clauses (SCCs)",
       technical_controls: "Yes — DLP/content filtering actively enforced",
       technical_controls_list: ["DLP rules", "Content filtering", "Endpoint upload restrictions", "Approval workflow"],
       dsr_capability: "Yes — documented and tested across all vendors",

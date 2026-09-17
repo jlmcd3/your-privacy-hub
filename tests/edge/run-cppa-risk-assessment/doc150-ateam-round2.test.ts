@@ -81,7 +81,7 @@ const B4_B6_REPORT: Bag = {
   scope_and_triggers: {
     narrative: [
       "Engaged — 11 CCR § 7150(b)(4) (inferring characteristics from systematic observation of consumers acting as the business's employees, contractors, students, or job or educational-program applicants): the record supports this trigger and this activity falls within the risk-assessment obligation.",
-      "Engaged — 11 CCR § 7150(b)(6) (processing personal information to train an ADMT or identification technology): the record supports this trigger and this activity falls within the risk-assessment obligation.",
+      "Engaged — 11 CCR § 7150(b)(6) (processing personal information to train an ADMT for a significant decision concerning a consumer, or to train identification technology): the record supports this trigger and this activity falls within the risk-assessment obligation.",
     ],
   },
 };

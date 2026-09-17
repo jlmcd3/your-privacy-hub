@@ -1563,8 +1563,14 @@ export function buildTransferAnalysis(intake: unknown): TransferAnalysis {
   // at organisation level, not per tool, and the sentence says so rather
   // than guessing which legs are covered.
   if (f.occurring === true && (verdict as Verdict) !== "satisfied" && recordedTools.length) {
+    // doc 263 run 1 (2026-09-17, batch eac083a5 f1) — transfer_routes (asked
+    // since 2026-09-16) carries the per-route position in the company's own
+    // words; the organisation-level sentence is stated only when it is empty.
+    const routes = str(get(intake, "transfer_routes")).split(/\r?\n+/).map((x) => x.trim()).filter(Boolean);
     parts.push(
-      `The tools the company has recorded in use are ${recordedTools.join(", ")}. The record states the transfer position at organisation level, not per tool, so each of those tools' transfer legs stands or falls with the mechanism position assessed above; a leg without an executed mechanism has no lawful route under the chapter identified for it.`,
+      routes.length
+        ? `The tools the company has recorded in use are ${recordedTools.join(", ")}. The record describes the transfer routes as follows: ${routes.map((r) => `“${r.replace(/[.\s]+$/, "")}”`).join("; ")}. A leg without an executed mechanism has no lawful route under the chapter identified for it.`
+        : `The tools the company has recorded in use are ${recordedTools.join(", ")}. The record states the transfer position at organisation level, not per tool, so each of those tools' transfer legs stands or falls with the mechanism position assessed above; a leg without an executed mechanism has no lawful route under the chapter identified for it.`,
     );
   }
 

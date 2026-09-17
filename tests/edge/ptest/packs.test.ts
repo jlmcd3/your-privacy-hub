@@ -12,6 +12,9 @@ import {
   buildAdmtRegistryPack,
   buildCyberBlockCatalogue,
   buildCyberRegistryPack,
+  buildDpiaRegistryPack,
+  buildGovernanceRegistryPack,
+  buildLiaRegistryPack,
   buildRiskBlockCatalogue,
   buildRiskRegistryPack,
 } from "../../../scripts/ptest/build-packs.ts";
@@ -32,6 +35,9 @@ Deno.test("packs — committed registry packs equal a rebuild from the live regi
   assertEquals(REGISTRY_PACKS["cppa-risk"], buildRiskRegistryPack());
   assertEquals(REGISTRY_PACKS["cppa-admt"], buildAdmtRegistryPack());
   assertEquals(REGISTRY_PACKS["cppa-cyber"], buildCyberRegistryPack());
+  assertEquals(REGISTRY_PACKS["dpia"], buildDpiaRegistryPack());
+  assertEquals(REGISTRY_PACKS["lia"], buildLiaRegistryPack());
+  assertEquals(REGISTRY_PACKS["governance"], buildGovernanceRegistryPack());
 });
 
 Deno.test("packs — committed block catalogues equal a rebuild over the golden panel (risk from provenance; ADMT and cyber from rendered text)", async () => {
@@ -47,6 +53,10 @@ Deno.test("packs — committed block catalogues equal a rebuild over the golden 
 Deno.test("packs — every risk and ADMT row carries verbatim text; every cyber row is a locator", () => {
   for (const r of REGISTRY_PACKS["cppa-risk"].rows) assert(r.verbatim_quote && r.verbatim_quote.length > 20, r.proposition_key);
   for (const r of REGISTRY_PACKS["cppa-admt"].rows) assert(r.verbatim_quote && r.verbatim_quote.length > 20, r.proposition_key);
+  for (const p of ["dpia", "lia", "governance"]) {
+    assert(REGISTRY_PACKS[p].rows.length > 5, `${p} pack has rows`);
+    for (const r of REGISTRY_PACKS[p].rows) assert(r.verbatim_quote && r.verbatim_quote.length > 10, `${p}:${r.proposition_key}`);
+  }
   for (const r of REGISTRY_PACKS["cppa-cyber"].rows) {
     assertEquals(r.verbatim_quote, null, r.proposition_key);
     assert(r.locator && r.locator.starts_with.length > 0 && r.locator.ends_with.length > 0, r.proposition_key);

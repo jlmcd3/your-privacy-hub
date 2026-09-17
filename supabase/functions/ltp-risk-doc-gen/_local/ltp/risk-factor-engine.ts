@@ -1414,7 +1414,7 @@ export function runRiskFactorEngine(
       intake.i5_admt_logic,
       intake.q3_sector,
     ].map(s).join("\n");
-    return !/\b(employees?|employment|workers?|workforce|contractors?|staff|personnel|HR\b|recruit(ing|ment)?|hiring|job applicants?|students?|educational[- ]program|keystroke|productivity (scor|monitor)|telematics)\b/i
+    return !/\b(employ(?:ees?|ed|ment)|workers?|workforce|contractors?|staff|personnel|HR\b|recruit(ing|ment)?|hiring|job applicants?|students?|educational[- ]program|keystroke|productivity (scor|monitor)|telematics)\b/i
       .test(scenarioText);
   })();
   // b(6): the training answer names significant-decision use, but the
@@ -2364,7 +2364,7 @@ export function runRiskFactorEngine(
       case 6: {
         const v = s(intake.q18b_admt_training);
         return /^Yes/.test(v)
-          ? `the Company answers “${v}” on processing personal information to train an ADMT or identification technology`
+          ? `the Company answers “${v}” on processing personal information to train an ADMT for a significant decision concerning a consumer, or to train identification technology`
           : null;
       }
       default:

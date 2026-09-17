@@ -318,6 +318,9 @@ function deriveAssessmentProfileRecord(intake: Bag, reportDate: string): Rendere
     rows: [
       field("Entity", "entity_name"),
       field("Industry", "industry"),
+      // doc 263 run 1 (2026-09-17, batch eac083a5 f5) — the A2 applicability
+      // determination rests on the revenue band; the provenance table keeps it.
+      field("Annual revenue", "q1_revenue"),
       field("Primary framework", "framework"),
       field("Most recent audit", "last_audit"),
       field("Incidents (12 months)", "incidents_12mo"),

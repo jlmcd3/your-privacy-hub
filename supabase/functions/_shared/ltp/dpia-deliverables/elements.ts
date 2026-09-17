@@ -66,6 +66,8 @@ export interface RiskSpec {
 export interface RiskFacts {
   readonly dataCategories: readonly string[];
   readonly safeguards: readonly string[];
+  /** doc 263 run 1 — the "Other" safeguard in the company's own words (safeguards_other). */
+  readonly safeguardsOther: string;
   /** DOC 252 §10 item 2 — the record's own human-intervention sentence, or "". */
   readonly humanInterventionSpan?: string;
   readonly processors: readonly string[];

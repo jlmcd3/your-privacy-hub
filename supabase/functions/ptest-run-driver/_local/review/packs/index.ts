@@ -8,6 +8,9 @@ import type { BlockCatalogue, GoldenPanelPack, RegistryPack, RegistryPackRow } f
 import { RISK_REGISTRY_PACK } from "./risk-registry.pack.ts";
 import { ADMT_REGISTRY_PACK } from "./admt-registry.pack.ts";
 import { CYBER_REGISTRY_PACK } from "./cyber-registry.pack.ts";
+import { DPIA_REGISTRY_PACK } from "./dpia-registry.pack.ts";
+import { LIA_REGISTRY_PACK } from "./lia-registry.pack.ts";
+import { GOVERNANCE_REGISTRY_PACK } from "./governance-registry.pack.ts";
 import { RISK_BLOCK_CATALOGUE } from "./risk-block-catalogue.pack.ts";
 import { ADMT_BLOCK_CATALOGUE } from "./admt-block-catalogue.pack.ts";
 import { CYBER_BLOCK_CATALOGUE } from "./cyber-block-catalogue.pack.ts";
@@ -21,6 +24,10 @@ export const REGISTRY_PACKS: Readonly<Record<string, RegistryPack>> = {
   "cppa-risk": RISK_REGISTRY_PACK,
   "cppa-admt": ADMT_REGISTRY_PACK,
   "cppa-cyber": CYBER_REGISTRY_PACK,
+  // doc 263 run 1 (2026-09-17) — the GDPR products, built from their own registries.
+  "dpia": DPIA_REGISTRY_PACK,
+  "lia": LIA_REGISTRY_PACK,
+  "governance": GOVERNANCE_REGISTRY_PACK,
 };
 
 export const BLOCK_CATALOGUES: Readonly<Record<string, BlockCatalogue>> = {

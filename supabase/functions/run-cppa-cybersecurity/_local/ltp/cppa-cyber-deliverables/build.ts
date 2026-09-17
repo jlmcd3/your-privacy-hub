@@ -755,7 +755,11 @@ export function buildIndependenceDetermination(facts: CyberFacts): IndependenceD
   else verdict = "satisfied";
 
   const summary = verdict === "satisfied"
-    ? `The engagement described on the record meets the § 7122 qualification and independence conditions.`
+    // doc 263 run 1 (2026-09-17, batch eac083a5 f3/f4) — the record evidences
+    // independence (doc 159 keeps the engagement verdict satisfied on a written
+    // confirmation); no intake question records the auditor's qualifications,
+    // so the sentence claims only what the record carries.
+    ? `The engagement described on the record meets the § 7122 independence condition; the record does not separately identify the auditor's qualifications.`
     : verdict === "not_satisfied"
     ? `The engagement described on the record does not meet ${unsatisfied.length} § 7122 condition` +
       `${unsatisfied.length === 1 ? "" : "s"}: ${unsatisfied.map((f) => f.label).join("; ")}.`

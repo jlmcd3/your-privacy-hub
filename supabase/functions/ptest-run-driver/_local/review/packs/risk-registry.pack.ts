@@ -5,7 +5,7 @@ import type { RegistryPack } from "./types.ts";
 
 export const RISK_REGISTRY_PACK: RegistryPack = {
   "product": "cppa-risk",
-  "registry_version": "risk-va-w1-2026-07-24",
+  "registry_version": "risk-va-w1-2026-09-17",
   "generated_on": "2026-09-14",
   "rows": [
     {
@@ -271,6 +271,120 @@ export const RISK_REGISTRY_PACK: RegistryPack = {
       "citation": "11 CCR § 7001",
       "subsection": "11 CCR § 7001(e)(1)",
       "verbatim_quote": "For purposes of this definition, to \"substantially replace human decisionmaking\" means a business uses the technology's output to make a decision without human involvement."
+    },
+    {
+      "proposition_key": "ra_human_involvement_elements",
+      "citation": "11 CCR § 7001",
+      "subsection": "11 CCR § 7001(e)(1)",
+      "verbatim_quote": "(A) Know how to interpret and use the technology's output to make the decision; (B) Review and analyze the output of the technology, and any other information that is relevant to make or change the decision; and (C) Have the authority to make or change the decision based on their analysis in subsection (B)."
+    },
+    {
+      "proposition_key": "ra_significant_decision_def",
+      "citation": "11 CCR § 7001",
+      "subsection": "11 CCR § 7001(ddd)",
+      "verbatim_quote": "\"Significant decision\" means a decision that results in the provision or denial of financial or lending services, housing, education enrollment or opportunities, employment or independent contracting opportunities or compensation, or healthcare services."
+    },
+    {
+      "proposition_key": "ra_content_admt_logic_output",
+      "citation": "11 CCR § 7152",
+      "subsection": "11 CCR § 7152(a)(3)(G)",
+      "verbatim_quote": "For the uses of ADMT set forth in section 7150, subsections (b)(3), the business must identify: (i) The logic of the ADMT, including any assumptions or limitations of the logic; and (ii) The output of the ADMT, and how the business will use the output to make a significant decision."
+    },
+    {
+      "proposition_key": "ra_negative_impact_unauthorized_access",
+      "citation": "11 CCR § 7152",
+      "subsection": "11 CCR § 7152(a)(5)(A)",
+      "verbatim_quote": "Unauthorized access, destruction, use, modification, or disclosure of personal information; and unauthorized activity resulting in the loss of availability of personal information."
+    },
+    {
+      "proposition_key": "ra_negative_impact_discrimination",
+      "citation": "11 CCR § 7152",
+      "subsection": "11 CCR § 7152(a)(5)(B)",
+      "verbatim_quote": "Discrimination upon the basis of protected characteristics that would violate federal or state law."
+    },
+    {
+      "proposition_key": "ra_negative_impact_control",
+      "citation": "11 CCR § 7152",
+      "subsection": "11 CCR § 7152(a)(5)(C)",
+      "verbatim_quote": "Impairing consumers' control over their personal information, such as by providing insufficient information for consumers to make an informed decision regarding the processing of their personal information, or by interfering with consumers' ability to make choices consistent with their reasonable expectations."
+    },
+    {
+      "proposition_key": "ra_negative_impact_coercion",
+      "citation": "11 CCR § 7152",
+      "subsection": "11 CCR § 7152(a)(5)(D)",
+      "verbatim_quote": "Coercing or compelling consumers into allowing the processing of their personal information, such as by conditioning consumers' acquisition or use of an online service upon their disclosure of"
+    },
+    {
+      "proposition_key": "ra_negative_impact_coercion_cont",
+      "citation": "11 CCR § 7152",
+      "subsection": "11 CCR § 7152(a)(5)(D)",
+      "verbatim_quote": "personal information that is unnecessary to the expected functionality of the service, or requiring consumers to consent to processing when such consent cannot be freely given (e.g., because it was obtained through the use of a dark pattern)."
+    },
+    {
+      "proposition_key": "ra_negative_impact_economic",
+      "citation": "11 CCR § 7152",
+      "subsection": "11 CCR § 7152(a)(5)(E)",
+      "verbatim_quote": "Economic harms, including limiting or depriving consumers of economic opportunities, charging consumers higher prices, or compensating consumers at lower rates based upon profiling; or imposing additional costs upon consumers, including costs associated with the unauthorized access to consumers' personal information."
+    },
+    {
+      "proposition_key": "ra_negative_impact_physical",
+      "citation": "11 CCR § 7152",
+      "subsection": "11 CCR § 7152(a)(5)(F)",
+      "verbatim_quote": "Physical harms to consumers or to property, including processing that creates the opportunity for physical or sexual violence."
+    },
+    {
+      "proposition_key": "ra_negative_impact_reputational",
+      "citation": "11 CCR § 7152",
+      "subsection": "11 CCR § 7152(a)(5)(G)",
+      "verbatim_quote": "Reputational harms, including stigmatization, that could negatively impact an average consumer, such as stigmatization of a consumer as a result of a mobile dating application's disclosure of the consumer's sexual or other preferences in a partner outside of the dating application."
+    },
+    {
+      "proposition_key": "ra_negative_impact_psychological",
+      "citation": "11 CCR § 7152",
+      "subsection": "11 CCR § 7152(a)(5)(H)",
+      "verbatim_quote": "Psychological harms, including emotional distress, stress, anxiety, embarrassment, fear, frustration, shame, and feelings of violation, that could negatively impact an average consumer."
+    },
+    {
+      "proposition_key": "ra_safeguard_admt_policies",
+      "citation": "11 CCR § 7152",
+      "subsection": "11 CCR § 7152(a)(6)(A)(iv)",
+      "verbatim_quote": "Implementing policies, procedures, and training to ensure that the business's ADMT works for the business's purpose and does not unlawfully discriminate based upon protected characteristics."
+    },
+    {
+      "proposition_key": "ra_submit_point_of_contact",
+      "citation": "11 CCR § 7157",
+      "subsection": "11 CCR § 7157(b)(1)",
+      "verbatim_quote": "The business's name and a point of contact for the business, including the contact's name, phone number, and email address."
+    },
+    {
+      "proposition_key": "ra_submit_signer_qualifications",
+      "citation": "11 CCR § 7157",
+      "subsection": "11 CCR § 7157(c)(1)-(2)",
+      "verbatim_quote": "(1) Is directly responsible for the business's risk-assessment compliance; (2) Has sufficient knowledge of the business's risk assessment to provide accurate information; and"
+    },
+    {
+      "proposition_key": "ra_submit_signer_authority",
+      "citation": "11 CCR § 7157",
+      "subsection": "11 CCR § 7157(c)(3)",
+      "verbatim_quote": "Has the authority to submit the risk assessment information to the Agency."
+    },
+    {
+      "proposition_key": "ccpa_dns_link",
+      "citation": "Cal. Civ. Code § 1798.135",
+      "subsection": "Cal. Civ. Code § 1798.135(a)(1)",
+      "verbatim_quote": "Provide a clear and conspicuous link on the business' internet homepages, titled \"Do Not Sell or Share My Personal Information,\" to an internet web page that enables a consumer, or a person authorized by the consumer, to opt out of the sale or sharing of the consumer's personal information."
+    },
+    {
+      "proposition_key": "ra_content_interaction_method",
+      "citation": "11 CCR § 7152",
+      "subsection": "11 CCR § 7152(a)(3)(C)",
+      "verbatim_quote": "The business's method of interacting with the consumers whose personal information the business plans to process (e.g., via websites, applications, or offline) and the purpose of the interaction (e.g., to provide a good or service)."
+    },
+    {
+      "proposition_key": "ra_content_consumer_count",
+      "citation": "11 CCR § 7152",
+      "subsection": "11 CCR § 7152(a)(3)(D)",
+      "verbatim_quote": "The approximate number of consumers whose personal information the business plans to process."
     },
     {
       "proposition_key": "ccpa_third_party_def",

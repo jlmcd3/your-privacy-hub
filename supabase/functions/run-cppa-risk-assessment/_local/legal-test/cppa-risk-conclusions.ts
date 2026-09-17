@@ -212,7 +212,7 @@ const RULE_CONCLUSIONS: readonly ConclusionSpec[] = [
     jurisdiction_tag: CPPA,
     surface: "applicability",
     anchor: { corpus_key: "cppa-7150", pinpoint: "11 CCR § 7150(b)(6)" },
-    display_label: "Processing personal information to train an ADMT or identification technology",
+    display_label: "Processing personal information to train an ADMT for a significant decision concerning a consumer, or to train identification technology",
     description:
       "A risk assessment is required when the business processes the personal information of consumers which it intends "
       + "to use to train an ADMT for a significant decision concerning a consumer, or to train a facial-recognition, "

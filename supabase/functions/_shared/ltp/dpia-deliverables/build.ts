@@ -1200,6 +1200,8 @@ const HUMAN_INTERVENTION_FIELDS: readonly string[] = [
   "data_subject_rights_mechanisms",
   "data_quality_measures",
   "mitigating_measures",
+  // doc 263 run 1 (2026-09-17) — the "Other" safeguard the company describes.
+  "safeguards_other",
   "description",
 ];
 // The actor must be a person or a role a person holds: "a named underwriter
@@ -1265,6 +1267,9 @@ function facts(intake: unknown): RiskFacts {
   return {
     dataCategories: arr(get(intake, "data_categories")),
     safeguards: arr(get(intake, "existing_safeguards")).filter((s) => s !== "None"),
+    // doc 263 run 1 (2026-09-17, batch eac083a5 f46) — the "Other" safeguard
+    // the company describes in its own words (asked since 2026-09-16).
+    safeguardsOther: str(get(intake, "safeguards_other")),
     humanInterventionSpan: readHumanInterventionSpan(intake),
     processors: arr(get(intake, "third_party_processors")),
     transferCount: flows.length,
@@ -1341,14 +1346,17 @@ export function buildRiskRegister(intake: unknown): RiskRegisterEntry[] {
       likelihood = "Likely";
     }
 
-    const inherent_band = bandFromSeverity(spec.severity);
-    const residual_band: RiskBand = likelihood === "Unlikely"
-      ? lower(inherent_band, 1)
-      : likelihood === "Possible"
-      ? inherent_band
-      : inherent_band === "low"
-      ? "moderate"
-      : inherent_band;
+    // doc 263 run 1 (2026-09-17, batch eac083a5 f64) — ONE matrix reads both
+    // bands: the initial band is the severity band at the worst likelihood
+    // (before any measure), the remaining band the same matrix at the
+    // likelihood the record's safeguard coverage gives. A row with no
+    // measure therefore keeps its initial band; the remaining band is never
+    // higher than the initial one.
+    const severityBand = bandFromSeverity(spec.severity);
+    const bandAt = (l: Likelihood): RiskBand =>
+      l === "Unlikely" ? lower(severityBand, 1) : l === "Possible" ? severityBand : severityBand === "low" ? "moderate" : severityBand;
+    const inherent_band = bandAt("Likely");
+    const residual_band: RiskBand = bandAt(likelihood);
 
     const insufficient = measures.length === 0;
 
@@ -1369,6 +1377,7 @@ export function buildRiskRegister(intake: unknown): RiskRegisterEntry[] {
       severity: spec.severity,
       inherent_band,
       measures,
+      ...(f.safeguardsOther ? { other_measure_recorded: f.safeguardsOther } : {}),
       residual_band,
       // PROMPT 12B item 1 — the risks anchor carries the RISKS verbatim alone.
       citation: a.citation || cit(regime, "Art. 35(7)(c)"),
@@ -2779,9 +2788,30 @@ export function buildProcessingInventory(intake: unknown): DpiaProcessingInvento
   // biometric data is not used…", "Not yet established — …") are not a named
   // condition and never second-guess the biometric purpose test.
   const art9Named = art9 && !/^Not applicable|^Not yet established/i.test(art9) ? art9 : "";
+  // doc 263 run 1 (2026-09-17, batch eac083a5 f44/f65) — the "Other" category
+  // is named by data_categories_other (asked since 2026-09-16). A named item
+  // renders under the company's own words; an unnamed one is an open ask, not
+  // an assessed row.
+  const otherNamed = str(get(intake, "data_categories_other"));
   const data_items: DpiaInventoryDataItem[] = arr(get(intake, "data_categories")).map((item) => {
     const specialByLabel = (SPECIAL_CATEGORY_CATS_LOCAL as readonly string[]).includes(item);
     const special = specialByLabel && !(item === "Biometric data" && !art9Named && biometricNonIdentifying);
+    if (/^other$/i.test(item)) {
+      return otherNamed
+        ? {
+          item: `Other — ${otherNamed}`,
+          special_category: false,
+          status: "analysed" as const,
+          source_field: "data_categories_other",
+        }
+        : {
+          item,
+          special_category: false,
+          status: "record_insufficient" as const,
+          information_needed: "State the data item recorded under \"Other\".",
+          source_field: "data_categories",
+        };
+    }
     if (!special) {
       return {
         item,
@@ -2933,6 +2963,8 @@ const RESIDUAL_ART5_TABLE =
   "The recorded measures address the relevant Article 5 principles at the level of the processing activity; no additional principle-by-principle breakdown is necessary to the determinations reached in this DPIA.";
 const RESIDUAL_RIGHTS_TABLE =
   "The recorded rights-request process addresses the applicable data-subject rights through a common request, verification, and response procedure; no additional right-by-right breakdown is necessary to the determinations reached in this DPIA.";
+const RESIDUAL_RIGHTS_TABLE_UNVERIFIED =
+  "The recorded rights-request process addresses the applicable data-subject rights through the request-and-response route the record describes; no additional right-by-right breakdown is necessary to the determinations reached in this DPIA.";
 // DPIA-1 — the legal-basis condition is met, but Art. 20's other two
 // conditions (data provided by/observed from the data subject; automated
 // means) have NO intake field at all, today, for any record — unlike a
@@ -3626,7 +3658,9 @@ export function buildSection2Coverage(
         citation: cit(regime, "Arts. 12–22"),
         authority_verbatim: "",
         status: "analysed" as const,
-        residual_note: RESIDUAL_RIGHTS_TABLE,
+        // doc 263 run 1 (2026-09-17, batch eac083a5 f66) — "verification" is
+        // asserted only where the record describes one.
+        residual_note: /verif|identit|confirm/i.test(rights) ? RESIDUAL_RIGHTS_TABLE : RESIDUAL_RIGHTS_TABLE_UNVERIFIED,
         source_field: "data_subject_rights_mechanisms",
       }
       : {

@@ -39,7 +39,7 @@ export interface RegistryPackRow {
 }
 
 export interface RegistryPack {
-  readonly product: "cppa-risk" | "cppa-admt" | "cppa-cyber";
+  readonly product: "cppa-risk" | "cppa-admt" | "cppa-cyber" | "dpia" | "lia" | "governance";
   /** The source registry's own version constant. */
   readonly registry_version: string;
   readonly generated_on: string;
@@ -63,7 +63,7 @@ export interface BlockCatalogueEntry {
 }
 
 export interface BlockCatalogue {
-  readonly product: "cppa-risk" | "cppa-admt" | "cppa-cyber";
+  readonly product: "cppa-risk" | "cppa-admt" | "cppa-cyber" | "dpia" | "lia" | "governance";
   readonly spine_version: string;
   readonly generated_on: string;
   /** Fixture ids the observed unions were taken over. */
@@ -77,7 +77,7 @@ export interface BlockCatalogue {
 export interface GoldenPanelPack {
   readonly generated_on: string;
   readonly entries: ReadonlyArray<{
-    readonly product: "cppa-risk" | "cppa-admt" | "cppa-cyber";
+    readonly product: "cppa-risk" | "cppa-admt" | "cppa-cyber" | "dpia" | "lia" | "governance";
     readonly ref: string;
     readonly label: string;
     readonly intake_data: Record<string, unknown>;

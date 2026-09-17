@@ -235,7 +235,11 @@ function expectationPhraseFor(answer: string): string {
   if (exact) return exact;
   if (/^yes\b/i.test(answer)) return "would";
   if (/^probably\b/i.test(answer)) return "would probably";
-  if (/^(?:maybe|partly|unsure)\b/i.test(answer)) return "may not";
+  // doc 263 run 1 (2026-09-17, batch eac083a5 lia f1) — "Partly" is a partial
+  // expectation, not a negative one (Section 3 already reads it as "only
+  // partly expect"); "Maybe"/"Unsure" are open, not negative.
+  if (/^partly\b/i.test(answer)) return "may only partly";
+  if (/^(?:maybe|unsure)\b/i.test(answer)) return "may or may not";
   if (/^unlikely\b/i.test(answer)) return "would probably not";
   if (/^no\b/i.test(answer)) return "would not";
   return "";

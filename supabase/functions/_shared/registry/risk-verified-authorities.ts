@@ -32,7 +32,7 @@ import type {
 } from "../verified-authority-resolver.ts";
 
 /** Registry version tag. Bumped on any row add/edit; grader may pin against it. */
-export const RISK_VERIFIED_AUTHORITY_VERSION = "risk-va-w1-2026-07-24";
+export const RISK_VERIFIED_AUTHORITY_VERSION = "risk-va-w1-2026-09-17";
 
 /** Canonical published text for §§ 7150–7157 (OAL-approved package). */
 const CCR_URL =
@@ -43,6 +43,8 @@ const CIV_CODE_140_URL =
   "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=CIV&sectionNum=1798.140.";
 const CIV_CODE_185_URL =
   "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=CIV&sectionNum=1798.185.";
+const CIV_CODE_135_URL =
+  "https://leginfo.legislature.ca.gov/faces/codes_displaySection.xhtml?lawCode=CIV&sectionNum=1798.135.";
 
 /** Verification date — the date these rows were hand-verified against the primary source. */
 const VOD = "2026-07-24";
@@ -556,6 +558,221 @@ export const RISK_VERIFIED_AUTHORITIES: VerifiedAuthorityRegistry = {
     depth_class: "sub_subsection",
     governing_anchor: ART10,
     verified_on: "2026-08-22",
+    primary_source_url: CCR_URL,
+  }),
+
+  // ---- doc 263 run 1 (2026-09-17) — rows the documents cite that the pack
+  // lacked (batch 8a8475f8, W-LAW "NO ROW"). Each is a contiguous corpus
+  // substring; a page header in the corpus text bounds a row where it falls
+  // mid-provision (§ 7152(a)(5)(D), § 7157(c)).
+  ra_human_involvement_elements: R({
+    proposition_key: "ra_human_involvement_elements",
+    citation: "11 CCR § 7001",
+    subsection: "11 CCR § 7001(e)(1)",
+    verbatim_quote:
+      "(A) Know how to interpret and use the technology's output to make the decision; (B) Review and analyze the output of the technology, and any other information that is relevant to make or change the decision; and (C) Have the authority to make or change the decision based on their analysis in subsection (B).",
+    depth_class: "clause",
+    governing_anchor: ART10,
+    verified_on: "2026-09-17",
+    primary_source_url: CCR_URL,
+  }),
+  ra_significant_decision_def: R({
+    proposition_key: "ra_significant_decision_def",
+    citation: "11 CCR § 7001",
+    subsection: "11 CCR § 7001(ddd)",
+    verbatim_quote:
+      "\"Significant decision\" means a decision that results in the provision or denial of financial or lending services, housing, education enrollment or opportunities, employment or independent contracting opportunities or compensation, or healthcare services.",
+    depth_class: "subsection",
+    governing_anchor: ART10,
+    verified_on: "2026-09-17",
+    primary_source_url: CCR_URL,
+  }),
+  ra_content_admt_logic_output: R({
+    proposition_key: "ra_content_admt_logic_output",
+    citation: "11 CCR § 7152",
+    subsection: "11 CCR § 7152(a)(3)(G)",
+    verbatim_quote:
+      "For the uses of ADMT set forth in section 7150, subsections (b)(3), the business must identify: (i) The logic of the ADMT, including any assumptions or limitations of the logic; and (ii) The output of the ADMT, and how the business will use the output to make a significant decision.",
+    depth_class: "clause",
+    governing_anchor: ART10,
+    verified_on: "2026-09-17",
+    primary_source_url: CCR_URL,
+  }),
+  ra_negative_impact_unauthorized_access: R({
+    proposition_key: "ra_negative_impact_unauthorized_access",
+    citation: "11 CCR § 7152",
+    subsection: "11 CCR § 7152(a)(5)(A)",
+    verbatim_quote:
+      "Unauthorized access, destruction, use, modification, or disclosure of personal information; and unauthorized activity resulting in the loss of availability of personal information.",
+    depth_class: "clause",
+    governing_anchor: ART10,
+    verified_on: "2026-09-17",
+    primary_source_url: CCR_URL,
+  }),
+  ra_negative_impact_discrimination: R({
+    proposition_key: "ra_negative_impact_discrimination",
+    citation: "11 CCR § 7152",
+    subsection: "11 CCR § 7152(a)(5)(B)",
+    verbatim_quote:
+      "Discrimination upon the basis of protected characteristics that would violate federal or state law.",
+    depth_class: "clause",
+    governing_anchor: ART10,
+    verified_on: "2026-09-17",
+    primary_source_url: CCR_URL,
+  }),
+  ra_negative_impact_control: R({
+    proposition_key: "ra_negative_impact_control",
+    citation: "11 CCR § 7152",
+    subsection: "11 CCR § 7152(a)(5)(C)",
+    verbatim_quote:
+      "Impairing consumers' control over their personal information, such as by providing insufficient information for consumers to make an informed decision regarding the processing of their personal information, or by interfering with consumers' ability to make choices consistent with their reasonable expectations.",
+    depth_class: "clause",
+    governing_anchor: ART10,
+    verified_on: "2026-09-17",
+    primary_source_url: CCR_URL,
+  }),
+  ra_negative_impact_coercion: R({
+    proposition_key: "ra_negative_impact_coercion",
+    citation: "11 CCR § 7152",
+    subsection: "11 CCR § 7152(a)(5)(D)",
+    verbatim_quote:
+      "Coercing or compelling consumers into allowing the processing of their personal information, such as by conditioning consumers' acquisition or use of an online service upon their disclosure of",
+    depth_class: "clause",
+    governing_anchor: ART10,
+    verified_on: "2026-09-17",
+    primary_source_url: CCR_URL,
+  }),
+  ra_negative_impact_coercion_cont: R({
+    proposition_key: "ra_negative_impact_coercion_cont",
+    citation: "11 CCR § 7152",
+    subsection: "11 CCR § 7152(a)(5)(D)",
+    verbatim_quote:
+      "personal information that is unnecessary to the expected functionality of the service, or requiring consumers to consent to processing when such consent cannot be freely given (e.g., because it was obtained through the use of a dark pattern).",
+    depth_class: "clause",
+    governing_anchor: ART10,
+    verified_on: "2026-09-17",
+    primary_source_url: CCR_URL,
+  }),
+  ra_negative_impact_economic: R({
+    proposition_key: "ra_negative_impact_economic",
+    citation: "11 CCR § 7152",
+    subsection: "11 CCR § 7152(a)(5)(E)",
+    verbatim_quote:
+      "Economic harms, including limiting or depriving consumers of economic opportunities, charging consumers higher prices, or compensating consumers at lower rates based upon profiling; or imposing additional costs upon consumers, including costs associated with the unauthorized access to consumers' personal information.",
+    depth_class: "clause",
+    governing_anchor: ART10,
+    verified_on: "2026-09-17",
+    primary_source_url: CCR_URL,
+  }),
+  ra_negative_impact_physical: R({
+    proposition_key: "ra_negative_impact_physical",
+    citation: "11 CCR § 7152",
+    subsection: "11 CCR § 7152(a)(5)(F)",
+    verbatim_quote:
+      "Physical harms to consumers or to property, including processing that creates the opportunity for physical or sexual violence.",
+    depth_class: "clause",
+    governing_anchor: ART10,
+    verified_on: "2026-09-17",
+    primary_source_url: CCR_URL,
+  }),
+  ra_negative_impact_reputational: R({
+    proposition_key: "ra_negative_impact_reputational",
+    citation: "11 CCR § 7152",
+    subsection: "11 CCR § 7152(a)(5)(G)",
+    verbatim_quote:
+      "Reputational harms, including stigmatization, that could negatively impact an average consumer, such as stigmatization of a consumer as a result of a mobile dating application's disclosure of the consumer's sexual or other preferences in a partner outside of the dating application.",
+    depth_class: "clause",
+    governing_anchor: ART10,
+    verified_on: "2026-09-17",
+    primary_source_url: CCR_URL,
+  }),
+  ra_negative_impact_psychological: R({
+    proposition_key: "ra_negative_impact_psychological",
+    citation: "11 CCR § 7152",
+    subsection: "11 CCR § 7152(a)(5)(H)",
+    verbatim_quote:
+      "Psychological harms, including emotional distress, stress, anxiety, embarrassment, fear, frustration, shame, and feelings of violation, that could negatively impact an average consumer.",
+    depth_class: "clause",
+    governing_anchor: ART10,
+    verified_on: "2026-09-17",
+    primary_source_url: CCR_URL,
+  }),
+  ra_safeguard_admt_policies: R({
+    proposition_key: "ra_safeguard_admt_policies",
+    citation: "11 CCR § 7152",
+    subsection: "11 CCR § 7152(a)(6)(A)(iv)",
+    verbatim_quote:
+      "Implementing policies, procedures, and training to ensure that the business's ADMT works for the business's purpose and does not unlawfully discriminate based upon protected characteristics.",
+    depth_class: "clause",
+    governing_anchor: ART10,
+    verified_on: "2026-09-17",
+    primary_source_url: CCR_URL,
+  }),
+  ra_submit_point_of_contact: R({
+    proposition_key: "ra_submit_point_of_contact",
+    citation: "11 CCR § 7157",
+    subsection: "11 CCR § 7157(b)(1)",
+    verbatim_quote:
+      "The business's name and a point of contact for the business, including the contact's name, phone number, and email address.",
+    depth_class: "sub_subsection",
+    governing_anchor: ART10,
+    verified_on: "2026-09-17",
+    primary_source_url: CCR_URL,
+  }),
+  ra_submit_signer_qualifications: R({
+    proposition_key: "ra_submit_signer_qualifications",
+    citation: "11 CCR § 7157",
+    subsection: "11 CCR § 7157(c)(1)-(2)",
+    verbatim_quote:
+      "(1) Is directly responsible for the business's risk-assessment compliance; (2) Has sufficient knowledge of the business's risk assessment to provide accurate information; and",
+    depth_class: "sub_subsection",
+    governing_anchor: ART10,
+    verified_on: "2026-09-17",
+    primary_source_url: CCR_URL,
+  }),
+  ra_submit_signer_authority: R({
+    proposition_key: "ra_submit_signer_authority",
+    citation: "11 CCR § 7157",
+    subsection: "11 CCR § 7157(c)(3)",
+    verbatim_quote:
+      "Has the authority to submit the risk assessment information to the Agency.",
+    depth_class: "sub_subsection",
+    governing_anchor: ART10,
+    verified_on: "2026-09-17",
+    primary_source_url: CCR_URL,
+  }),
+  ccpa_dns_link: R({
+    proposition_key: "ccpa_dns_link",
+    citation: "Cal. Civ. Code § 1798.135",
+    subsection: "Cal. Civ. Code § 1798.135(a)(1)",
+    verbatim_quote:
+      "Provide a clear and conspicuous link on the business' internet homepages, titled \"Do Not Sell or Share My Personal Information,\" to an internet web page that enables a consumer, or a person authorized by the consumer, to opt out of the sale or sharing of the consumer's personal information.",
+    depth_class: "sub_subsection",
+    governing_anchor: CCPA_STATUTE,
+    verified_on: "2026-09-17",
+    primary_source_url: CIV_CODE_135_URL,
+  }),
+
+  ra_content_interaction_method: R({
+    proposition_key: "ra_content_interaction_method",
+    citation: "11 CCR § 7152",
+    subsection: "11 CCR § 7152(a)(3)(C)",
+    verbatim_quote:
+      "The business's method of interacting with the consumers whose personal information the business plans to process (e.g., via websites, applications, or offline) and the purpose of the interaction (e.g., to provide a good or service).",
+    depth_class: "clause",
+    governing_anchor: ART10,
+    verified_on: "2026-09-17",
+    primary_source_url: CCR_URL,
+  }),
+  ra_content_consumer_count: R({
+    proposition_key: "ra_content_consumer_count",
+    citation: "11 CCR § 7152",
+    subsection: "11 CCR § 7152(a)(3)(D)",
+    verbatim_quote:
+      "The approximate number of consumers whose personal information the business plans to process.",
+    depth_class: "clause",
+    governing_anchor: ART10,
+    verified_on: "2026-09-17",
     primary_source_url: CCR_URL,
   }),
 

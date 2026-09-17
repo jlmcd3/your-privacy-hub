@@ -151,7 +151,7 @@ const GENERIC_REPORT: Bag = {
   scope_and_triggers: {
     narrative: [
       "Engaged — 11 CCR § 7150(b)(1) (selling or sharing personal information): the record supports this trigger and this activity falls within the risk-assessment obligation.",
-      "Engaged — 11 CCR § 7150(b)(6) (processing personal information to train an ADMT or identification technology): the record supports this trigger and this activity falls within the risk-assessment obligation.",
+      "Engaged — 11 CCR § 7150(b)(6) (processing personal information to train an ADMT for a significant decision concerning a consumer, or to train identification technology): the record supports this trigger and this activity falls within the risk-assessment obligation.",
     ],
   },
 };
@@ -181,7 +181,7 @@ Deno.test("doc142 — an Engaged row with the generic basis cites its qualifying
   const b6 = digest.rows.find((row) => row[0].includes("7150(b)(6)"));
   assert(b6, "b(6) digest row missing");
   assert(
-    b6[1].includes("on processing personal information to train an ADMT or identification technology"),
+    b6[1].includes("on processing personal information to train an ADMT for a significant decision concerning a consumer, or to train identification technology"),
     "b(6) digest row lacks the qualifying answer",
   );
   assert(!b6[1].includes("(Q18b)"), "b(6) digest row still carries a question number");

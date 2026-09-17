@@ -525,7 +525,10 @@ function icoCrosswalkRows(report: Bag): Array<[string, string]> {
     ["Leadership and oversight", dpoAccountabilityRead(dpo)],
     ["Policies and procedures", domainSeverityPhrase(report, /internal.?policy|policy/i)],
     ["Training and awareness", domainSeverityPhrase(report, /training/i)],
-    ["Individuals' rights", domainSeverityPhrase(report, /subject.?rights|rights/i)],
+    // doc 263 run 1 (2026-09-17, batch eac083a5 f27) — only a domain that
+    // assesses rights handling may fill this row; the bare word "rights"
+    // matched the notice domain.
+    ["Individuals' rights", domainSeverityPhrase(report, /individual.?s.?rights|data.?subject.?rights|\bdsr\b/i)],
     ["Transparency", domainSeverityPhrase(report, /privacy.?notice|notice/i)],
     ["Records of processing and lawful basis", art30Read],
     ["Contracts and data sharing", domainSeverityPhrase(report, /vendor|contract/i)],

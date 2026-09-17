@@ -120,6 +120,8 @@ export interface RiskRegisterEntry {
   readonly inherent_band: RiskBand;
   /** Recorded measures that bear on THIS risk (never a generic list). */
   readonly measures: readonly string[];
+  /** doc 263 run 1 — the safeguard the company described in its own words, shown when no listed safeguard maps to the risk. */
+  readonly other_measure_recorded?: string;
   readonly residual_band: RiskBand;
   readonly citation: string;
   readonly authority_verbatim: string;

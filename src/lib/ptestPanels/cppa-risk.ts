@@ -2682,7 +2682,7 @@ export const PANEL_CPPA_RISK: PanelFixture[] = [
       ],
       out_of_scope_confirmation: "The affected information is processed only for the stated purpose and any listed secondary uses",
       comparable_processing_status: "This assessment covers a single processing activity",
-      consumer_relationship_context: "Existing customers or account holders",
+      consumer_relationship_context: "Employees or job applicants",
       source_categories: ["Automatically from consumer devices or interactions"],
       vendor_dependency: "One or more vendors are essential — the processing could not continue without them",
       essential_vendors: "Samsara — the electronic logging device every route-scoring calculation depends on.",

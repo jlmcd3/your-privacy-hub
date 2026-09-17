@@ -303,6 +303,10 @@ function accessProcessPhrase(timelineStatus: SubstantiveState): string {
   if (timelineStatus === "PARTIAL" || timelineStatus === "INSUFFICIENT_RECORD") return "Recommendation — confirm the Company's access-response timeline.";
   return "Supports the access-process requirements.";
 }
+const COUNT_WORDS = ["Zero", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine", "Ten"];
+function countWord(n: number): string {
+  return COUNT_WORDS[n] ?? String(n);
+}
 function accessReadinessPhrase(composite: SubstantiveState): string {
   if (composite === "GAP") return "Condition — the Company cannot yet produce a required explanation element.";
   if (composite === "PARTIAL" || composite === "INSUFFICIENT_RECORD") return "Recommendation — complete readiness for the remaining explanation element.";
@@ -1009,6 +1013,11 @@ export function assembleAdmtV2Document(args: AssembleArgs): RenderedSkeletonDocu
       key: "access:2", surface: "access_process_factors", title: "",
       columns: ["Process requirement", "Company response", "Evidence"],
       rows: [
+        // doc 263 run 1 (2026-09-17, batch eac083a5 admt f5) — the Appendix A
+        // row points here for submission and verification; the recorded
+        // practices render, in the Company's words, or say they are absent.
+        ["Request submission methods", str((intake as any)?.access_submission_methods) || "Not recorded", str((intake as any)?.access_submission_methods) ? "The Company's own description" : "No description on the record"],
+        ["Identity verification", str((intake as any)?.access_verification_process) || "Not recorded", str((intake as any)?.access_verification_process) ? "The Company's own description" : "No description on the record"],
         factorRow("Response timeline", access.timeline),
         factorRow("Secure transmission", access.secureTransmission),
         factorRow("Denial explanation", access.denialEvidence),
@@ -1731,7 +1740,9 @@ function buildFactorMatrixTable(
 
   rows.push(
     ["Access process", `Submission/verification/timeline (see §5 table)`, accessProcessPhrase(access.timeline.status), "11 CCR § 7222(d)–(e); § 7021(a)–(b) (response timeline)"],
-    ["Access readiness", `Five explanation-readiness elements (see §5 table)`, accessReadinessPhrase(access.readinessComposite), "11 CCR § 7222(a)–(b)"],
+    // doc 263 run 1 (2026-09-17, batch eac083a5 admt f4) — the count is the
+    // §5 table's, never a literal.
+    ["Access readiness", `${countWord(Object.keys(access.readiness).length)} explanation-readiness elements (see §5 table)`, accessReadinessPhrase(access.readinessComposite), "11 CCR § 7222(a)–(b)"],
     ["Withholding", factOr(withholdingText), withholdingPhrase(access.withholdingEvidence), "11 CCR § 7222(c)"],
   );
 

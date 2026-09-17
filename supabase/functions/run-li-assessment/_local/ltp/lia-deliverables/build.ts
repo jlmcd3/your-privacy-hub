@@ -633,7 +633,11 @@ export function buildDetermination(
     // on the use WITHOUT reading whether the record already states one. Where
     // the record supplies the route, the mitigation is written FROM it: what
     // is left to do is carry it to the point of first encounter.
-    const recordedStop = !!optOut;
+    // doc 263 run 1 (2026-09-17, batch eac083a5 lia f2/f33) — a recorded
+    // mechanism is a stopping route only where the record does not say that
+    // no opt-out is available; a dispute process that pauses collection is
+    // not an opt-out.
+    const recordedStop = !!optOut && !/^no\b/i.test(optOutAvailable);
     mitigations.push({
       factor: "reasonable_expectations",
       anchor_keys: recordedStop

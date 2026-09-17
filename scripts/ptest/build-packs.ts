@@ -22,6 +22,30 @@ import {
   CYBER_AUTHORITY_LOCATORS,
   CYBER_VERIFIED_AUTHORITY_VERSION,
 } from "../../supabase/functions/run-cppa-cybersecurity/_local/registry/cyber-verified-authorities.ts";
+// doc 263 run 1 (2026-09-17) — the GDPR products' registries (W-LAW had no
+// pack for them, so every legal finding on a DPIA, LIA or Governance
+// document was "NO ROW").
+import {
+  DPIA_VERIFIED_AUTHORITIES,
+  DPIA_VERIFIED_AUTHORITY_VERSION,
+} from "../../supabase/functions/_shared/registry/dpia-verified-authorities.ts";
+import {
+  LIA_VERIFIED_AUTHORITIES,
+  LIA_VERIFIED_AUTHORITY_VERSION,
+} from "../../supabase/functions/run-li-assessment/_local/registry/lia-verified-authorities.ts";
+import {
+  GOVERNANCE_VERIFIED_AUTHORITIES,
+  GOVERNANCE_VERIFIED_AUTHORITY_VERSION,
+} from "../../supabase/functions/run-governance-assessment/_local/registry/governance-verified-authorities.ts";
+import {
+  GOVERNANCE_ACCOUNTABILITY_AUTHORITIES,
+  GOVERNANCE_ACCOUNTABILITY_VERSION,
+} from "../../supabase/functions/run-governance-assessment/_local/registry/governance-accountability-authorities.ts";
+import {
+  GOVERNANCE_DPA2018_WP243_AUTHORITIES,
+  GOVERNANCE_DPA2018_WP243_VERSION,
+} from "../../supabase/functions/run-governance-assessment/_local/registry/governance-dpa2018-wp243-authorities.ts";
+import type { VerifiedAuthorityRegistry } from "../../supabase/functions/_shared/verified-authority-resolver.ts";
 import { SKELETON_SECTIONS, RISK_SKELETON_VERSION } from "../../supabase/functions/run-cppa-risk-assessment-v2/_local/prose/plans/cppa-risk.spine.ts";
 import { generateCppaRiskReport } from "../../supabase/functions/run-cppa-risk-assessment-v2/_local/ltp/generate-cppa-risk.ts";
 import { CPPA_RISK_GOLDEN, CPPA_RISK_PERFECT } from "../../supabase/functions/quality-batch-orchestrator/_local/golden/cppa-risk.ts";
@@ -61,6 +85,36 @@ export function buildAdmtRegistryPack(): RegistryPack {
       subsection: r.subsection,
       verbatim_quote: r.verbatim_quote,
     })),
+  };
+}
+
+function registryRows(...registries: VerifiedAuthorityRegistry[]): RegistryPack["rows"] {
+  const seen = new Set<string>();
+  const rows: Array<RegistryPack["rows"][number]> = [];
+  for (const reg of registries) {
+    for (const r of Object.values(reg)) {
+      if (seen.has(r.proposition_key)) throw new Error(`duplicate proposition_key across registries: ${r.proposition_key}`);
+      seen.add(r.proposition_key);
+      rows.push({ proposition_key: r.proposition_key, citation: r.citation, subsection: r.subsection, verbatim_quote: r.verbatim_quote });
+    }
+  }
+  return rows;
+}
+
+export function buildDpiaRegistryPack(): RegistryPack {
+  return { product: "dpia", registry_version: DPIA_VERIFIED_AUTHORITY_VERSION, generated_on: PACK_GENERATED_ON, rows: registryRows(DPIA_VERIFIED_AUTHORITIES) };
+}
+
+export function buildLiaRegistryPack(): RegistryPack {
+  return { product: "lia", registry_version: LIA_VERIFIED_AUTHORITY_VERSION, generated_on: PACK_GENERATED_ON, rows: registryRows(LIA_VERIFIED_AUTHORITIES) };
+}
+
+export function buildGovernanceRegistryPack(): RegistryPack {
+  return {
+    product: "governance",
+    registry_version: `${GOVERNANCE_VERIFIED_AUTHORITY_VERSION}+${GOVERNANCE_ACCOUNTABILITY_VERSION}+${GOVERNANCE_DPA2018_WP243_VERSION}`,
+    generated_on: PACK_GENERATED_ON,
+    rows: registryRows(GOVERNANCE_VERIFIED_AUTHORITIES, GOVERNANCE_ACCOUNTABILITY_AUTHORITIES, GOVERNANCE_DPA2018_WP243_AUTHORITIES),
   };
 }
 

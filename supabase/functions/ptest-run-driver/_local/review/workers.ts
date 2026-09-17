@@ -232,8 +232,22 @@ export async function runWorkerJob(admin: Admin, opts: WorkerJobOpts): Promise<W
     if (opts.batchId) {
       const rows = findingRows({ batchId: opts.batchId, tool: opts.tool, assessmentId: doc.id, worker: opts.worker, vendor: opts.vendor, jobId: opts.jobId }, v.findings, v.dropped, v.unbound);
       if (rows.length) {
+        // doc 263 run 1 (2026-09-17) — batches 8a8475f8 and eac083a5 lost every
+        // W-LAW row for the CPPA products to a bulk-insert failure that was
+        // only logged. One bad row no longer drops the set, and the failure
+        // text is kept on the review row so SQL shows it.
         const { error: fErr } = await admin.from("ptest_findings").insert(rows);
-        if (fErr) console.error(`[ptest-worker] findings persist failed (${opts.worker}/${opts.vendor}) — ${fErr.message}`);
+        if (fErr) {
+          console.error(`[ptest-worker] findings persist failed (${opts.worker}/${opts.vendor}) — ${fErr.message}; retrying row by row`);
+          const failed: string[] = [];
+          for (const one of rows) {
+            const { error: oneErr } = await admin.from("ptest_findings").insert(one);
+            if (oneErr) failed.push(`${String(one.finding_id ?? "?")}: ${oneErr.message}`);
+          }
+          const note = `findings persist: bulk insert failed (${fErr.message}); ${rows.length - failed.length}/${rows.length} rows kept` +
+            (failed.length ? `; failed: ${failed.slice(0, 5).join(" | ")}` : "");
+          row.score_notes = row.score_notes ? `${row.score_notes}; ${note}` : note;
+        }
       }
     }
   } catch (err) {
