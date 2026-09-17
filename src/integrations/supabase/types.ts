@@ -11835,6 +11835,10 @@ export type Database = {
         }
         Returns: string
       }
+      dismiss_drift_reminder: {
+        Args: { reminder_id: string }
+        Returns: undefined
+      }
       fire_backfill_ai_summaries_async: {
         Args: { p_batch?: number }
         Returns: number
@@ -12002,6 +12006,10 @@ export type Database = {
           n: number
           record_class: string
         }[]
+      }
+      set_registration_renewal_reminders: {
+        Args: { enabled: boolean; order_id: string }
+        Returns: undefined
       }
       set_self_declared_role: {
         Args: {
