@@ -61,6 +61,8 @@ export interface ModelCallResult {
   fellBack: boolean;
   /** Human-readable note about any degradation (model or effort). */
   note: string | null;
+  /** Which answer shape the provider actually served (Anthropic only). */
+  structured?: StructuredMode | null;
 }
 
 function isModelUnavailable(status: number, body: string): boolean {
@@ -74,6 +76,104 @@ function isEffortUnsupported(status: number, body: string): boolean {
 
 // ── Anthropic ───────────────────────────────────────────────────────────────
 
+/**
+ * STRUCTURED ANSWERS (doc 263 run 1, 2026-09-17). Claude Fable 5.1 (the
+ * first reviewer candidate) rejects forced tool use on every request with a
+ * 400 (platform docs, "Response prefill and forced tool use"); the earlier
+ * `tool_choice: {type: "tool"}` therefore never ran on it — the 400 matched
+ * the "structured output unsupported" fallback and the answer came back as
+ * free text, which then failed to parse (batches 90cfff88, 8a8475f8). The
+ * modes below are tried in order; the one that served the answer is reported
+ * on the result so a degraded call is visible in the batch output.
+ *
+ *   output_config — structured outputs: output_config.format json_schema; the
+ *                   provider validates the JSON and returns it as the text
+ *                   block. Supported on every candidate in CLAUDE_REVIEW_MODELS.
+ *   tool_strict   — strict tool use with tool_choice auto (forced choice is
+ *                   the rejected shape); the user turn asks for the call.
+ *   tool_auto     — the same tool without strict validation.
+ *   text          — JSON in prose, parsed by parseJsonObject (last resort).
+ */
+export type StructuredMode = "output_config" | "tool_strict" | "tool_auto" | "text";
+export const STRUCTURED_MODES: readonly StructuredMode[] = ["output_config", "tool_strict", "tool_auto", "text"];
+
+const TOOL_CALL_INSTRUCTION = "Answer by calling the tool provided, with the complete result as its input. Do not answer in prose.";
+
+/** Structured outputs and strict tools require `additionalProperties: false`
+ *  on every object; the reviewer schemas are authored without it. Pure. */
+export function strictSchema(schema: unknown): unknown {
+  if (Array.isArray(schema)) return schema.map(strictSchema);
+  if (!schema || typeof schema !== "object") return schema;
+  const src = schema as Record<string, unknown>;
+  const out: Record<string, unknown> = {};
+  for (const [k, v] of Object.entries(src)) out[k] = strictSchema(v);
+  const isObject = src.type === "object" || (Array.isArray(src.type) && src.type.includes("object")) || typeof src.properties === "object";
+  if (isObject && out.additionalProperties === undefined) out.additionalProperties = false;
+  return out;
+}
+
+/** The request body for one Anthropic call in the given structured mode. Pure. */
+export function anthropicBody(opts: {
+  model: string;
+  system: string;
+  user: string;
+  maxTokens: number;
+  effort: Effort | null;
+  jsonSchema?: JsonSchemaSpec | null;
+  mode: StructuredMode;
+}): Record<string, unknown> {
+  const structured = !!opts.jsonSchema && opts.mode !== "text";
+  const askForTool = structured && opts.mode !== "output_config";
+  const body: Record<string, unknown> = {
+    model: opts.model,
+    max_tokens: opts.maxTokens,
+    // PROMPT CACHE: one static block, cache_control on it. Never interpolate
+    // per-document text into this block.
+    system: [{ type: "text", text: opts.system, cache_control: { type: "ephemeral" } }],
+    messages: [{ role: "user", content: askForTool ? `${opts.user}\n\n${TOOL_CALL_INSTRUCTION}` : opts.user }],
+  };
+  const outputConfig: Record<string, unknown> = {};
+  if (opts.effort) outputConfig.effort = opts.effort;
+  if (structured && opts.mode === "output_config") {
+    outputConfig.format = { type: "json_schema", schema: strictSchema(opts.jsonSchema!.schema) };
+  }
+  if (Object.keys(outputConfig).length) body.output_config = outputConfig;
+  if (askForTool) {
+    const strict = opts.mode === "tool_strict";
+    body.tools = [{
+      name: opts.jsonSchema!.name,
+      description: opts.jsonSchema!.description,
+      input_schema: strict ? strictSchema(opts.jsonSchema!.schema) : opts.jsonSchema!.schema,
+      ...(strict ? { strict: true } : {}),
+    }];
+    body.tool_choice = { type: "auto" };
+  }
+  return body;
+}
+
+/** Every text block is read, never content[0]; a tool_use input wins. Pure. */
+export function readAnthropicContent(d: unknown): { text: string; viaTool: boolean; blockTypes: string[]; stopReason: string } {
+  const msg = (d ?? {}) as { content?: unknown; stop_reason?: unknown };
+  const parts: string[] = [];
+  const blockTypes: string[] = [];
+  let toolJson: string | null = null;
+  for (const b of Array.isArray(msg.content) ? msg.content : []) {
+    const block = b as { type?: string; text?: string; name?: string; input?: unknown };
+    blockTypes.push(String(block?.type ?? "unknown"));
+    if (block?.type === "text" && typeof block.text === "string") parts.push(block.text);
+    if (block?.type === "tool_use" && block.input && typeof block.input === "object") {
+      toolJson = JSON.stringify(block.input);
+    }
+  }
+  return { text: toolJson ?? parts.join(""), viaTool: toolJson !== null, blockTypes, stopReason: String(msg.stop_reason ?? "?") };
+}
+
+/** A 400 that names the structured-answer shape (not the model, not the effort). */
+export function isStructuredShapeRejected(status: number, body: string): boolean {
+  if (status !== 400 || /effort/i.test(body)) return false;
+  return /output_config\.format|output_format|json_schema|schema|strict|tool_choice|tools?|input_schema|response_format|text\.format/i.test(body);
+}
+
 async function anthropicOnce(opts: {
   model: string;
   system: string;
@@ -82,28 +182,10 @@ async function anthropicOnce(opts: {
   effort: Effort | null;
   label: string;
   jsonSchema?: JsonSchemaSpec | null;
-}): Promise<{ ok: true; text: string; usage: Record<string, unknown>; elapsedMs: number } | { ok: false; status: number; body: string }> {
+  mode: StructuredMode;
+}): Promise<{ ok: true; text: string; viaTool: boolean; usage: Record<string, unknown>; elapsedMs: number } | { ok: false; status: number; body: string }> {
   const started = Date.now();
-  const body: Record<string, unknown> = {
-    model: opts.model,
-    max_tokens: opts.maxTokens,
-    // PROMPT CACHE: one static block, cache_control on it. Never interpolate
-    // per-document text into this block.
-    system: [{ type: "text", text: opts.system, cache_control: { type: "ephemeral" } }],
-    messages: [{ role: "user", content: opts.user }],
-  };
-  if (opts.effort) body.output_config = { effort: opts.effort };
-  // STRUCTURED OUTPUT: a forced tool call. The provider validates the object
-  // against input_schema, so an unparseable answer is no longer possible.
-  if (opts.jsonSchema) {
-    body.tools = [{
-      name: opts.jsonSchema.name,
-      description: opts.jsonSchema.description,
-      input_schema: opts.jsonSchema.schema,
-    }];
-    body.tool_choice = { type: "tool", name: opts.jsonSchema.name };
-  }
-
+  const body = anthropicBody(opts);
   const res = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
     headers: {
@@ -119,26 +201,15 @@ async function anthropicOnce(opts: {
     return { ok: false, status: res.status, body: t.slice(0, 400) };
   }
   const d = await res.json();
-  const parts: string[] = [];
-  const blockTypes: string[] = [];
-  let toolJson: string | null = null;
-  for (const b of Array.isArray(d?.content) ? d.content : []) {
-    const block = b as { type?: string; text?: string; name?: string; input?: unknown };
-    blockTypes.push(String(block?.type ?? "unknown"));
-    if (block?.type === "text" && typeof block.text === "string") parts.push(block.text);
-    if (block?.type === "tool_use" && block.input && typeof block.input === "object") {
-      toolJson = JSON.stringify(block.input);
-    }
-  }
-  const text = toolJson ?? parts.join("");
-  if (!text.trim()) {
+  const read = readAnthropicContent(d);
+  if (!read.text.trim()) {
     return {
       ok: false,
       status: 200,
-      body: `no_text_block (blocks: ${blockTypes.join(",") || "none"}; stop_reason: ${d?.stop_reason ?? "?"})`,
+      body: `no_text_block (blocks: ${read.blockTypes.join(",") || "none"}; stop_reason: ${read.stopReason})`,
     };
   }
-  return { ok: true, text, usage: d?.usage ?? {}, elapsedMs: Date.now() - started };
+  return { ok: true, text: read.text, viaTool: read.viaTool, usage: (d as { usage?: Record<string, unknown> })?.usage ?? {}, elapsedMs: Date.now() - started };
 }
 
 /** A model that will not take the structured-output shape must still be able
@@ -182,17 +253,25 @@ export async function callClaude(opts: {
   const callStarted = Date.now();
   let note: string | null = null;
   let effort: Effort | null = opts.effort;
-  let schema: JsonSchemaSpec | null = opts.jsonSchema ?? null;
+  const schema: JsonSchemaSpec | null = opts.jsonSchema ?? null;
   let lastErr = "";
   let lastModel: string | null = null;
 
   for (let i = 0; i < CLAUDE_REVIEW_MODELS.length; i++) {
     const model = CLAUDE_REVIEW_MODELS[i];
     lastModel = model;
-    for (let attempt = 0; attempt < 3; attempt++) {
-      const r = await anthropicOnce({ model, system: opts.system, user: opts.user, maxTokens, effort, label: opts.label, jsonSchema: schema });
+    const modes: readonly StructuredMode[] = schema ? STRUCTURED_MODES : ["text"];
+    let modeIx = 0;
+    let emptyRetries = 0;
+    for (let attempt = 0; attempt < 8 && modeIx < modes.length; attempt++) {
+      const mode = modes[modeIx];
+      const r = await anthropicOnce({ model, system: opts.system, user: opts.user, maxTokens, effort, label: opts.label, jsonSchema: schema, mode });
       if (r.ok) {
         const u = r.usage as Record<string, number | undefined>;
+        const served: StructuredMode = schema ? (mode === "output_config" ? mode : (r.viaTool ? mode : "text")) : "text";
+        if (schema && served !== "output_config") {
+          note = `${note ? note + "; " : ""}structured answer served as ${served}`;
+        }
         const result: ModelCallResult = {
           text: r.text,
           model,
@@ -204,8 +283,9 @@ export async function callClaude(opts: {
           cacheCreationTokens: u.cache_creation_input_tokens ?? null,
           fellBack: i > 0,
           note: i > 0 ? `${note ? note + "; " : ""}model fell back to ${model}` : note,
+          structured: served,
         };
-        console.log(`[${opts.label}] claude model=${model} effort=${effort ?? "default"} elapsed=${r.elapsedMs}ms in=${result.inputTokens ?? "?"} out=${result.outputTokens ?? "?"} cache_read=${result.cacheReadTokens ?? "?"} cache_write=${result.cacheCreationTokens ?? "?"}`);
+        console.log(`[${opts.label}] claude model=${model} effort=${effort ?? "default"} mode=${served} elapsed=${r.elapsedMs}ms in=${result.inputTokens ?? "?"} out=${result.outputTokens ?? "?"}`);
         recordApiUsage({
           function_name: opts.label,
           product: opts.product ?? null,
@@ -220,17 +300,27 @@ export async function callClaude(opts: {
         return result;
       }
       lastErr = `Anthropic ${r.status}: ${r.body}`;
+      if (schema && mode !== "text" && isStructuredShapeRejected(r.status, r.body)) {
+        console.warn(`[${opts.label}] ${model} rejected structured mode ${mode} (${r.body.slice(0, 160)}) — trying ${modes[modeIx + 1]}`);
+        modeIx += 1;
+        continue; // same model, next answer shape
+      }
       if (effort && isEffortUnsupported(r.status, r.body)) {
-        console.warn(`[${opts.label}] effort "${effort}" rejected by ${model} — retrying without output_config`);
+        console.warn(`[${opts.label}] effort "${effort}" rejected by ${model} — retrying without output_config.effort`);
         note = `effort level not accepted by ${model}; ran at provider default`;
         effort = null;
-        continue; // same model, no effort
+        continue; // same model, same mode, no effort
       }
-      if (schema && isStructuredOutputUnsupported(r.status, r.body)) {
-        console.warn(`[${opts.label}] ${model} rejected the structured-output schema — retrying as JSON text`);
-        note = `${note ? note + "; " : ""}structured output not accepted by ${model}; answered as JSON text`;
-        schema = null;
-        continue; // same model, no schema
+      if (r.status === 200 && r.body.startsWith("no_text_block") && emptyRetries < 1) {
+        // A thinking-only turn: ask once more in the same shape before moving on.
+        emptyRetries += 1;
+        console.warn(`[${opts.label}] ${model} answered with no text or tool block — retrying once`);
+        continue;
+      }
+      if (r.status === 200 && r.body.startsWith("no_text_block") && schema && mode !== "text") {
+        modeIx += 1;
+        emptyRetries = 0;
+        continue;
       }
       break; // move to next model candidate
     }
@@ -469,16 +559,47 @@ export async function callOpenAI(opts: {
 /** Parse a model answer that should be a single JSON object. Tolerates code
  *  fences and leading prose; returns null when nothing parses. */
 export function parseJsonObject(raw: string): Record<string, unknown> | null {
-  const cleaned = raw.replace(/^\s*```(?:json)?/i, "").replace(/```\s*$/i, "").trim();
-  try {
-    const v = JSON.parse(cleaned);
-    if (v && typeof v === "object") return v as Record<string, unknown>;
-  } catch { /* fall through */ }
-  const start = cleaned.indexOf("{");
-  const end = cleaned.lastIndexOf("}");
-  if (start === -1 || end <= start) return null;
-  try {
-    const v = JSON.parse(cleaned.slice(start, end + 1));
-    return v && typeof v === "object" ? v as Record<string, unknown> : null;
-  } catch { return null; }
+  const fenced = /```(?:json)?\s*([\s\S]*?)```/i.exec(raw);
+  const candidates = [fenced ? fenced[1] : null, raw.replace(/^\s*```(?:json)?/i, "").replace(/```\s*$/i, "").trim()];
+  for (const c of candidates) {
+    if (c === null) continue;
+    const cleaned = c.trim();
+    const tries = [cleaned];
+    const start = cleaned.indexOf("{");
+    const end = cleaned.lastIndexOf("}");
+    if (start !== -1 && end > start) tries.push(cleaned.slice(start, end + 1));
+    for (const t of tries) {
+      for (const text of [t, escapeControlCharsInStrings(t)]) {
+        try {
+          const v = JSON.parse(text);
+          if (v && typeof v === "object" && !Array.isArray(v)) return v as Record<string, unknown>;
+        } catch { /* next candidate */ }
+      }
+    }
+  }
+  return null;
+}
+
+/** A free-text JSON answer often carries raw newlines/tabs inside quoted
+ *  strings (verbatim document quotes); JSON.parse rejects them. Escapes the
+ *  control characters that sit inside string literals and nothing else. Pure. */
+export function escapeControlCharsInStrings(text: string): string {
+  let out = "";
+  let inString = false;
+  let escaped = false;
+  for (const ch of text) {
+    if (inString) {
+      if (escaped) { out += ch; escaped = false; continue; }
+      if (ch === "\\") { out += ch; escaped = true; continue; }
+      if (ch === "\"") { out += ch; inString = false; continue; }
+      if (ch === "\n") { out += "\\n"; continue; }
+      if (ch === "\r") { out += "\\r"; continue; }
+      if (ch === "\t") { out += "\\t"; continue; }
+      out += ch;
+      continue;
+    }
+    if (ch === "\"") inString = true;
+    out += ch;
+  }
+  return out;
 }
