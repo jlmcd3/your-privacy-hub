@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { X, Bell } from "lucide-react";
+import { toast } from "@/hooks/use-toast";
 
 type Reminder = {
   id: string;
