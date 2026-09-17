@@ -20,10 +20,10 @@ Deno.test("attachCyberCorpus — respects a partial renderedSlugs set", () => {
   assertEquals(one[0].slug, "c1_auth");
 });
 
-Deno.test("attachCyberCorpus — zero-row components (c4, c11, c18) get F_GEN verbatim, no others do", () => {
+Deno.test("attachCyberCorpus — zero-row components (c4, c9, c11, c15, c18) get F_GEN verbatim, no others do", () => {
   const all = attachCyberCorpus();
   const s4Factors = new Set(
-    CYBER_CORPUS_MAP.rows.filter((r) => r.render_surface === "S4" && r.role === "FC").map((r) => r.factor_id),
+    CYBER_CORPUS_MAP.rows.filter((r) => r.render_surface === "S4" && r.role === "FC" && r.render_eligible).map((r) => r.factor_id),
   );
   for (const comp of CYBER_7123_COMPONENTS) {
     const entry = all.find((e) => e.slug === comp.slug)!;
@@ -59,7 +59,7 @@ Deno.test("attachCyberCorpus — every component with rows carries its OWN citat
 
 Deno.test("attachCyberCorpus — bridged rows carry the F_BRIDGE caveat, non-bridged rows never do", () => {
   const all = attachCyberCorpus();
-  const s4Rows = CYBER_CORPUS_MAP.rows.filter((r) => r.render_surface === "S4" && r.role === "FC");
+  const s4Rows = CYBER_CORPUS_MAP.rows.filter((r) => r.render_surface === "S4" && r.role === "FC" && r.render_eligible);
   for (const row of s4Rows) {
     const comp = CYBER_7123_COMPONENTS.find((c) => c.label === row.factor_id || c.prior_label === row.factor_id);
     assert(comp, `no component matches CAM factor_id "${row.factor_id}"`);
@@ -76,7 +76,7 @@ Deno.test("attachCyberCorpus — bridged rows carry the F_BRIDGE caveat, non-bri
 });
 
 Deno.test("attachCyberCorpus — every CAM factor_id resolves to exactly one component (no orphan, no ambiguity)", () => {
-  const s4Rows = CYBER_CORPUS_MAP.rows.filter((r) => r.render_surface === "S4" && r.role === "FC");
+  const s4Rows = CYBER_CORPUS_MAP.rows.filter((r) => r.render_surface === "S4" && r.role === "FC" && r.render_eligible);
   for (const row of s4Rows) {
     const matches = CYBER_7123_COMPONENTS.filter((c) => c.label === row.factor_id || c.prior_label === row.factor_id);
     assertEquals(matches.length, 1, `factor_id "${row.factor_id}" (row ${row.id}) matched ${matches.length} components`);

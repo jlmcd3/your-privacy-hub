@@ -45,7 +45,7 @@ Deno.test("C3/S4.1: both v4.7 hash bases recompute to the shipped pins", async (
   // instrument became the {gdprInstrument} slot; both bases recompute.
   // RE-PIN 2026-09-10 (CEO edit): v4.11 — Section titles renumbered 1–7;
   // basis-v1 unchanged, basis-v2 recomputes.
-  assertEquals(DPIA_SKELETON_VERSION, "dpia-v4.12-2026-09-11");
+  assertEquals(DPIA_SKELETON_VERSION, "dpia-v4.13-2026-09-17");
 });
 
 Deno.test("C3/S4.2: the exec statutory frame is under eighty words and WP248 lives in Appendix A", () => {

@@ -1321,6 +1321,11 @@ export function buildRiskRegister(intake: unknown): RiskRegisterEntry[] {
     // DOC 252 §10 item 2 — an Art. 22 row is answered by the record's own
     // human-intervention sentence, never by a ticked option.
     const humanIntervention = spec.human_intervention_measure ? (f.humanInterventionSpan ?? "") : "";
+    // doc 263 run 2 (2026-09-17, batch fc0119e9 dpia R2/REASON-01) — the typed
+    // answer governs: where the record states the decision is solely
+    // automated, a review route the narrative describes operates after the
+    // decision (the Art. 22(3) safeguard), never as review of each decision.
+    const solelyAutomated = /^solely automated\b/i.test(f.automatedDecisionNature ?? "");
     const measures = spec.human_intervention_measure
       ? (humanIntervention ? [humanIntervention] : [])
       : spec.mitigating_safeguards.filter((s) => f.safeguards.includes(s));
@@ -1335,7 +1340,7 @@ export function buildRiskRegister(intake: unknown): RiskRegisterEntry[] {
     // about safeguards altogether.
     let likelihood: Likelihood;
     if (spec.human_intervention_measure) {
-      likelihood = humanIntervention ? "Unlikely" : "Likely";
+      likelihood = humanIntervention ? (solelyAutomated ? "Possible" : "Unlikely") : "Likely";
     } else if (f.safeguards.length === 0) {
       likelihood = "Likely";
     } else if (coverage >= 0.75) {
@@ -1370,7 +1375,9 @@ export function buildRiskRegister(intake: unknown): RiskRegisterEntry[] {
       // the risk is carried because the processing scores individuals, and
       // the likelihood reads off that review.
       source: spec.human_intervention_measure && humanIntervention
-        ? `${spec.source_template} The record describes human review of each decision, so the likelihood is assessed as unlikely; the risk is carried because the processing scores individuals and the design must keep that review in place.`
+        ? (solelyAutomated
+          ? `${spec.source_template} The record states that the decision is solely automated and describes a human-review route that operates after the decision (the Article 22(3) safeguard), so the likelihood is assessed as possible; the risk is carried because the processing scores individuals and the design must keep that route in place.`
+          : `${spec.source_template} The record describes human review of each decision, so the likelihood is assessed as unlikely; the risk is carried because the processing scores individuals and the design must keep that review in place.`)
         : spec.source_template,
       affected_rights: spec.affected_rights,
       likelihood,
@@ -2212,6 +2219,15 @@ function labels(rows: readonly { readonly risk_label: string }[]): string {
 // months old at the report date turns an unconditional approval into a
 // conditional one: the substantive assessment stands; the Art. 35(11)
 // review the company's own record commits to is the condition.
+/** doc 263 run 2 (2026-09-17, batch fc0119e9 dpia R3/REASON-02) — the condition
+ *  an approver attached to the sign-off, in the approver's words ("approved on
+ *  condition that X" -> "X"); "" where the basis records none. Only the express
+ *  forms count: a bare "subject to" is not read as a condition. */
+export function recordedApprovalCondition(basisText: string): string {
+  const m = /\b(?:on (?:the )?conditions? that|conditional (?:up)?on|provided that|subject to the conditions? that)\s+([^.;]+)/i.exec(basisText);
+  return m ? m[1].trim().replace(/[.\s]+$/, "") : "";
+}
+
 export function applyApprovalCurrency(intake: unknown, decision: DpiaDecision, asOf: Date = new Date()): DpiaDecision {
   if (decision.determination !== "approved") return decision;
   const conditions: string[] = [];
@@ -2234,12 +2250,24 @@ export function applyApprovalCurrency(intake: unknown, decision: DpiaDecision, a
   if (past.length) {
     conditions.push(`recording whether the dated commitments in the sign-off basis — ${pastDatesProse(past)} — were met, each being past at the date of this report`);
   }
+  // doc 263 run 2 (2026-09-17, batch fc0119e9 dpia R3/REASON-02) — an approval the
+  // approver expressly made conditional is a conditional approval on the record;
+  // the decision carries the approver's own condition in the approver's words.
+  const currencyConditions = conditions.length;
+  const approverCondition = recordedApprovalCondition(basisText);
+  if (approverCondition) {
+    conditions.push(`meeting the condition the approver attached to the sign-off — "${approverCondition}" — and recording that it is met`);
+  }
   if (!conditions.length) return decision;
+  const basisTail = approverCondition
+    ? (currencyConditions ? " (Art. 35(11); the approver's recorded sign-off basis)" : " (the approver's recorded sign-off basis)")
+    : " (Art. 35(11))";
   return {
     ...decision,
     determination: "conditionally_approved",
     conditions,
-    why: `${decision.why} The processing may proceed as described on ${conditions.length === 1 ? "one condition" : `${conditions.length} conditions`}: ${conditions.join("; and ")} (Art. 35(11)).`,
+    // The unconditional clause is never printed beside a condition.
+    why: `${decision.why.replace("and the processing decision itself is not conditional", "and the processing decision carries the conditions stated below")} The processing may proceed as described on ${conditions.length === 1 ? "one condition" : `${conditions.length} conditions`}: ${conditions.join("; and ")}${basisTail}.`,
   };
 }
 
@@ -2979,6 +3007,10 @@ const PORTABILITY_CONDITIONS_UNRESOLVED =
   // fact" was internal-design language in customer prose; house style is the
   // record-facing form. Structure and legal content unchanged (DPIA-1 ratified).
   "that the data was provided by or observed from the data subject (WP242 rev.01) and that the processing is carried out by automated means — the record does not state either fact, so this assessment reaches no conclusion on whether Article 20 applies to this processing";
+// doc 263 run 2 — the same residual where the typed automated-decision answer
+// has already settled the automated-means condition.
+const PORTABILITY_CONDITION_PROVENANCE_UNRESOLVED =
+  "that the data was provided by or observed from the data subject (WP242 rev.01) — the record does not state that fact, so this assessment reaches no conclusion on whether Article 20 applies to this processing";
 
 /**
  * PROMPT 10B(1) — resolve the Art. 9(2)(x) pinpoint carried by the intake's
@@ -3097,7 +3129,7 @@ export const UK_SCH1_EMPLOYMENT_SENTENCE =
  * fleet's standing no-new-intake-field discipline); the row degrades to
  * record_insufficient and asks for both facts, never asserting either way.
  */
-function article20PortabilityRow(legalBasis: string, regime: DpiaRegime): DpiaCoverageRow {
+function article20PortabilityRow(legalBasis: string, regime: DpiaRegime, automatedNature = ""): DpiaCoverageRow {
   const citation = cit(regime, "Art. 20(1)");
   const letter = /6\(1\)\(([a-z])\)/i.exec(legalBasis)?.[1]?.toLowerCase();
 
@@ -3133,8 +3165,11 @@ function article20PortabilityRow(legalBasis: string, regime: DpiaRegime): DpiaCo
   return {
     heading: "Article 20 — right to data portability",
     record_words: spliceVerbatim(legalBasis),
-    finding:
-      `The legal basis recorded for this processing (${legalBasis}) satisfies one of Article 20's three conditions. Article 20 additionally requires ${PORTABILITY_CONDITIONS_UNRESOLVED}.`,
+    // doc 263 run 2 (2026-09-17, batch fc0119e9 dpia R4/REASON-04) — the typed
+    // automated-decision answer states the automated-means condition.
+    finding: /^(?:solely automated|automated processing)\b/i.test(automatedNature)
+      ? `The legal basis recorded for this processing (${legalBasis}) satisfies one of Article 20's three conditions, and the record states that the processing is carried out by automated means ("${automatedNature}"), which satisfies the second. Article 20 additionally requires ${PORTABILITY_CONDITION_PROVENANCE_UNRESOLVED}.`
+      : `The legal basis recorded for this processing (${legalBasis}) satisfies one of Article 20's three conditions. Article 20 additionally requires ${PORTABILITY_CONDITIONS_UNRESOLVED}.`,
     citation,
     authority_verbatim: "",
     // DOC 142 (2026-09-02) — the prose says the assessment "reaches no
@@ -3339,8 +3374,10 @@ export function buildSection2Coverage(
         mechanism_label: "",
         mechanism_citation: "",
         transfer_risk_assessment_required: false,
+        // doc 263 run 2 (2026-09-17, batch fc0119e9 dpia R5) — the typed answer is
+        // quoted, so its own qualifier (e.g. "within the EEA and the UK") is on the page.
         finding:
-          "No cross-border transfer is on the record for this processing, so no Chapter V mechanism is engaged by this assessment.",
+          `No cross-border transfer is on the record for this processing${str(get(intake, "transfer_presence")) ? ` (the record states: "${str(get(intake, "transfer_presence"))}")` : ""}, so no Chapter V mechanism is engaged by this assessment.`,
         citation: chapterVCite,
         status: "analysed",
         source_field: "transfer_flows",
@@ -3676,7 +3713,7 @@ export function buildSection2Coverage(
         display_label: resolveAskLabel("ask_rights_table"),
         source_field: "data_subject_rights_mechanisms",
       },
-    article20PortabilityRow(str(get(intake, "legal_basis_proposed")), regime),
+    article20PortabilityRow(str(get(intake, "legal_basis_proposed")), regime, str(get(intake, "automated_decision_nature"))),
   ];
 
   return {

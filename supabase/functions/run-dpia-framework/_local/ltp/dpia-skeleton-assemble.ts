@@ -1189,9 +1189,34 @@ function dpiaAlreadyCitedIds(): ReadonlySet<string> {
  * equal). Fixed at curation time, so the table is the same on every record;
  * prose is the CEO-ratified matter / what_happened / bearing bytes.
  */
-export function buildDpiaEnforcementPrecedentsTable(): RenderedTable | null {
+/** doc 263 run 2 (2026-09-17, batch fc0119e9 dpia R1/R8/R9, REASON-06/07/08) — a
+ *  precedent whose ratified bearing asserts a fact about THIS record renders
+ *  only where the record carries that fact. The bytes are unchanged; the gate
+ *  is on the record. Rows whose bearing is record-neutral always render. */
+export function dpiaPrecedentApplies(rowId: string, intake: Bag): boolean {
+  const text = [intake.data_subjects, intake.description, intake.processing_activity_name, intake.purpose, intake.nature_scope_context].map((v) => s(v)).join(" ");
+  switch (rowId) {
+    case "dpia/dpia-requirement-high-risk-trigger/ap-02": {
+      // "assess BEFORE deploying" — processing already underway is reviewed, not assessed before deployment.
+      const launch = /(\d{4})-(\d{2})-(\d{2})/.exec(s(intake.estimated_launch_date));
+      if (!launch) return true;
+      return new Date(`${launch[1]}-${launch[2]}-${launch[3]}T00:00:00Z`).getTime() > Date.now();
+    }
+    case "dpia/special-category-condition/ap-01":
+      // "the special-category condition this report analyses" — only where one is analysed.
+      return !!s(intake.article_9_condition) ||
+        asArray(intake.data_categories).some((c) => /\b(biometric|health|medical|genetic|special|racial|ethnic|political|religious|philosophical|sexual|trade union)\b/i.test(s(c)));
+    case "dpia/data-subject-rights/ap-01":
+      // "Workplace monitoring is among the processing contexts this assessment evaluates".
+      return /\b(employee|employees|staff|worker|workers|workforce|personnel|workplace)\b/i.test(text);
+    default:
+      return true;
+  }
+}
+
+export function buildDpiaEnforcementPrecedentsTable(intake: Bag = {}): RenderedTable | null {
   const rows = DPIA_CORPUS_MAP.rows
-    .filter((r) => r.role === "AP" && r.render_when?.includes("dpia_ap_record") && r.display)
+    .filter((r) => r.role === "AP" && r.render_when?.includes("dpia_ap_record") && r.display && dpiaPrecedentApplies(r.id, intake))
     .map((r) => [
       s(r.display!.matter),
       s(r.display!.what_happened),
@@ -1231,7 +1256,15 @@ function composeArt36Sentence(report: Bag, intake: Bag = {}): string {
   } else if (det === "undetermined_on_the_record") {
     base = "Whether Article 36(1) requires prior consultation cannot be settled based on the information the company provided, because the remaining risk levels on which that duty turns are open on the points named above";
   } else {
-    base = `On this assessment's determination, prior consultation with ${noun} under Article 36(1) is not required`;
+    // doc 263 run 2 (2026-09-17, batch fc0119e9 dpia F1) — the sentence states the
+    // reading it applies: Article 36(1) is engaged where a high risk remains after
+    // the measures envisaged (WP248 rev.01, § III.D.d); this assessment records no
+    // remaining High risk. A record with a High residual band keeps the bare
+    // sentence (doc 137 FIX 2: that band resolves to conditional approval).
+    const highRemaining = residualCounts(report)["high"] ?? 0;
+    base = highRemaining === 0
+      ? `On this assessment's determination, prior consultation with ${noun} under Article 36(1) is not required: the trigger is a high risk that remains after the measures the controller envisages (Article 36(1), read with WP248 rev.01, § III.D.d), and no identified risk remains at a High level once the recorded measures are taken into account`
+      : `On this assessment's determination, prior consultation with ${noun} under Article 36(1) is not required`;
   }
   if (a36.dpo_recommends_consultation === true && det !== "consultation_required") {
     return `${base}. ${noStop(regime === "UK" ? ART36_DPO_DISCLOSURE_UK : ART36_DPO_DISCLOSURE)}`;
@@ -1510,13 +1543,23 @@ const DPIA_MATRIX_ROWS: readonly DpiaMatrixRowSpec[] = [
       const base = values.reasonsToConduct
         ? `${s(values.organizationName)}’s processing triggers this assessment because ${s(values.reasonsToConduct)}.`
         : null;
-      if (!s(intake.imagery_capture)) return base;
       const engagementMap = (report as Bag).engagement_map as Bag | undefined;
       const entries = asArray(engagementMap?.entries);
-      const art353c = entries.find((e) => s(e.rule_id) === "R_ART_35_3_C_PUBLIC_MONITORING");
-      const rationale = art353c ? s(art353c.rationale) : "";
-      if (!rationale) return base;
-      return base ? `${base} ${rationale}` : rationale;
+      // doc 263 run 2 (2026-09-17, batch fc0119e9 dpia F2) — the row states the
+      // trigger the record engages (Art. 35(3)(a)/(b)) before the Art. 35(3)(c)
+      // fact-walk, so a scoring record is never tested against public monitoring alone.
+      const engagedTriggers = entries
+        .filter((e) => (s(e.rule_id) === "R_ART_35_3_A_AUTOMATED_DECISIONS" || s(e.rule_id) === "R_ART_35_3_B_LARGE_SCALE_SPECIAL_CATEGORIES") && (s(e.status) === "engaged" || s(e.status) === "conditional"))
+        .map((e) => s(e.rationale))
+        .filter(Boolean);
+      const parts: string[] = [base ?? "", ...engagedTriggers];
+      if (s(intake.imagery_capture)) {
+        const art353c = entries.find((e) => s(e.rule_id) === "R_ART_35_3_C_PUBLIC_MONITORING");
+        const rationale = art353c ? s(art353c.rationale) : "";
+        if (rationale) parts.push(rationale);
+      }
+      const joined = parts.filter(Boolean).join(" ");
+      return joined || null;
     },
   },
   {
@@ -1643,7 +1686,7 @@ const DPIA_MATRIX_ROWS: readonly DpiaMatrixRowSpec[] = [
     // DETERMINATION — a distinct factor from Processor Governance (Chapter V vs Art. 28) even though both currently read from the same underlying table; see risk-skeleton-assemble.ts's analogous note for the fleet-wide pattern.
     label: "International transfers",
     authority: "GDPR Art. 44 and Chapter V",
-    reportDetermination: ({ report }) => {
+    reportDetermination: ({ report, intake }) => {
       const cov = (report as Bag).section2_coverage as Bag | undefined;
       if (!cov) return null;
       // v4.6.2 FIX (CEO output review, 2026-08-25): the deliverables builder
@@ -1665,7 +1708,7 @@ const DPIA_MATRIX_ROWS: readonly DpiaMatrixRowSpec[] = [
       if (!transfers.length) {
         return openSentinel
           ? "No transfer flow is recorded, but the processor record names an engagement marked outside the origin territory; whether a Chapter V transfer arises from it is an open point listed in the gap table."
-          : "No cross-border transfer is identified in the assessment record; accordingly, no Chapter V transfer mechanism is engaged for the processing as assessed.";
+          : `No cross-border transfer is identified in the assessment record${s(intake.transfer_presence) ? ` (the record states: "${s(intake.transfer_presence)}")` : ""}; accordingly, no Chapter V transfer mechanism is engaged for the processing as assessed.`;
       }
       const INSTRUMENTED = new Set(["intra_eea_processing", "uk_domestic_processing", "adequacy", "instrument_recorded"]);
       const allInstrumented = transfers.every((t) => INSTRUMENTED.has(s(t.determination)));
@@ -2220,7 +2263,7 @@ export function assembleDpiaSkeletonDocument(report: Bag, intakeInput: Bag, v3Ap
     "table_of_authorities:1": matrixTable,
     "table_of_authorities:3": advisoryMatches,
     // DOC 252 §10 item 5 — Appendix B.
-    "enforcement_precedents:1": buildDpiaEnforcementPrecedentsTable(),
+    "enforcement_precedents:1": buildDpiaEnforcementPrecedentsTable(intake),
   };
 
   const renderedDoc = renderSkeletonDocument({

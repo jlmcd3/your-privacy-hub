@@ -78,7 +78,7 @@ export interface CyberV4Section {
 // PANEL CYB-5 (2026-08-30): eight section openers rewritten from drafting-
 // instruction voice ("the report should not state…") to first-person-
 // document indicative; every legal boundary each sentence drew is kept.
-export const CYBER_V4_SKELETON_VERSION = "cppa-cyber-v4.0-spine-v1.6-2026-09-17";
+export const CYBER_V4_SKELETON_VERSION = "cppa-cyber-v4.0-spine-v1.7-2026-09-17";
 export const CYBER_V4_SKELETON_TITLE = "CPPA Cybersecurity Audit Readiness Report";
 export const CYBER_V4_SKELETON_SUBTITLE =
   "Prepared under 11 CCR §§ 7120–7124 — {profile.entity_name}";
@@ -158,7 +158,7 @@ export const CYBER_V4_SKELETON_SECTIONS: readonly CyberV4Section[] = [
       { kind: "generated", text: "[GENERATED] Program-level readiness: the program-framework fact, the program-obligation findings, the program-level assessment and conclusion (DERIVED.program_obligation_findings + FACTOR.program_readiness_analysis / program_readiness_conclusion)." },
       // B. Treatment of the 18 Regulatory Components (v1.1, byte-pinned;
       // the compact-pattern instruction is disposition i2).
-      { kind: "skeleton", text: "This report presents all eighteen § 7123(c) components. Because the Company’s answers do not include a separate applicability determination for each component, the report reviews the entire catalogue as a conservative preparation exercise; it does not state that all eighteen are legally applicable to the Company. The independent auditor ultimately determines which listed components are applicable to the Company’s information system. Two requirements govern every component entry below and are not restated per component: 11 CCR § 7123(c) lists the components the audit must assess where applicable, and the audit report must identify each applicable component and describe how it is assessed (11 CCR § 7123(e)(2)); and 11 CCR § 7122(d) requires findings to rely primarily on the specific evidence the auditor deems appropriate — documents reviewed, sampling and testing performed, and interviews conducted — so the auditor can test each position rather than accept management’s account of it." },
+      { kind: "skeleton", text: "This report presents all eighteen § 7123(c) components. Because the Company’s answers do not include a separate applicability determination for each component, the report reviews the entire catalogue as a conservative preparation exercise; it does not state that all eighteen are legally applicable to the Company. The independent auditor ultimately determines which listed components are applicable to the Company’s information system. Two requirements govern every component entry below and are not restated per component: 11 CCR § 7123(c) lists the components the audit must assess where applicable, and the audit report must identify each applicable component assessed (11 CCR § 7123(e)(2)); and 11 CCR § 7122(d) requires findings to rely primarily on the specific evidence the auditor deems appropriate — documents reviewed, sampling and testing performed, and interviews conducted — so the auditor can test each position rather than accept management’s account of it." },
       { kind: "generated", text: "[GENERATED] The eighteen component modules, one compact pattern each: Company fact (maturity, description, evidence categories) -> deterministic implementation posture -> evidence posture -> readiness analysis -> next action, with the ratified S4 regulator commentary where curated. Composed from INTAKE.controls + DERIVED.component_coverage/evidence_sufficiency + FACTOR.component_analysis." },
     ],
   },
@@ -182,7 +182,7 @@ export const CYBER_V4_SKELETON_SECTIONS: readonly CyberV4Section[] = [
     id: "readiness_actions",
     title: "6. Readiness Actions",
     blocks: [
-      { kind: "skeleton", text: "This section converts the assessment into a practical audit-preparation plan. These are EndUserPrivacy (EUP) readiness actions generated from the Company’s answers; they are not represented as the Company’s formal remediation plan for purposes of § 7123(e)(4). The distinction matters because the record identifies who owns remediation but does not include a Company-approved remediation plan or timeframe." },
+      { kind: "skeleton", text: "This section converts the assessment into a practical audit-preparation plan. These are EndUserPrivacy (EUP) readiness actions generated from the Company’s answers; they are not represented as the Company’s formal remediation plan for purposes of § 7123(e)(4). The distinction matters because {REMEDIATION_PLAN_NOTE}." },
       { kind: "generated", text: "[GENERATED] The remediation owner; priority readiness actions; evidence-package actions; implementation actions; record-completion actions; suggested sequencing. Composed from the ratified recommendation library (cyber-recommendations.ts) + FACTOR action families. No invented statutory deadlines (disposition i4)." },
     ],
   },
@@ -243,7 +243,8 @@ export const CYBER_V4_SKELETON_SECTIONS: readonly CyberV4Section[] = [
     id: "signature",
     title: "Signature",
     blocks: [
-      { kind: "skeleton", text: "This information is provided for the purposes of a cybersecurity audit as required pursuant to 11 CCR §§ 7120–7124." },
+      // doc 263 run 2 (2026-09-17, batch fc0119e9 cyber f10) — the basis clause reads the § 7120 applicability determination (cyber-skeleton-assemble-v4.ts).
+      { kind: "skeleton", text: "This information is provided for the purposes of a cybersecurity audit {AUDIT_BASIS_CLAUSE} 11 CCR §§ 7120–7124." },
       { kind: "table", text: "" },
       { kind: "skeleton", text: "This signature acknowledges the information above, and is not the certification described in 11 CCR § 7124." },
     ],

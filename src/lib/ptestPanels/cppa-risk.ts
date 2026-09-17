@@ -2317,7 +2317,7 @@ export const PANEL_CPPA_RISK: PanelFixture[] = [
       bought_sold_shared_count: "1,000,000 or more",
       public_privacy_policy_url: "https://www.signalpeaktelecom.example/privacy",
 
-      q6_right_know: "Subscriber account portal with identity verification and a customer-care phone line.",
+      q6_right_know: "Online form with identity verification through the subscriber account portal, and an email or written request process handled by customer care.",
       q6_right_know_multi: ["Online form with identity verification", "Email or written request process"],
       q7_right_delete: "Automated deletion with confirmation",
       q8_right_correct: "Online self-service",
@@ -2338,8 +2338,8 @@ export const PANEL_CPPA_RISK: PanelFixture[] = [
       i1b_min_pi: "Only account tenure, monthly usage totals, and billing-cycle payment history feed the churn score; the location-analytics product is built from aggregated, pseudonymized cell-tower counts, not individual subscriber records.",
       i2_retention_period: "12 months rolling",
       i2_retention_criteria: "Fixed period from collection",
-      i2_retention_detail: "Churn-score inputs roll off 12 months after generation; aggregated location-analytics counts are retained by the buyer under a separate data-license agreement.",
-      i3_ca_consumer_band: "More than 1,000,000",
+      i2_retention_detail: "The 12-month rolling period applies to the network-activity inputs that feed the churn score; contact identifiers are kept for the duration of the account relationship and general location data until the analytics purpose is fulfilled, as the category table records; aggregated location-analytics counts are retained by the buyer under a separate data-license agreement.",
+      i3_ca_consumer_band: "100,000–1,000,000",
       i4_disclosure_mechanisms: ["Notice at Collection", "Privacy policy"],
       i4b_sources: "Automatically from network usage records and billing systems, and from cell-tower connection logs for the aggregated location-analytics product.",
       i6_vendors: "Ericsson (network analytics platform, service-provider addendum); Placer.ai (site-selection data broker, data-license agreement).",
@@ -2355,7 +2355,7 @@ export const PANEL_CPPA_RISK: PanelFixture[] = [
       material_change_since_prior: "No",
 
       impact_intake: {
-        likelihood: "Unlikely",
+        likelihood: "Possible",
         severity: "Minimal",
         benefitsOutweigh: "Yes",
         cyberGaps: "No",
@@ -2426,7 +2426,7 @@ export const PANEL_CPPA_RISK: PanelFixture[] = [
 
       retention_by_pi_category: [
         { pi_category: "General location (city, region, ZIP, IP-derived)", retention_period: "", retention_criteria: "Until purpose is fulfilled, then deletion" },
-        { pi_category: "Internet or network activity", retention_period: "12 months rolling", retention_criteria: "" },
+        { pi_category: "Internet or network activity", retention_period: "12 months rolling", retention_criteria: "Fixed period from collection" },
         { pi_category: "Contact identifiers (name, email, phone)", retention_period: "", retention_criteria: "Duration of account / relationship" },
       ],
       activity_disclosures: [
@@ -2438,6 +2438,13 @@ export const PANEL_CPPA_RISK: PanelFixture[] = [
         },
       ],
       recipients: [
+        {
+          recipient_name_or_category: "Ericsson (network analytics platform)",
+          recipient_type: "Service provider",
+          pi_categories_made_available: ["Internet or network activity", "General location (city, region, ZIP, IP-derived)"],
+          disclosure_purpose: "Operates the network-analytics platform that computes the churn inputs and aggregates cell-tower connection counts for the location-analytics product, under a service-provider addendum.",
+          contractual_protections: "Written contract with the CCPA-required restrictions in place",
+        },
         {
           recipient_name_or_category: "Placer.ai (site-selection data broker)",
           recipient_type: "Third party",

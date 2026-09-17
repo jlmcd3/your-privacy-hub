@@ -130,11 +130,14 @@ export function findingRows(
       registry_row_id: f.registry_row_id,
       registry_quote: f.registry_quote,
       binding: f.binding,
-      reanchored: f.reanchored,
+      reanchored: f.reanchored ?? false,
     });
   }
+  // Every row carries `reanchored` (NOT NULL, default false): a bulk insert sends
+  // one JSON array, and PostgREST fills a key absent from some rows with null,
+  // not the default — which failed every W-LAW persist (doc 267 §3b, cycle 2).
   for (const d of dropped) {
-    rows.push({ ...common, finding_id: d.id, status: "dropped", drop_reason: d.reason, quote: d.quote, why: d.detail });
+    rows.push({ ...common, finding_id: d.id, status: "dropped", drop_reason: d.reason, quote: d.quote, why: d.detail, reanchored: false });
   }
   for (const u of unbound) {
     rows.push({
@@ -147,6 +150,7 @@ export function findingRows(
       binding: u.consistent ? "consistent" : "inconsistent",
       why: u.note,
       drop_reason: u.locatable ? null : "unlocatable_quote",
+      reanchored: false,
     });
   }
   return rows;

@@ -335,8 +335,8 @@ export const LIA_INTEREST_HOLDER_PHRASES: Readonly<Record<string, string>> = Obj
 export const LIA_EXPECTATION_PHRASES: Readonly<Record<string, string>> = Object.freeze({
   "Yes": "would",
   "No": "would not",
-  "Unsure": "may not",
-  "Partly": "may not",
+  "Unsure": "may or may not",
+  "Partly": "would only partly",
   // DOC 161 (2026-09-03, audit A.2) — the intake form's five options; the
   // map alone dropped the whole ¶24 sentence on every real record.
   "Yes — directly contemplated by our existing relationship": "would",

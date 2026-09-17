@@ -93,13 +93,17 @@ Deno.test("doc252 item 2 — every other register row still reads coverage off t
   }
 });
 
-Deno.test("doc252 item 5 — Appendix B renders the six release-1 precedents in their ratified prose, and the spine is v4.12", () => {
-  assertEquals(DPIA_SKELETON_VERSION, "dpia-v4.12-2026-09-11");
+Deno.test("doc252 item 5 — Appendix B renders the six release-1 precedents in their ratified prose on a record that carries every gated fact, and the spine is v4.13", () => {
+  assertEquals(DPIA_SKELETON_VERSION, "dpia-v4.13-2026-09-17");
   const last = DPIA_SKELETON_SECTIONS[DPIA_SKELETON_SECTIONS.length - 1];
   assertEquals(last.id, "enforcement_precedents");
   assertEquals(last.title, "Appendix B — Enforcement Precedents");
   assertEquals(last.blocks.map((b) => b.kind), ["skeleton", "table"]);
-  const table = buildDpiaEnforcementPrecedentsTable()!;
+  // doc 263 run 2 (2026-09-17) — three bearings assert record facts and render only where the record carries them.
+  const table = buildDpiaEnforcementPrecedentsTable({ data_subjects: "employees of the company", article_9_condition: "Art. 9(2)(b) employment", estimated_launch_date: "2099-01-01" })!;
+  const gated = buildDpiaEnforcementPrecedentsTable({ data_subjects: "consumer loan applicants", estimated_launch_date: "2022-02-01" })!;
+  assertEquals(gated.rows.length, 3);
+  assert(!gated.rows.some((r) => r[0].includes("International Card Services") || r[0].includes("CARTONAJES") || r[0].includes("Bolzano")));
   assertEquals(table.columns, ["Matter", "What happened", "Bearing on this assessment", "Authority"]);
   const expected = DPIA_CORPUS_MAP.rows.filter((r) => r.role === "AP" && r.render_when?.includes("dpia_ap_record"));
   assertEquals(table.rows.length, expected.length);

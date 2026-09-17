@@ -238,7 +238,7 @@ export function buildCyberApplicabilityTable(profile: Bag): RenderedTable {
     rows: [
       [
         "A1 — § 7120(b)(1)",
-        "50% or more of the business's annual revenue derives from selling or sharing consumers' personal information (Civ. Code § 1798.140(d)(1)(C)).",
+        "In the preceding calendar year, 50% or more of the business's annual revenue derived from selling or sharing consumers' personal information (§ 7120(b)(1); Civ. Code § 1798.140(d)(1)(C)).",
         statusCell(result.a1),
       ],
       [

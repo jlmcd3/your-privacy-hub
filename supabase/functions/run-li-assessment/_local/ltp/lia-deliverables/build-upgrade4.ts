@@ -335,7 +335,7 @@ export function buildInterestLegitimacy(intake: unknown): InterestLegitimacyFind
   }
 
   const cumulative_note =
-    "The three conditions are cumulative. A condition recorded as not met, or left open, is not offset by the other two; the first limb of Article 6(1)(f) fails or remains unresolved until that condition is answered.";
+    "The three requirements are cumulative. A requirement recorded as not met, or left open, is not offset by the other two; the first limb of Article 6(1)(f) fails or remains unresolved until it is answered.";
 
   // QB-REPAIR-3 (2026-08-27) — live batch 510a9953 flagged the earlier
   // imperative form as a leaked instruction; reworded to declarative.
@@ -352,7 +352,7 @@ export function buildInterestLegitimacy(intake: unknown): InterestLegitimacyFind
     .map((t, i) => {
       const why = firstSentenceSafe(t.reasoning);
       const label = `${t.label.charAt(0).toLowerCase()}${t.label.slice(1)}`;
-      return `${i === 0 ? "the" : "The"} ${ordinal[i]} condition — ${label} — is ${liaVerdictLabel(t.verdict)}${why ? ` (${why})` : ""}.`;
+      return `${i === 0 ? "the" : "The"} ${ordinal[i]} requirement — ${label} — is ${liaVerdictLabel(t.verdict)}${why ? ` (${why})` : ""}.`;
     })
     .join(" ");
   // 2026-08-29 — the actual multi-purpose fix lives in sub-test 2 above
@@ -361,7 +361,12 @@ export function buildInterestLegitimacy(intake: unknown): InterestLegitimacyFind
   // path, per the Target/Old/New comparison in doc 105. This walk stays a
   // verbatim-trim of each sub-test's own reasoning; nothing re-judged here.
   const application =
-    `${lc(std.verbatim) ? `The Guidelines put the test cumulatively: ${std.verbatim} ` : ""}Taken condition by condition on what this record states, ${conditionWalk} ${cumulative_note} On that basis the first limb of Article 6(1)(f) is recorded as: ${liaVerdictLabel(verdict)}.`;
+    // doc 263 run 2 (2026-09-17, batch fc0119e9 lia f6) — the Section II row sets the
+    // three cumulative conditions for Article 6(1)(f) (interest, necessity,
+    // balancing); the Section II.A row sets the three requirements the interest
+    // itself must meet. Each is named for what it is; the walk runs the II.A
+    // requirements and is never described as the three conditions.
+    `${lc(std.verbatim) ? `The Guidelines set three cumulative conditions for reliance on Article 6(1)(f) — a legitimate interest, necessity, and the balancing test (${std.citation || "EDPB Guidelines 1/2024, Section II"}): ${std.verbatim} ` : ""}${lc(support.verbatim) ? `This section tests the first of them, the interest itself, which the Guidelines require to be lawful, clearly and precisely articulated, and real and present (${support.citation || "EDPB Guidelines 1/2024, Section II.A"}): ${support.verbatim} ` : ""}Taken requirement by requirement on what this record states, ${conditionWalk} ${cumulative_note} On that basis the first limb of Article 6(1)(f) is recorded as: ${liaVerdictLabel(verdict)}.`;
 
   return {
     standard: std.verbatim || basis.verbatim,

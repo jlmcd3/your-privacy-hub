@@ -140,6 +140,21 @@ export function deriveReadinessDetermination(
     determined_from.push(`${key}:${v || (hits.length ? hits.join("+") : "none_adverse")}`);
     adverse += hits.length;
   }
+  // doc 263 run 2 (2026-09-17, batch fc0119e9 gov f5) — the domain walk's own
+  // adverse findings (High/Critical severity) are determinations read
+  // alongside the headline: a missing Article 28 contract is adverse whether
+  // or not a sibling key carries it.
+  {
+    const df = r.domain_findings;
+    const list: unknown[] = Array.isArray(df) ? df : df && typeof df === "object" ? Object.values(df as Record<string, unknown>) : [];
+    const names = list
+      .filter((d) => d && typeof d === "object" && /^(?:High|Critical)$/.test(String((d as Record<string, unknown>).severity ?? "")))
+      .map((d) => String((d as Record<string, unknown>).domain_name ?? (d as Record<string, unknown>).domain ?? "domain"));
+    if (names.length) {
+      determined_from.push(`domain_findings:${names.join("+")}`);
+      adverse += names.length;
+    }
+  }
 
   let rating: ReadinessRating;
   switch (primary) {

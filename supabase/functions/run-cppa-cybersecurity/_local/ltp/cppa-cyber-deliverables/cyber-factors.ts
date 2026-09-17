@@ -960,6 +960,19 @@ export function buildRecordCompletionExtras(intake: Bag, d: CyberDeliverables): 
       priorityTier: "Immediate",
     });
   }
+  // doc 263 run 2 (2026-09-17, batch fc0119e9 cyber f18) — the record-sufficiency
+  // sentence asks for the evidence categories of components with none
+  // identified; the register carries the same item, so the Executive Summary
+  // never reports no record-completion action beside that ask.
+  {
+    const suff = buildRecordSufficiency(intake, d);
+    if (suff.without_evidence > 0) {
+      out.push({
+        label: "Evidence categories",
+        action: `Identify the evidence categories available for the ${suff.without_evidence === 1 ? "component" : `${countWord(suff.without_evidence)} components`} that identify none, so an auditor can test ${suff.without_evidence === 1 ? "it" : "them"} rather than rely on management's account (11 CCR § 7122(d)).`,
+      });
+    }
+  }
   if (d.independence_determination?.status === "record_insufficient") {
     out.push({
       label: "Auditor engagement",

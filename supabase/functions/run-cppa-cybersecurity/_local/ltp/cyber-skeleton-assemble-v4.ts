@@ -30,7 +30,7 @@ import {
   type SkeletonTables,
 } from "../../../_shared/prose/skeleton-render.ts";
 import { repairRegister } from "../../../_shared/ltp/register-repair.ts";
-import { buildCyberApplicabilityTable } from "./cyber-applicability.ts";
+import { buildCyberApplicabilityTable, resolveCyberApplicability } from "./cyber-applicability.ts";
 import { buildCyberSubmissionAttestationBlock } from "./cyber-submission-attestation.ts";
 import { buildPhaseInBlock } from "./cyber-skeleton-assemble.ts";
 import type { CyberDeliverables } from "./cppa-cyber-deliverables/types.ts";
@@ -273,7 +273,12 @@ function deriveActionRegister(
             r.slot.template.replace("{fact}", recommendationFact(rec.notes, rec.maturity)),
             ACTION_TYPE_BY_GAP_CLASS[r.key.gapClass] ?? "Readiness",
             PRIORITY_TIER_LABEL[r.priority] ?? r.priority,
-            r.priority,
+            // doc 263 run 2 (2026-09-17, batch fc0119e9 cyber f3) — a Company target
+            // date stated in the control's notes is carried beside the EUP tier.
+            (() => {
+              const d = /\b(20\d{2}-\d{2}-\d{2})\b/.exec(rec.notes)?.[1];
+              return d ? `${r.priority}; Company target ${d} (per the record's notes)` : r.priority;
+            })(),
             owner || "Not recorded",
           ];
         }),
@@ -355,6 +360,28 @@ function deriveAssessmentControlRecord(intake: Bag): RenderedTable {
         rec.evidence.length ? rec.evidence.join("; ") : "None identified",
       ];
     }),
+  };
+}
+
+/** doc 263 run 2 (2026-09-17, batch fc0119e9 cyber f10, f2) — the two fixed
+ *  sentences that read the record: the signature's basis clause (§ 7120
+ *  applicability) and the readiness plan note (a Company target date stated
+ *  in a control's notes). Both are slots on the byte-pinned spine. */
+function skeletonValuesFor(intake: Bag, entity: string): Record<string, string> {
+  const auditRequired = resolveCyberApplicability((intake.profile ?? {}) as Bag).auditRequired.value;
+  const dated = CYBER_7123_COMPONENTS
+    .map((c) => ({ label: c.label, date: /\b(20\d{2}-\d{2}-\d{2})\b/.exec(controlRec(intake, c.slug).notes)?.[1] ?? "" }))
+    .filter((x) => x.date);
+  return {
+    "profile.entity_name": entity,
+    AUDIT_BASIS_CLAUSE: auditRequired === true
+      ? "as required pursuant to"
+      : auditRequired === false
+      ? "undertaken voluntarily in the form prescribed by"
+      : "whose requirement the record has not yet resolved under",
+    REMEDIATION_PLAN_NOTE: dated.length
+      ? `the record identifies who owns remediation and, for ${dated.length === 1 ? "one component" : `${dated.length} components`} (${dated.map((x) => `${x.label}: ${x.date}`).join("; ")}), a Company target date stated in its notes, but does not include a Company-approved remediation plan`
+      : "the record identifies who owns remediation but does not include a Company-approved remediation plan or timeframe",
   };
 }
 
@@ -689,7 +716,7 @@ export function assembleCyberSkeletonDocumentV4(
     title: CYBER_V4_SKELETON_TITLE,
     subtitle: CYBER_V4_SKELETON_SUBTITLE,
     spineVersion: CYBER_V4_SKELETON_VERSION,
-    values: { "profile.entity_name": s((intake.profile as Bag | undefined)?.entity_name) || "the company" },
+    values: skeletonValuesFor(intake, s((intake.profile as Bag | undefined)?.entity_name) || "the company"),
     composed: composedBase,
     tables,
   });
@@ -749,7 +776,7 @@ export function assembleCyberSkeletonDocumentV4(
     title: CYBER_V4_SKELETON_TITLE,
     subtitle: CYBER_V4_SKELETON_SUBTITLE,
     spineVersion: CYBER_V4_SKELETON_VERSION,
-    values: { "profile.entity_name": entity },
+    values: skeletonValuesFor(intake, entity),
     composed: {
       ...composedBase,
       "table_of_authorities:0": toa,

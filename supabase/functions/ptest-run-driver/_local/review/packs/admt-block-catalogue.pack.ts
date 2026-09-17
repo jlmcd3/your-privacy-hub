@@ -155,7 +155,7 @@ export const ADMT_BLOCK_CATALOGUE: BlockCatalogue = {
         "11 CCR § 7001(ddd)",
         "11 CCR § 7001(ddd)(6)",
         "11 CCR § 7001(e)",
-        "11 CCR § 7001(e)(1)",
+        "11 CCR § 7001(e)(1)(A)",
         "11 CCR § 7200(a)"
       ]
     },

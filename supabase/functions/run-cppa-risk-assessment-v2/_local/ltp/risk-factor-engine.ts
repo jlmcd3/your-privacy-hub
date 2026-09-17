@@ -4644,6 +4644,12 @@ export function runRiskFactorEngine(
     if (divergenceMarkers.length && !noticeFull) {
       con.push("— Processing falls partly outside consumer expectations and notice coverage (§ 3.C).");
     }
+    // doc 263 run 2 (2026-09-17, batch fc0119e9 risk f3) — a disclosed divergence
+    // enters § 4.B at reduced force (§ 3.C says so); the list carries it rather
+    // than dropping it once the notice covers it.
+    if (divergenceMarkers.length && noticeFull) {
+      con.push("— Disclosed divergence from the consumer interaction, at reduced force (§ 3.C).");
+    }
     if (choiceNoneConfirmed || (choiceAnswered && choiceMissing.length > 0)) {
       con.push("— Choice-architecture facts unconfirmed (§ 3.C).");
     }

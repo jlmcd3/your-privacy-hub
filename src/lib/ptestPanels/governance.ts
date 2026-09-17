@@ -685,7 +685,7 @@ export const PANEL_GOVERNANCE: PanelFixture[] = [
       training_status: "Yes, onboarding only",
       training_ai_coverage: "No — not AI-specific",
       tool_instruction: "Verbal guidance only",
-      dpa_status: "Most vendors",
+      dpa_status: "Some vendors",
       dpa_art28_verified: "Partially",
       transfer_status: "Yes, US-based tools",
       transfer_mechanism: "UK IDTA",

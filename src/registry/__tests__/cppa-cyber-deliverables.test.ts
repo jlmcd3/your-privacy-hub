@@ -192,7 +192,9 @@ describe("ITEM 315 — § 7122 independence", () => {
     expect(d.auditor_type).toBe("internal");
     expect(d.verdict).toBe("not_satisfied");
     expect(d.unsatisfied_conditions).toContain("internal_auditor_reporting_line");
-    expect(d.unsatisfied_conditions).toContain("impartiality_and_non_participation");
+    // doc 263 run 2 (2026-09-17, batch fc0119e9 cyber f1): the reporting line is the only engagement fact; impartiality is unresolved, not failed.
+    expect(d.unsatisfied_conditions).not.toContain("impartiality_and_non_participation");
+    expect(d.findings.find((f) => f.condition_key === "impartiality_and_non_participation")!.verdict).toBe("partially_satisfied");
   });
 
   it("an independent internal reporting line satisfies § 7122(a)(3)", () => {

@@ -352,6 +352,20 @@ function verdictLead(surface: Bag, subject: string, fallback: string): string {
   return `${subject} ${phrase}.`;
 }
 
+/** doc 263 run 2 (2026-09-17, batch fc0119e9 gov f4) — the operational lead
+ *  reads the operational domains' own findings beside the risk-calibration
+ *  verdict, so a section whose constituent control cannot be evidenced never
+ *  opens "is evidenced". */
+function operationalVerdict(report: Bag): string {
+  const base = s(((report.risk_calibration_finding ?? {}) as Bag).verdict);
+  const ops = domainEntries(report).filter((d) => OPERATIONAL_DOMAINS.test(`${s(d.domain_name)} ${s(d.domain)}`));
+  const sev = ops.map((d) => s(d.severity).toLowerCase());
+  if (base === "not_satisfied" || sev.some((x) => x === "high" || x === "critical")) return "not_satisfied";
+  if (base === "record_insufficient" || base === "not_determinable" || base === "information_needed" || sev.some((x) => x === "unresolved")) return "not_determinable";
+  if (base === "partially_satisfied" || ops.some((d) => /^(?:medium|low)$/.test(s(d.severity).toLowerCase()) && s(d.gap_description))) return "partially_satisfied";
+  return base;
+}
+
 function domainEntries(report: Bag): Bag[] {
   const df = report.domain_findings;
   if (Array.isArray(df)) return df as Bag[];
@@ -1011,7 +1025,12 @@ export function deriveGovernanceScoreboard(report: Bag): RenderedTable | null {
   if (domains.length > 0) {
     const withGap = domains.filter((d) => {
       const sev = s(d.severity).toLowerCase();
-      return sev !== "" && sev !== "compliant";
+      // doc 263 run 2 (2026-09-17, batch fc0119e9 gov f3) — the same buckets as
+      // the determination paragraph (composeExecutiveSummaryTyped): a Medium/Low
+      // domain with no recorded gap is evidenced with a point to watch.
+      if (sev === "" || sev === "compliant") return false;
+      if (sev === "medium" || sev === "low") return !!s(d.gap_description);
+      return true;
     }).length;
     // A-TEAM DELTA (ChatGPT Dropbox Batch 1 review, 2026-08-31, Governance
     // P0) — this counts EVERY non-compliant severity (Unresolved through
@@ -1072,7 +1091,7 @@ export function assembleGovernanceSkeletonDocument(
     "governance_infrastructure:4": composeArt30RecordsBody(report),
 
     "training_tools_controls:0": verdictLead(
-      { verdict: s(((report.risk_calibration_finding ?? {}) as Bag).verdict) },
+      { verdict: operationalVerdict(report) },
       // DOC-81 S-1 — renamed from "The operational controls" (plural,
       // trailing unpaired dash) to match this section's OWN fallback below,
       // which already called it "the operational-control posture" — and to

@@ -223,11 +223,8 @@ export const CYBER_CORPUS_MAP: CorpusMap = {
       source_row_id: "d384dc3a-d42c-4360-9549-2f7d7a36feb7",
       excerpt_field: "agency_position_summary",
       pinned_excerpt:
-        "Regulation 11 CCR § 7123(c)(2) requires encryption of personal information maintained by businesses. The Agency rejected the commenter's recommendation to expand the encryption requirement to explicitly cover sensitive information, determining that the existing requirement to encrypt \"personal information\" under § 7123(c)(2) already encompasses the protections sought.",
-      render_eligible: true,
-      render_surface: "S4",
-      purpose_class: "misreading",
-      render_when: ["c2_component_rendered"],
+        "Regulation 11 CCR § 7123(c)(2) requires encryption of personal information maintained by businesses.",
+      render_eligible: false, // doc 263 run 2 (2026-09-17, batch fc0119e9 cyber f5/f6): the summary states the component as an implementation duty; dark until recurated (doc 267 item 12)
       trail_impact:
         "CPPA, FSOR (Appendix, p. 84) — \"personal information\" encryption already encompasses sensitive data — interpretive",
       direction: "supports",
@@ -370,11 +367,8 @@ export const CYBER_CORPUS_MAP: CorpusMap = {
       source_row_id: "a99195b0-d929-4bb4-892a-2f19cada832c",
       excerpt_field: "agency_position_summary",
       pinned_excerpt:
-        "The regulation addresses what cybersecurity audits must evaluate regarding antivirus and anti-malware protections. The Agency rejected the commenter's recommendation to modify section 7123(b)(2)(J), maintaining that audits need not focus specifically on antivirus and anti-malware protections as distinct requirements.",
-      render_eligible: true,
-      render_surface: "S4",
-      purpose_class: "misreading",
-      render_when: ["c9_component_rendered"],
+        "The regulation addresses what cybersecurity audits must evaluate regarding antivirus and anti-malware protections.",
+      render_eligible: false, // doc 263 run 2 (2026-09-17, batch fc0119e9 cyber f5/f6): the summary states the component as an implementation duty; dark until recurated (doc 267 item 12)
       trail_impact:
         "CPPA, FSOR (Appendix, p. 87, proposal numbering) — audits need not treat antivirus as a distinct focus — interpretive",
       direction: "limits",
@@ -496,11 +490,8 @@ export const CYBER_CORPUS_MAP: CorpusMap = {
       source_row_id: "aaeefa5a-bd9c-402a-8e32-72352ba40aab",
       excerpt_field: "agency_position_summary",
       pinned_excerpt:
-        "The issue was whether oversight of service providers, contractors, and third parties should be included as part of cybersecurity requirements under California's privacy law. The California Privacy Protection Agency agreed with commenters and retained language in 11 CCR § 7123(b)(2) requiring businesses to implement oversight of service providers, contractors, and third parties as an essential component of their cybersecurity program, consistent with established cybersecurity frameworks. This requirement ensures that a business's security obligations extend beyond its own operations to include management and monitoring of external parties that access or handle consumer data.",
-      render_eligible: true,
-      render_surface: "S4",
-      purpose_class: "authority",
-      render_when: ["c15_component_rendered"],
+        "The issue was whether oversight of service providers, contractors, and third parties should be included as part of cybersecurity requirements under California's privacy law.",
+      render_eligible: false, // doc 263 run 2 (2026-09-17, batch fc0119e9 cyber f5/f6): the summary states the component as an implementation duty; dark until recurated (doc 267 item 12)
       trail_impact:
         "CPPA, FSOR (Appendix, p. 88) — service-provider oversight retained on consumer-protection grounds — interpretive",
       direction: "supports",

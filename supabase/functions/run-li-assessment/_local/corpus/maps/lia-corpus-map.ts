@@ -290,7 +290,7 @@ export const LIA_CORPUS_MAP: CorpusMap = {
         what_happened:
           "Spain's AEPD fined GSMA €600,000 after it demanded health and vaccination information from third parties as an entry condition without being entitled to require it.",
         bearing:
-          "An interest must be lawful and the controller's own to pursue — entitlement to the data is part of interest legitimacy, before balancing is ever reached.",
+          "An interest must be lawful and one the controller — or the third party whose interest it pursues, which Article 6(1)(f) equally allows — is entitled to pursue; entitlement to the data is part of interest legitimacy, before balancing is ever reached.",
         authority_label:
           "AEPD (Spain), GSMA Limited, decision of 31 May 2024, ref. EXP202201608 — persuasive authority",
         trail_cite: "AEPD, GSMA (2024)",

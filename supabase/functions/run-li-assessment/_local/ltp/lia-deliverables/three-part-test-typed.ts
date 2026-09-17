@@ -52,6 +52,7 @@
 // implementation-authored customer byte under the CEO's delegation;
 // they are written as visible literals so the redline surface is complete.
 
+import { ALREADY_REQUIRED_LEXICON } from "./elements.ts";
 import type {
   AutomatedDecisionFinding,
   ChildFactorFinding,
@@ -176,6 +177,30 @@ export function balancingVerdict(
 
 // ── The weighing narrative (balancing analysis + synthesis) ─────────────────
 
+/** doc 263 run 2 — the recorded measures that count as mitigation under EDPB
+ *  1/2024 § II.C.4: ticked safeguards beyond the baseline the GDPR requires in
+ *  any case, the "Other" safeguard in the company's words, and additional
+ *  mitigations the already-required lexicon does not catch. */
+const BASELINE_TICKED_SAFEGUARDS: ReadonlySet<string> = new Set([
+  "Encryption at rest and in transit",
+  "Access controls / least privilege",
+  "Retention limits",
+  "Notice at collection (privacy information given when the data is collected)",
+  "Vendor due diligence",
+  "DPIA completed",
+  "Independent oversight (DPO / privacy committee)",
+]);
+export function countedMitigations(intake: Bag): string[] {
+  const details = bag(intake.balancing_details);
+  const ticked = arr(details.safeguards).filter((x) => !BASELINE_TICKED_SAFEGUARDS.has(x) && x !== "Other" && x !== "None in place yet");
+  const other = String(details.safeguards_other ?? "").trim();
+  const additional = String(details.additional_mitigations ?? "")
+    .split(/;|\n/)
+    .map((m) => m.trim())
+    .filter((m) => m && !ALREADY_REQUIRED_LEXICON.some((re) => re.test(m)));
+  return [...ticked, ...(other ? [other] : []), ...additional];
+}
+
 function expectationClause(expectations: ReasonableExpectationsFinding): string {
   switch (expectations.verdict) {
     case "reasonably_expected":
@@ -278,15 +303,27 @@ export function composeBalancingAnalysis(
     );
     const h = u4.potential_harms;
     const safeguards = arr(bag(intake.balancing_details).safeguards);
+    // doc 263 run 2 (2026-09-17, batch fc0119e9 lia f5/f16/f2) — EDPB 1/2024
+    // § II.C.4: only measures beyond what the GDPR already requires count as
+    // mitigation. The ticked baseline safeguards (security, minimisation,
+    // information, rights, accountability) are named as not counted; the
+    // measures that count are the ticked ones beyond the baseline, the "Other"
+    // safeguard in the company's words, and the recorded additional mitigations
+    // that the already-required lexicon does not catch.
+    const counted = countedMitigations(intake);
     bits.push(
       h.material_weight_against_controller
-        ? `the material weight the recorded harms carry is answered by the ${safeguards.length} recorded safeguard${safeguards.length === 1 ? "" : "s"}`
+        ? counted.length
+          ? `the material weight the recorded harms carry is answered by the ${counted.length} recorded measure${counted.length === 1 ? "" : "s"} that go beyond what the GDPR already requires (${counted.join("; ")}); the safeguards the GDPR requires in any case are not counted as mitigation (EDPB Guidelines 1/2024, Section II.C.4)`
+          : `the material weight the recorded harms carry is not answered by any recorded measure beyond what the GDPR already requires — the ${safeguards.length} recorded safeguard${safeguards.length === 1 ? "" : "s"} ${safeguards.length === 1 ? "is an obligation" : "are obligations"} in any case and ${safeguards.length === 1 ? "is" : "are"} not counted as mitigation (EDPB Guidelines 1/2024, Section II.C.4) — so the balance rests on the expectation finding above`
         : `the worst-case severity recorded (${h.worst_case_severity}) does not of itself override the interest`,
     );
     if (u4.opt_out_feasibility.feasibility === "no_opt_out_available") {
       // DOC 254 (2026-09-11, ChatGPT review LEGITIMA-04) — "typed findings"
       // is build vocabulary; the proposition is stated as the analysis.
-      bits.push("the absence of an opt-out increases the weight the safeguards must bear, and on the findings above the recorded safeguards are sufficient to support the balance");
+      bits.push(counted.length
+        ? "the absence of an opt-out increases the weight the measures that count must bear, and on the findings above they are sufficient to support the balance"
+        : "the absence of an opt-out increases the weight the mitigation must bear, and no recorded measure beyond the GDPR's own requirements bears it");
     }
     return `: ${bits.join("; ")}`;
   })();

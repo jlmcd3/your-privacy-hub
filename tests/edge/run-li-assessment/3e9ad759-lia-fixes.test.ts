@@ -70,7 +70,7 @@ Deno.test("L6 — no boundary renders when special-category is answered false an
   assert(!text.includes("Article 9(1)"), "the boundary must not fire on a clean record");
 });
 
-Deno.test("L2 — the purpose-test walk names each condition with its own reasoning", () => {
+Deno.test("L2 — the purpose-test walk names each requirement with its own reasoning", () => {
   const f = buildInterestLegitimacy(ukIntake({
     stated_purpose: "Road safety for the employed HGV fleet and lawful fleet management.",
     purpose_details: {
@@ -79,8 +79,8 @@ Deno.test("L2 — the purpose-test walk names each condition with its own reason
     },
   }));
   // DOC 255 (2026-09-11, ledger L8): one sentence per condition.
-  assertStringIncludes(f.application, "the first condition — ");
-  assertStringIncludes(f.application, "The second condition — ");
-  assertStringIncludes(f.application, "The third condition — ");
+  assertStringIncludes(f.application, "the first requirement — ");
+  assertStringIncludes(f.application, "The second requirement — ");
+  assertStringIncludes(f.application, "The third requirement — ");
   assert(!/the first condition is [a-z]+, the second is/.test(f.application), "the bare met/met/met walk must be gone");
 });

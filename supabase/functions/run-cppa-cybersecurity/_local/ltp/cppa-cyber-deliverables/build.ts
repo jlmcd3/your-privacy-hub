@@ -269,7 +269,7 @@ export function buildComponentCoverage(facts: CyberFacts): CyberComponentCoverag
       // recorded maturity itself.
       const recordedMaturity = maturityPhrase(maturity);
       application =
-        `${comp.citation} lists this component among those the audit must assess where applicable, and the audit report must identify it and describe how it is assessed (11 CCR § 7123(e)(2)). The record shows it ` +
+        `${comp.citation} lists this component among those the audit must assess where applicable, and the audit report must identify it among the components assessed (11 CCR § 7123(e)(2)). The record shows it ` +
         `${recordedMaturity}, which is what the component asks for; ` +
         (notes
           ? `the description identifies the specific controls relied on.`
@@ -279,7 +279,7 @@ export function buildComponentCoverage(facts: CyberFacts): CyberComponentCoverag
         : "Describe the controls relied on so the position can be tested rather than asserted.";
     } else if (verdict === "partially_satisfied") {
       application =
-        `${comp.citation} lists this component among those the audit must assess where applicable, and the audit report must identify it and describe how it is assessed (11 CCR § 7123(e)(2)). The record shows it documented but ` +
+        `${comp.citation} lists this component among those the audit must assess where applicable, and the audit report must identify it among the components assessed (11 CCR § 7123(e)(2)). The record shows it documented but ` +
         `only partially implemented, so the component is addressed in policy and incompletely in operation.`;
       remediation = `Complete implementation of ${comp.label} across the systems in audit scope and record the completion date.`;
     } else if (maturity === "Ad hoc / informal") {
@@ -288,14 +288,14 @@ export function buildComponentCoverage(facts: CyberFacts): CyberComponentCoverag
       // finding names the documentation gap rather than calling the
       // component absent.
       application =
-        `${comp.citation} lists this component among those the audit must assess where applicable, and the audit report must identify it and describe how it is assessed (11 CCR § 7123(e)(2)), and 11 CCR § 7123(b)(1) reaches the ` +
+        `${comp.citation} lists this component among those the audit must assess where applicable, and the audit report must identify it among the components assessed (11 CCR § 7123(e)(2)), and 11 CCR § 7123(b)(1) reaches the ` +
         `written documentation of the program. The record shows a status of "${maturity}": the component operates ` +
         `informally, without the written policies and procedures the audit assesses, so the audit would report it as ` +
         `not implemented as a documented component.`;
       remediation = `Document ${comp.label} in written policies and procedures and implement them across the systems in audit scope before the audit is certified under ${CYBER_7124_CITATION}.`;
     } else {
       application =
-        `${comp.citation} lists this component among those the audit must assess where applicable, and the audit report must identify it and describe how it is assessed (11 CCR § 7123(e)(2)). The record shows a status of ` +
+        `${comp.citation} lists this component among those the audit must assess where applicable, and the audit report must identify it among the components assessed (11 CCR § 7123(e)(2)). The record shows a status of ` +
         `"${maturity}", which does not evidence an implemented component; the audit would report it as not implemented.`;
       remediation = `Implement ${comp.label} and document the controls before the audit is certified under ${CYBER_7124_CITATION}.`;
     }
@@ -624,15 +624,20 @@ export function buildIndependenceDetermination(facts: CyberFacts): IndependenceD
       return {
         ...base,
         record_fact: `The record states the engagement is: ${status}.`,
+        // doc 263 run 2 (2026-09-17, batch fc0119e9 cyber f1) — the reporting line is
+        // the only engagement fact the record carries; exposure to influence is
+        // stated, and the condition is left unresolved rather than failed on it.
         application: conflicted
           ? `${cond.citation} requires the auditor to be free from influence by the business's managers. An internal ` +
             `auditor reporting to the executive responsible for the audited program is exposed to precisely that ` +
-            `influence.`
+            `influence; the record carries no separate fact on the auditor's participation in the assessed ` +
+            `activities or on objectivity, so the condition is unresolved on the record rather than failed.`
           : `${cond.citation} requires objective and impartial judgment free from influence by the business. The ` +
             `record's engagement description is consistent with that requirement; the arrangement would be confirmed ` +
             `in the engagement letter rather than concluded from the submitted record alone.`,
-        verdict: (conflicted ? "not_satisfied" : "satisfied") as Verdict,
+        verdict: (conflicted ? "partially_satisfied" : "satisfied") as Verdict,
         status: "analysed" as const,
+        ...(conflicted ? { information_needed: "Record whether the internal auditor took part in the activities assessed and how objective judgment is assured." } : {}),
       };
     }
 

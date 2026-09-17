@@ -120,7 +120,7 @@ Deno.test("ee860fd0 — the human-involvement interpretation lead-in points at t
   assertStringIncludes(frame!.text, "nonbinding interpretive context");
   // The pointer resolves: Section 2's opening legal paragraph states the three conditions.
   const opening = section(doc, "applicability").paragraphs[0].text;
-  assertStringIncludes(opening, "knows how to interpret the system's output, reviews that output together with other relevant information, and has authority to make or change the decision (11 CCR § 7001(e)(1))");
+  assertStringIncludes(opening, "knows how to interpret and use the technology's output to make the decision, (B) reviews and analyzes that output and any other information relevant to make or change the decision, and (C) has the authority to make or change the decision based on that analysis (11 CCR § 7001(e)(1)(A)–(C))");
   assert(!text.includes("this factor's determination above"));
 });
 

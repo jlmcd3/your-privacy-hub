@@ -57,7 +57,7 @@ function text(intake: Bag): string {
 Deno.test("ceo ee860fd0 — Section 7 states the pre-processing rule AND the § 7155(b) transition rule, and asserts no Company-specific deadline", () => {
   for (const intake of [base(), base({ decision_domains: [ADMT_NONE_DOMAIN], admt_detail: { ...(base().admt_detail as Bag), solely_advertising: "Yes — solely advertising" } })]) {
     const t = text(intake);
-    assertStringIncludes(t, "A required risk assessment must be conducted before covered processing begins (11 CCR §§ 7150(a), 7155(a)(1)); for covered processing initiated before January 1, 2026, it must be conducted and documented by December 31, 2027 (11 CCR § 7155(b)); and it must be reviewed at least every three years (11 CCR § 7155(a)(2));");
+    assertStringIncludes(t, "A required risk assessment must be conducted before covered processing begins (11 CCR §§ 7150(a), 7155(a)(1)); for covered processing initiated before the regulations' effective date (January 1, 2026) and continuing after it, the assessment must be conducted and documented by December 31, 2027 (11 CCR § 7155(b)); and it must be reviewed at least every three years (11 CCR § 7155(a)(2));");
     assert(!/must be conducted by December 31, 2027 for this System|the Company's deadline/i.test(t), "no Company-specific deadline is asserted");
   }
 });

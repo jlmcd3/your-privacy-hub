@@ -118,19 +118,19 @@ Deno.test("cppa-risk: wave C1 posture — 41 dark FC (11 phase-1/2 + 30 FC-J bul
   }
 });
 
-Deno.test("cppa-cyber: wave C3 posture — 72 dark FC, 1 S0 callout, 20 S4 rows across 15 components, 2 live + 2 dark AQ, S5 dark", () => {
+Deno.test("cppa-cyber: wave C3 posture — 75 dark FC, 1 S0 callout, 17 S4 rows across 13 components, 2 live + 2 dark AQ, S5 dark", () => {
   const darkFc = CYBER_CORPUS_MAP.rows.filter((r) => r.role === "FC" && !r.render_eligible);
   const s0 = CYBER_CORPUS_MAP.rows.filter((r) => r.role === "FC" && r.render_eligible && r.render_surface === "S0");
   const s4 = CYBER_CORPUS_MAP.rows.filter((r) => r.role === "FC" && r.render_eligible && r.render_surface === "S4");
   const aq = CYBER_CORPUS_MAP.rows.filter((r) => r.role === "AQ");
   const ap = CYBER_CORPUS_MAP.rows.filter((r) => r.role === "AP");
   const aow = CYBER_CORPUS_MAP.rows.filter((r) => r.role === "AOW");
-  assertEquals(darkFc.length, 72);
+  assertEquals(darkFc.length, 75);
   assertEquals(s0.length, 1);
   // The doc 62 §9 Tier-1 recut: EXACTLY 20 S4 rows (33 as filed → 20 as
   // ratified); a 21st S4 row is an unratified customer surface.
-  assertEquals(s4.length, 20);
-  assertEquals(new Set(s4.map((r) => r.factor_id)).size, 15);
+  assertEquals(s4.length, 17);
+  assertEquals(new Set(s4.map((r) => r.factor_id)).size, 13);
   // C1.2 (2026-08-25): the applicability AQ row (cppa-cyber/P1/s2-01)
   // flipped live behind CYBER_DETERMINISTIC_ENABLED — doc 64's
   // applicability table now has a real renderer. The two deadline/cadence

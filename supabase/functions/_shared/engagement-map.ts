@@ -408,6 +408,12 @@ export function buildDpiaEngagementMap(
 
   const isLargeScale = /(large[- ]scale|large scale|\bm(illion)?\b|>\s*\d{5}|nationwide|country[- ]wide|cross[- ]border)/i.test(`${volume} ${description}`);
   const looksProfiling = /(profil|scor|automated (decision|evaluation)|adm[t]?\b|recommend)/i.test(stmt);
+  // doc 263 run 2 (2026-09-17, batch fc0119e9 dpia F2) — the typed facts decide
+  // Art. 35(3)(a): the automated-decision reason, or an automated-decision
+  // nature answer, states the trigger; the lexicon is the fallback only.
+  const adNature = asStr(intake?.automated_decision_nature);
+  const adRecorded = asArr(intake?.reasons_to_conduct).some((r) => /automated decision-making with legal or (?:similarly )?significant effect/i.test(String(r))) ||
+    /^(?:solely automated|automated processing with meaningful human review)\b/i.test(adNature);
   const looksHealth = /(health|medical|patient|clinical|nhs|ehr|emr)/i.test(stmt) || /health/i.test(art9);
   const looksChildren = /(child|minor|under[- ]18|student|learner|pupil)/i.test(stmt);
   const looksPublicMonitoring = /(cctv|public (space|area)|wi-?fi tracking|kerbside|street|shopping mall|drone|aerial|overflight|airborne|unmanned aerial|uav\b)/i.test(stmt);
@@ -452,11 +458,13 @@ export function buildDpiaEngagementMap(
   entries.push({
     rule_id: "R_ART_35_3_A_AUTOMATED_DECISIONS",
     name: "Article 35(3)(a) — automated decisions with legal/similarly significant effects",
-    status: looksProfiling ? "conditional" : "not_engaged",
-    rationale: looksProfiling
+    status: adRecorded ? "engaged" : looksProfiling ? "conditional" : "not_engaged",
+    rationale: adRecorded
+      ? `The record states that the processing takes automated decisions with legal or similarly significant effects${adNature ? ` ("${adNature}")` : ""}; Art. 35(3)(a) is engaged.`
+      : looksProfiling
       ? "The record describes profiling or scoring; Art. 35(3)(a) is engaged IF the outputs produce legal or similarly significant effects — this must be confirmed."
       : "The record does not describe automated decisions with legal or similarly significant effects.",
-    intake_signals: ["description", "purpose", "processing_activity_name"],
+    intake_signals: ["description", "purpose", "processing_activity_name", "reasons_to_conduct", "automated_decision_nature"],
     section_ref: "section_1_description",
   });
 

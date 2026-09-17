@@ -108,6 +108,22 @@ Deno.test("findingRows — validated, dropped and unbound rows carry worker, ven
   assert(rows.every((r) => r.worker === "W-LAW" && r.vendor === "gpt" && r.job_id === "j"));
 });
 
+Deno.test("findingRows — every row carries a boolean `reanchored`, so a bulk insert never sends null into the NOT NULL column (doc 267 §3b)", () => {
+  const rows = findingRows(
+    { batchId: "b", tool: "dpia", assessmentId: "d", worker: "W-LAW", vendor: "claude", jobId: "j" },
+    // deno-lint-ignore no-explicit-any
+    [{ id: "f1", worker: "W-LAW", kind: null, severity: "high", confidence: "high", block_key: "k", quote: "q", why: "w", intake_key: null, intake_value: null, registry_row_id: "r", registry_quote: "rq", binding: "bound", block_key_b: null, quote_b: null, reanchored: undefined as any }],
+    [{ id: "f2", worker: "W-LAW", reason: "misquoted_registry", quote: "q2", detail: "d" }],
+    [{ block_key: "k2", quote: "q3", proposed_row_id: null, consistent: false, note: "n", locatable: false }],
+  );
+  assertEquals(rows.length, 3);
+  assert(rows.every((r) => typeof r.reanchored === "boolean"), "each row must carry reanchored as a boolean");
+  // PostgREST unions the keys of a bulk insert: a key present on one row and
+  // absent on another arrives as null on the latter, not as the column default.
+  const keys = rows.map((r) => Object.keys(r).includes("reanchored"));
+  assertEquals(keys, [true, true, true]);
+});
+
 Deno.test("lint job — persists a LINT review row and one finding per hit, with the document hash (stubbed admin)", async () => {
   const report = await riskReport();
   const inserted: Record<string, Bag[]> = {};

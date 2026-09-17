@@ -72,7 +72,7 @@
 // prose) is unchanged and only the basis-v2 serialization moves — the v4.8
 // precedent. The cover subtitle (assembler-side, not a spine constant) took
 // the Risk cover's form the same day.
-export const DPIA_SKELETON_VERSION = "dpia-v4.12-2026-09-11";
+export const DPIA_SKELETON_VERSION = "dpia-v4.13-2026-09-17";
 /** v4.11 (CEO edit 2026-09-10: Section titles renumbered 1–7) — retained for the audit trail. */
 export const DPIA_SKELETON_VERSION_V411 = "dpia-v4.11-2026-09-10";
 
@@ -226,7 +226,7 @@ export const DPIA_SKELETON_CONTENT_HASH_V411 =
   "4e401fe574a8c4043974b8b61d87604dc1b5605051a7ffcee9eb49861103bc9a";
 /** v4.12 — DOC 252 §10 item 5: Appendix B adds one skeleton block. */
 export const DPIA_SKELETON_CONTENT_HASH =
-  "4f8bbcfca5ab87e52c56d78de04049e05aff1aa348513aaebc81bfc9866f0552";
+  "3bf33a376534b6ddb2b1db39c4e075a695037f5873e543e042d7906e953c3d57" // RE-PIN doc 263 run 2 (2026-09-17): v4.13 — the Art. 35(11) sentence restated in the Article's terms;
 
 
 
@@ -413,7 +413,7 @@ export const DPIA_SKELETON_SECTIONS: readonly DpiaSkeletonSection[] = [
     id: "section_6_conclusion",
     title: "Section 7 — Conclusion and Decision",
     blocks: [
-      { kind: "skeleton", text: "This section states the DPIA determination, any conditions or unresolved points, the approval basis, and whether prior consultation is required. Article 35(11) also requires the controller to review the DPIA where necessary, at least when a change in the risk represented by the processing occurs." },
+      { kind: "skeleton", text: "This section states the DPIA determination, any conditions or unresolved points, the approval basis, and whether prior consultation is required. Article 35(11) also requires the controller, where necessary, to carry out a review to assess whether the processing is performed in accordance with this assessment, at least when there is a change of the risk represented by the processing operations." },
       { kind: "table", text: "decision" },
       { kind: "lead", text: "[DETERMINATION LEAD] One sentence stating the sign-off determination with any condition attached." },
       { kind: "generated", text: "[GENERATED] The approval basis in counsel's voice: which residual risks were accepted and by whom ({dpiaApprovedByName}), with any condition; the scope note {dpiaScopeNote} and review window {endDate} where the company has recorded them." },
@@ -589,7 +589,7 @@ export const DPIA_SPINE_HASH_V411 =
  * (Enforcement Precedents) added; one new skeleton block, so BOTH bases move.
  * Method verified by reproducing the v4.11 value first. */
 export const DPIA_SPINE_HASH =
-  "7ed4efc0ca10eddbeb32e4c29c70e6d240a9074a21e4b2133823dbbaae09a3f6";
+  "4e3ddee67cbd0e5c3b7d545a1d4684bab592f7286fe4a234d3e1f57c01c37587" // RE-PIN doc 263 run 2 (2026-09-17): v4.13;
 
 /** The v4.5.1 spine under basis v2 — retained for the audit trail. */
 export const DPIA_SPINE_HASH_V451 =

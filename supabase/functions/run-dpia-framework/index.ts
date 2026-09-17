@@ -2883,7 +2883,11 @@ async function runStitch(dpia_id: string): Promise<void> {
         if (hooksInPlay.length > 0) {
           const { applications, flags } = applyDpiaHooks(
             hooksInPlay, dpiaStates, dpiaStates.verdicts, rankedSourceIds, determinativeSourceIds,
-            { selections: resolved.selections, unsettled: resolved.unsettled, lapsed },
+            {
+              selections: resolved.selections, unsettled: resolved.unsettled, lapsed,
+              // doc 263 run 2 — the record's own text for the "The record describes …" gate.
+              recordText: [intakeRec?.description, intakeRec?.purpose, intakeRec?.processing_activity_name, intakeRec?.nature_scope_context, intakeRec?.functional_description].map((v) => String(v ?? "")).join(" "),
+            },
           );
           acct.hooks_applied = applications.map((a) => a.hook_id);
           acct.hook_flags = flags;

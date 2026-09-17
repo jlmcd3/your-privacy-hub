@@ -909,14 +909,17 @@ export function buildDpoDetermination(intake: unknown): DpoDetermination {
         // no-adverse-weight outcome the UNREQUESTED-FACT RULE already gives
         // them under information_needed.
         (bothAdjacent
-          ? "Both are supported by the record: the recorded training activity supports 39(1)(b), and the recorded DPIA activity supports 39(1)(c). The remaining three tasks — informing and advising generally (39(1)(a)), cooperating with the supervisory authority (39(1)(d)), and acting as its contact point (39(1)(e)) — are not independently assessed here: a designation establishes that the tasks apply, not that each is being performed, and this assessment does not request task-by-task confirmation. That gap is recorded under information needed as a confirmation that would strengthen the record, not as a deficiency."
+          ? "The recorded training activity and the recorded DPIA activity are the activities 39(1)(b) and 39(1)(c) concern, so those two tasks have subject matter on the record; whether the designated person performed the monitoring and advisory role in them is not stated. The remaining three tasks — informing and advising generally (39(1)(a)), cooperating with the supervisory authority (39(1)(d)), and acting as its contact point (39(1)(e)) — are not independently assessed here: a designation establishes that the tasks apply, not that each is being performed, and this assessment does not request task-by-task confirmation. That gap is recorded under information needed as a confirmation that would strengthen the record, not as a deficiency."
           : (hasFormal
             ? "One of the two is not evidenced in substance, so task coverage is evidenced in part: the designation is recorded, and the activity behind two of the named tasks is only partly visible in the Company's answers. The remaining three tasks are not independently assessed here."
             : "The arrangement recorded is an informal privacy lead and one of the two adjacent activities is not evidenced in substance, so task coverage is evidenced in part. The remaining three tasks are not independently assessed here.")),
       verdict: (bothAdjacent && hasFormal) ? "satisfied" : "partially_satisfied",
       status: "analysed",
-      information_needed:
-        "Confirming, task by task against Article 39(1)(a)-(e), which tasks the designated officer performs and how that is recorded would strengthen the record and let the tasks not independently assessed above be tested directly. This assessment does not request that confirmation, so its absence carries no adverse weight.",
+      // doc 263 run 2 (2026-09-17, batch fc0119e9 gov f7) — an informal lead is
+      // not a designated officer; the ask names the prerequisite first.
+      information_needed: hasFormal
+        ? "Confirming, task by task against Article 39(1)(a)-(e), which tasks the designated officer performs and how that is recorded would strengthen the record and let the tasks not independently assessed above be tested directly. This assessment does not request that confirmation, so its absence carries no adverse weight."
+        : "The arrangement recorded is an informal privacy lead, not a designated officer. Recording whether Article 37 requires a designation and, for the lead as arranged, which Article 39(1)(a)-(e) tasks that person performs and how that is recorded would strengthen the record and let the tasks not independently assessed above be tested directly. This assessment does not request that confirmation, so its absence carries no adverse weight.",
     }
     : {
       key: "dpo_task_coverage",
@@ -1421,7 +1424,7 @@ export function buildTransferAnalysis(intake: unknown): TransferAnalysis {
       cite(ukOwnAssessment.citation);
       cite(ukProportionate.citation);
       parts.push(
-        `The exporter carries its own assessment duty: Article 46(1A)(a)(ii) requires that "${ukOwnAssessment.verbatim}" and Article 46(6) fixes that test as whether, after the transfer, "${ukTest.verbatim}" this Regulation, Part 2 of the 2018 Act, and Parts 5 to 7 of that Act. Article 46(7) sets the standard of that judgement: "${ukProportionate.verbatim}"`,
+        `Where the exporter relies on its own assessment — the Article 46(1A)(a)(ii) limb, one of the routes that Article offers, which requires that "${ukOwnAssessment.verbatim}" — Article 46(6) fixes that test as whether, after the transfer, "${ukTest.verbatim}" this Regulation, Part 2 of the 2018 Act, and Parts 5 to 7 of that Act. Article 46(7) sets the standard of that judgement: "${ukProportionate.verbatim}"`,
       );
       if (!benchmark_citation) {
         benchmark_citation = ukTest.citation || "UK GDPR Art. 46(6)";
@@ -1696,15 +1699,21 @@ export function buildRemediationRecord(
   domain: GovernanceDomain,
   intake: unknown,
   verdict = "not_satisfied",
+  // doc 263 run 2 (2026-09-17, batch fc0119e9 gov f6) — a finding whose own
+  // ask says its absence carries no adverse weight is record completion at
+  // low priority, never a compliance gap to remediate this quarter.
+  noAdverseWeight = false,
 ): RemediationRecord {
   const { defaults, byKey, byDomain } = readRemediationIntake(intake);
   const src = byKey[findingKey] ?? byDomain[domain] ?? {};
-  const action_type = actionTypeFor(verdict);
+  const action_type: RemediationActionType = noAdverseWeight ? "Record completion" : actionTypeFor(verdict);
 
   const accountable_owner = src.accountable_owner || defaults.accountable_owner || "";
   const target_date = src.target_date || defaults.target_date || "";
   const priorityRaw = src.priority ||
-    (action_type === "Compliance gap"
+    (noAdverseWeight
+      ? "Low — monitor"
+      : action_type === "Compliance gap"
       ? defaults.priority || ""
       : action_type === "Record completion"
       ? "Medium — remediate this year"
@@ -1803,7 +1812,7 @@ function toDomainFinding(
     evidence_reviewed: evidenceFor(intake, answerKeys),
   };
   if (isAdverse(base.verdict)) {
-    finding.remediation = buildRemediationRecord(base.key, domain, intake, String(base.verdict));
+    finding.remediation = buildRemediationRecord(base.key, domain, intake, String(base.verdict), /carries no adverse weight/i.test(String(base.information_needed ?? "")));
   }
   return finding;
 }

@@ -56,6 +56,7 @@
 // NEVER THROWS: same discipline as LIA's file — an atom that fails to parse
 // marks the WHOLE hook ineligible (`invalid_atom`), never propagates.
 
+import { DPIA_CORPUS_MAP } from "../../corpus/maps/dpia-corpus-map.ts";
 import { evaluateAtom } from "../../../../_shared/corpus/rule-types.ts";
 import type { TypedStateBag } from "../../../../_shared/corpus/rule-types.ts";
 export type { TypedStateBag };
@@ -350,6 +351,8 @@ interface Candidate {
 }
 
 export interface ApplyDpiaHooksOptions {
+  /** doc 263 run 2 — the record's own free text, for the "The record describes …" gate. */
+  readonly recordText?: string;
   readonly selections?: HookSelectionMap;
   readonly unsettled?: ReadonlySet<string>;
   readonly lapsed?: ReadonlySet<string>;
@@ -407,6 +410,19 @@ export function applyDpiaHooks(
     }
 
     if (!requiredHolds.every(Boolean)) continue; // not nominated, silently
+    // doc 263 run 2 (2026-09-17, batch fc0119e9 dpia R1/F18) — a hook whose ratified
+    // paragraph opens by describing the record ("The record describes …") is emitted
+    // only where the record carries the scenario it describes: the CAM row for the
+    // same source carries the CEO-ratified advisory terms (doc 132), and at least one
+    // must appear in the record's own text. The bytes are unchanged.
+    if (hook.literal_sentence_override && /^\s*the record describes\b/i.test(hook.literal_sentence_override) && opts.recordText !== undefined) {
+      const terms = DPIA_CORPUS_MAP.rows.find((r) => r.source_row_id === hook.source_row_id && Array.isArray(r.advisory_terms) && r.advisory_terms.length > 0)?.advisory_terms ?? [];
+      const lc = opts.recordText.toLowerCase();
+      if (terms.length && !terms.some((t) => lc.includes(String(t).toLowerCase()))) {
+        flags.push({ hook_id: hook.hook_id, reason: "override_scenario_not_on_record" });
+        continue;
+      }
+    }
 
     // Same priority rule as LIA's join: a distinguishing atom or PAIR whose
     // record atom holds with its authored polarity takes priority over the

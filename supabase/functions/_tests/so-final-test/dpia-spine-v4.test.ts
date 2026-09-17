@@ -140,7 +140,7 @@ Deno.test("spine v4.6 — the ratified wording edits are the shipped bytes", () 
   assertStringIncludes(fixed[11], "Article 35(7)(d) then requires the DPIA to identify the measures envisaged to address those risks");
   assertStringIncludes(fixed[12], "Risk Assessments. The first register captures design risk");
   assertStringIncludes(fixed[13], "Article 35(9) requires the controller, where appropriate, to seek the views of data subjects");
-  assertStringIncludes(fixed[14], "Article 35(11) also requires the controller to review the DPIA where necessary");
+  assertStringIncludes(fixed[14], "Article 35(11) also requires the controller, where necessary, to carry out a review");
   assertStringIncludes(fixed[15], "the negative branch states that prior consultation is not required on this assessment's determination");
   assertStringIncludes(fixed[16], "could not determine from the company's answers");
   // Appendix A intro (replaces the Table of Authorities). v4.6.1 (CEO-ratified
