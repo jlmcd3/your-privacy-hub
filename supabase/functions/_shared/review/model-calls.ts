@@ -183,6 +183,8 @@ async function anthropicOnce(opts: {
   label: string;
   jsonSchema?: JsonSchemaSpec | null;
   mode: StructuredMode;
+  /** Per-call override of REVIEW_CALL_TIMEOUT_MS (doc 263 W-LAW chunking). */
+  timeoutMs?: number;
 }): Promise<{ ok: true; text: string; viaTool: boolean; usage: Record<string, unknown>; elapsedMs: number } | { ok: false; status: number; body: string }> {
   const started = Date.now();
   const body = anthropicBody(opts);
@@ -194,7 +196,7 @@ async function anthropicOnce(opts: {
       "content-type": "application/json",
     },
     body: JSON.stringify(body),
-    signal: AbortSignal.timeout(REVIEW_CALL_TIMEOUT_MS),
+    signal: AbortSignal.timeout(opts.timeoutMs ?? REVIEW_CALL_TIMEOUT_MS),
   });
   if (!res.ok) {
     const t = await res.text().catch(() => "");
@@ -245,6 +247,8 @@ export async function callClaude(opts: {
   sourceRowId?: string;
   /** When set, the answer is returned as a schema-validated tool call. */
   jsonSchema?: JsonSchemaSpec | null;
+  /** Per-call override of REVIEW_CALL_TIMEOUT_MS (doc 263 W-LAW chunking). */
+  timeoutMs?: number;
 }): Promise<ModelCallResult> {
   if (!ANTHROPIC_KEY()) throw new Error("ANTHROPIC_API_KEY not set");
   // Long CPPA Risk/Cyber reviews were stopping at exactly 16,000 output tokens
@@ -265,7 +269,7 @@ export async function callClaude(opts: {
     let emptyRetries = 0;
     for (let attempt = 0; attempt < 8 && modeIx < modes.length; attempt++) {
       const mode = modes[modeIx];
-      const r = await anthropicOnce({ model, system: opts.system, user: opts.user, maxTokens, effort, label: opts.label, jsonSchema: schema, mode });
+      const r = await anthropicOnce({ model, system: opts.system, user: opts.user, maxTokens, effort, label: opts.label, jsonSchema: schema, mode, timeoutMs: opts.timeoutMs });
       if (r.ok) {
         const u = r.usage as Record<string, number | undefined>;
         const served: StructuredMode = schema ? (mode === "output_config" ? mode : (r.viaTool ? mode : "text")) : "text";
@@ -355,6 +359,8 @@ async function openaiResponsesOnce(opts: {
   effort: Effort;
   label: string;
   jsonSchema?: JsonSchemaSpec | null;
+  /** Per-call override of REVIEW_CALL_TIMEOUT_MS (doc 263 W-LAW chunking). */
+  timeoutMs?: number;
 }): Promise<{ ok: true; text: string; usage: Record<string, unknown>; elapsedMs: number } | { ok: false; status: number; body: string }> {
   const started = Date.now();
   const payload: Record<string, unknown> = {
@@ -381,7 +387,7 @@ async function openaiResponsesOnce(opts: {
     method: "POST",
     headers: { Authorization: `Bearer ${OPENAI_KEY()}`, "Content-Type": "application/json" },
     body: JSON.stringify(payload),
-    signal: AbortSignal.timeout(REVIEW_CALL_TIMEOUT_MS),
+    signal: AbortSignal.timeout(opts.timeoutMs ?? REVIEW_CALL_TIMEOUT_MS),
   });
   if (!res.ok || !res.body) {
     const t = await res.text().catch(() => "");
@@ -431,6 +437,8 @@ async function openaiChatOnce(opts: {
   system: string;
   user: string;
   maxTokens: number;
+  /** Per-call override of REVIEW_CALL_TIMEOUT_MS (doc 263 W-LAW chunking). */
+  timeoutMs?: number;
 }): Promise<{ ok: true; text: string; usage: Record<string, unknown>; elapsedMs: number } | { ok: false; status: number; body: string }> {
   const started = Date.now();
   const res = await fetch("https://api.openai.com/v1/chat/completions", {
@@ -445,7 +453,7 @@ async function openaiChatOnce(opts: {
         { role: "user", content: opts.user },
       ],
     }),
-    signal: AbortSignal.timeout(REVIEW_CALL_TIMEOUT_MS),
+    signal: AbortSignal.timeout(opts.timeoutMs ?? REVIEW_CALL_TIMEOUT_MS),
   });
   if (!res.ok) {
     const t = await res.text().catch(() => "");
@@ -467,6 +475,8 @@ export async function callOpenAI(opts: {
   sourceRowId?: string;
   /** When set, the answer is returned as a schema-validated JSON response. */
   jsonSchema?: JsonSchemaSpec | null;
+  /** Per-call override of REVIEW_CALL_TIMEOUT_MS (doc 263 W-LAW chunking). */
+  timeoutMs?: number;
 }): Promise<ModelCallResult> {
   if (!OPENAI_KEY()) throw new Error("OPENAI_API_KEY not set");
   const callStarted = Date.now();
@@ -516,7 +526,7 @@ export async function callOpenAI(opts: {
     const model = OPENAI_REVIEW_MODELS[i];
     lastModel = model;
     for (let attempt = 0; attempt < 2; attempt++) {
-      const r = await openaiResponsesOnce({ model, system: opts.system, user: opts.user, effort: opts.effort, label: opts.label, jsonSchema: schema });
+      const r = await openaiResponsesOnce({ model, system: opts.system, user: opts.user, effort: opts.effort, label: opts.label, jsonSchema: schema, timeoutMs: opts.timeoutMs });
       if (r.ok) {
         if (i > 0) note = `${note ? note + "; " : ""}model fell back to ${model}`;
         return finish(model, opts.effort, r, i > 0);
@@ -541,6 +551,7 @@ export async function callOpenAI(opts: {
     system: opts.system,
     user: opts.user,
     maxTokens: opts.maxTokens ?? 8_000,
+    timeoutMs: opts.timeoutMs,
   });
   if (r.ok) {
     note = `no reasoning model available (${lastErr}); ran ${OPENAI_CHAT_FALLBACK_MODEL} without an effort level`;

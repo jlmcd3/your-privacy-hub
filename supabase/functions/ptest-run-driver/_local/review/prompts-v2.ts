@@ -98,6 +98,8 @@ export interface WorkerUserTurnInput {
   /** Cyber: the locator rows cut from the approved corpus at review time. */
   readonly hydratedRegistryText?: string | null;
   readonly truncated: boolean;
+  /** W-LAW chunking (doc 263): which slice of the document this call sees, when the document was split into more than one call. */
+  readonly partNote?: string;
 }
 
 export function buildWorkerUserTurn(worker: WorkerId, doc: WorkerUserTurnInput): string {
@@ -111,6 +113,7 @@ export function buildWorkerUserTurn(worker: WorkerId, doc: WorkerUserTurnInput):
   if (worker === "W-LAW" && doc.hydratedRegistryText) {
     parts.push("REGISTRY TEXT (verbatim, cut from the approved corpus for the locator rows above):", doc.hydratedRegistryText, "");
   }
+  if (doc.partNote) parts.push(doc.partNote, "");
   parts.push("DOCUMENT (the exact customer-facing text under review, with block keys):", doc.blocksText);
   if (doc.truncated) parts.push("", "[NOTE: the document was truncated for length. Do not report the truncation itself as a defect.]");
   parts.push("", "Review this document now. Quote verbatim. Return the result through the tool call.");

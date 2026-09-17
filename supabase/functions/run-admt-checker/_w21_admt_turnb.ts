@@ -79,10 +79,18 @@ const VERIFIED_SUBSECTIONS: Set<string> = new Set(
   Object.values(ADMT_VERIFIED_AUTHORITIES).map((r: any) => String(r.subsection || "")),
 );
 
-// Map: registry subsection string → proposition_key.
-const SUBSECTION_TO_PK: Map<string, string> = new Map(
-  Object.values(ADMT_VERIFIED_AUTHORITIES).map((r: any) => [String(r.subsection), String(r.proposition_key)]),
-);
+// Map: registry subsection string → proposition_key. A subsection can carry
+// more than one row (doc 263 run 1 added the continuation sentences of
+// § 7220(b)(2) and others as their own rows); the FIRST row registered for a
+// subsection is its primary proposition and wins the keyless promotion.
+const SUBSECTION_TO_PK: Map<string, string> = (() => {
+  const m = new Map<string, string>();
+  for (const r of Object.values(ADMT_VERIFIED_AUTHORITIES) as any[]) {
+    const sub = String(r.subsection || "");
+    if (sub && !m.has(sub)) m.set(sub, String(r.proposition_key));
+  }
+  return m;
+})();
 
 // Registry subsections that are § 7001 (definitions only).
 const DEFINITIONAL_S7001_RE = /^11\s*CCR\s*§\s*7001(?:\([^)]+\))+\s*$/;

@@ -122,8 +122,9 @@ Deno.test("DOC137-F2 — Art. 39: only the specifically-evidenced tasks read as 
   );
   // Training -> 39(1)(b) and DPIA activity -> 39(1)(c) are specifically
   // evidenced and may read as supported.
-  assertStringIncludes(app, "training activity supports 39(1)(b)");
-  assertStringIncludes(app, "DPIA activity supports 39(1)(c)");
+  // doc 268 §3.7 item 6 (2026-09-17): the recorded activity is the tasks' subject
+  // matter on the record, not proof the designated person performed them.
+  assertStringIncludes(app, "recorded training activity and the recorded DPIA activity are the activities 39(1)(b) and 39(1)(c) concern");
   // The remaining three tasks must read as not independently assessed.
   assertStringIncludes(app, "not independently assessed");
   assertStringIncludes(app, "39(1)(a)");

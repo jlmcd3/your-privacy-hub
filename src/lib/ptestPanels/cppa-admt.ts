@@ -62,8 +62,7 @@ export const PANEL_CPPA_ADMT: PanelFixture[] = [
         "A confirmation email is sent from privacy@meridiantrustbank.com within one business hour of the request, quoting the application reference number, and the opt-out is logged against the application record in the loan-origination system before underwriting begins.",
       opt_out_appeal_process:
         "An applicant may also ask a branch manager to reconsider any declined application within thirty days; the manager, who did not originate the decision, reviews the file without the score and may approve the loan on manual underwriting terms.",
-      opt_out_fairness_doc:
-        "Meridian's compliance department commissioned an independent disparate-impact review of CCD Engine outcomes from Highmark Fair Lending Analytics, dated 2026-04-02, testing approval and pricing distribution across race, ethnicity, sex and age proxies over 14,600 applications; the report is retained in the fair-lending file MTB-DIR-2026.",
+      opt_out_fairness_doc: "",
       opt_out_15_day_process:
         "Opt-out requests route to the manual-underwriting desk on receipt; a decision on the manually-underwritten application issues within fifteen business days, with escalation to the Chief Credit Officer at day ten if still open.",
 
@@ -122,12 +121,12 @@ export const PANEL_CPPA_ADMT: PanelFixture[] = [
         other_factors: "Deposit-account cash-flow trend, employment verification, and any written explanation the applicant supplied for adverse bureau entries",
         vendor_product: "FinScore Analytics Inc. — Consumer Credit Decisioning Platform (CCD Engine v5)",
         vendor_training_rights: "No — the service-provider addendum prohibits FinScore from using Meridian applicant data to train or improve models for other customers",
-        appeal_reviewer_role: "Branch manager independent of the original underwriting decision",
-        appeal_trained: "Yes",
-        appeal_authority_overturn: "Yes",
-        appeal_step_count: "2",
-        sole_use_attestation: "No — the output is also used for other purposes",
-        nondiscrimination_testing: "Yes — documented testing record",
+        appeal_reviewer_role: "",
+        appeal_trained: "",
+        appeal_authority_overturn: "",
+        appeal_step_count: "",
+        sole_use_attestation: "",
+        nondiscrimination_testing: "",
         access_secure_transmission: "Encrypted self-service portal",
         access_denial_basis: "Adverse-action reasons are disclosed in full under the Equal Credit Opportunity Act; no trade-secret withholding applies to the outcome disclosure itself.",
       },
@@ -221,8 +220,7 @@ export const PANEL_CPPA_ADMT: PanelFixture[] = [
       opt_out_no_account_required: "Confirmed — no account required",
       opt_out_confirmation_mechanism:
         "An automated confirmation email is sent from leasing@cascadiahomerentals.com within four business hours of the request, and the same confirmation is logged against the application record in the resident portal.",
-      opt_out_fairness_doc:
-        "Cascadia commissioned an annual disparate-impact review of Tenant Placement Score outcomes from Cedarline Housing Analytics; the 2026 review, dated 2026-03-10, tested placement-tier distribution across race, familial status, source of income and disability proxies over 6,200 applications.",
+      opt_out_fairness_doc: "",
       opt_out_15_day_process:
         "Opt-out requests route to the manual-review queue on receipt; the queue must complete a non-automated assessment and issue the leasing decision within fifteen business days, escalating to the Director of Leasing at day ten if still open.",
 
@@ -280,12 +278,12 @@ export const PANEL_CPPA_ADMT: PanelFixture[] = [
         other_factors: "Income-to-rent ratio verified by the leasing supervisor and the applicant's own written explanation",
         vendor_product: "Northgate Screening Services — Eviction Record Search API",
         vendor_training_rights: "No — the addendum prohibits Northgate from using Cascadia applicant data for model training",
-        appeal_reviewer_role: "Regional Leasing Manager independent of the original decision",
-        appeal_trained: "Yes",
-        appeal_authority_overturn: "Yes",
-        appeal_step_count: "2",
-        sole_use_attestation: "No — the output is also used for other purposes",
-        nondiscrimination_testing: "Yes — documented testing record",
+        appeal_reviewer_role: "",
+        appeal_trained: "",
+        appeal_authority_overturn: "",
+        appeal_step_count: "",
+        sole_use_attestation: "",
+        nondiscrimination_testing: "",
         access_secure_transmission: "Encrypted self-service portal",
         access_denial_basis: "Adverse rental-decision reasons are disclosed in full to the applicant; no withholding applies to the outcome disclosure.",
       },
@@ -508,8 +506,7 @@ export const PANEL_CPPA_ADMT: PanelFixture[] = [
       opt_out_no_account_required: "Account is currently required (gap)",
       opt_out_confirmation_mechanism:
         "The admissions office sends a confirmation email from admissions@summitridge.edu within two business days of receiving an opt-out request, referencing the application ID.",
-      opt_out_fairness_doc:
-        "No fairness or disparate-impact review of the Admissions Triage Model has yet been commissioned; the Office of Institutional Research has scheduled the university's first review for the 2027 admissions cycle.",
+      opt_out_fairness_doc: "",
       opt_out_15_day_process:
         "An applicant who opts out is flagged in the applicant portal so the model never scores that file; the file is queued directly into the standard manual-review pool with no differential timeline.",
 
@@ -553,12 +550,12 @@ export const PANEL_CPPA_ADMT: PanelFixture[] = [
         hi_authority_override: "Yes",
         hi_override_rate: "Every application receives full manual review; the triage tier only affects reading order",
         other_factors: "Personal statement, letters of recommendation, and the full application file read by the admissions officer",
-        appeal_reviewer_role: "Associate Director of Admissions",
-        appeal_trained: "Yes",
-        appeal_authority_overturn: "Yes",
-        appeal_step_count: "1",
-        sole_use_attestation: "No — the output is also used for other purposes",
-        nondiscrimination_testing: "No testing performed",
+        appeal_reviewer_role: "",
+        appeal_trained: "",
+        appeal_authority_overturn: "",
+        appeal_step_count: "",
+        sole_use_attestation: "",
+        nondiscrimination_testing: "",
         access_secure_transmission: "Postal mail",
         access_denial_basis: "Not yet defined.",
       },
@@ -634,8 +631,7 @@ export const PANEL_CPPA_ADMT: PanelFixture[] = [
       opt_out_no_account_required: "Confirmed — no account required",
       opt_out_confirmation_mechanism:
         "The patient-experience team confirms the opt-out by phone or portal message within one business day and flags the patient record in the electronic health record so the model excludes future visits.",
-      opt_out_fairness_doc:
-        "Meridix Clinical AI Inc. provides Harborview an annual bias-testing report; the 2026 report, dated 2026-05-01, found no statistically significant disparity in flag rates across race, ethnicity, sex, age, or insurance-type proxies over 22,400 encounters.",
+      opt_out_fairness_doc: "",
       opt_out_15_day_process:
         "An opted-out patient's referrals are triaged manually by the referral coordinator using standard clinical protocols within the same fifteen-business-day window as flagged patients receive.",
 
@@ -693,12 +689,12 @@ export const PANEL_CPPA_ADMT: PanelFixture[] = [
         other_factors: "Physician clinical judgment, patient-reported symptoms, and full chart review",
         vendor_product: "Meridix Clinical AI Inc. — Specialist Referral Priority Model",
         vendor_training_rights: "No — the business-associate agreement prohibits Meridix from using Harborview patient data to train shared models",
-        appeal_reviewer_role: "Medical Director of Ambulatory Services",
-        appeal_trained: "Yes",
-        appeal_authority_overturn: "Yes",
-        appeal_step_count: "2",
-        sole_use_attestation: "No — the output is also used for other purposes",
-        nondiscrimination_testing: "Yes — documented testing record",
+        appeal_reviewer_role: "",
+        appeal_trained: "",
+        appeal_authority_overturn: "",
+        appeal_step_count: "",
+        sole_use_attestation: "",
+        nondiscrimination_testing: "",
         access_secure_transmission: "Encrypted self-service portal",
         access_denial_basis: "Not applicable — the model does not itself deny care; referral decisions rest with the treating physician.",
       },
@@ -908,8 +904,7 @@ export const PANEL_CPPA_ADMT: PanelFixture[] = [
       opt_out_no_account_required: "Confirmed — no account required",
       opt_out_confirmation_mechanism:
         "HR sends a confirmation letter and a copy to the employee's personnel file within three business days of an opt-out request, referencing the employee ID and effective quarter.",
-      opt_out_fairness_doc:
-        "Parkline's HR Analytics group commissioned an annual disparate-impact review of QPTM tier outcomes from Cornerstone Workforce Analytics; the 2026 review, dated 2026-02-20, tested tier distribution across race, sex, age, and disability-accommodation-status proxies over 1,140 production employees.",
+      opt_out_fairness_doc: "",
       opt_out_15_day_process:
         "An employee who opts out is scored manually by the plant HR manager using the same production, quality, and attendance data without the model, and the manual tier issues within fifteen business days, escalating to the Plant Director at day ten if still open.",
 
@@ -951,8 +946,8 @@ export const PANEL_CPPA_ADMT: PanelFixture[] = [
         hi_reviews_other_info: "Yes",
         hi_authority_override: "No",
         hi_override_rate: "Not applicable — the supervisor may correct underlying data errors but has no authority to change a confirmed tier",
-        sole_use_attestation: "No — the output is also used for other purposes",
-        nondiscrimination_testing: "Yes — documented testing record",
+        sole_use_attestation: "",
+        nondiscrimination_testing: "",
         access_secure_transmission: "Encrypted self-service portal",
         access_denial_basis: "Not applicable — the outcome disclosure is provided in full; no withholding applies.",
       },
@@ -1031,8 +1026,7 @@ export const PANEL_CPPA_ADMT: PanelFixture[] = [
         "Human appeal exception (§ 7221(b)(1)) — we provide a human reviewer with authority to overturn the decision",
       opt_out_appeal_process:
         "An applicant may request reconsideration within thirty days of the underwriting determination by calling 1-800-555-0166 or submitting the appeal form at goldengatemutual.com/appeal. A licensed underwriting reviewer who did not originate the automated determination re-reviews the full application, the DMV and prior-carrier data, and any additional documentation the applicant supplies, and has authority to reverse the decline, adjust the tier, or affirm the original determination. The reviewer's decision issues in writing within thirty calendar days of the request.",
-      opt_out_fairness_doc:
-        "Praxis Underwriting Analytics Inc. provides Golden Gate Mutual an annual disparate-impact review of UETM outcomes; the 2026 review, dated 2026-04-01, found no statistically significant disparity in accept/decline or tier distribution across race, sex, and age proxies over 58,000 applications.",
+      opt_out_fairness_doc: "",
 
       access_submission_methods:
         "Requests are accepted through the policyholder portal privacy-request form, by calling 1-800-555-0177, and by email to privacy@goldengatemutual.com.",
@@ -1088,8 +1082,8 @@ export const PANEL_CPPA_ADMT: PanelFixture[] = [
         appeal_timeline: "30 calendar days",
         appeal_reversal_rate: "About one appealed determination in eight is reversed or adjusted, based on 2026 year-to-date data",
         appeal_outcomes: ["Uphold", "Reverse", "Modify"],
-        sole_use_attestation: "No — the output is also used for other purposes",
-        nondiscrimination_testing: "Yes — documented testing record",
+        sole_use_attestation: "",
+        nondiscrimination_testing: "",
         access_secure_transmission: "Encrypted self-service portal",
         access_denial_basis: "Adverse-underwriting reasons are disclosed in full to the applicant; no withholding applies to the outcome disclosure itself.",
       },
@@ -1122,8 +1116,7 @@ export const PANEL_CPPA_ADMT: PanelFixture[] = [
           "UETM reads your driving history, prior-carrier lapse history, vehicle-use category, and credit-based insurance score.",
         howworks_output:
           "It returns an accept/decline determination and, if accepted, a rating tier that sets your premium, issued automatically with no underwriter review before you are notified.",
-        altprocess:
-          "You may request reconsideration within thirty days by calling 1-800-555-0166 or submitting the appeal form at goldengatemutual.com/appeal. A licensed reviewer who did not originate the determination re-reviews your file and has authority to reverse, adjust, or affirm it, issuing a decision in writing within thirty calendar days.",
+        altprocess: "",
       },
       notice_full_text:
         "PRE-USE NOTICE — AUTOMATED UNDERWRITING (Golden Gate Mutual Insurance Company, published 2026-01-15, goldengatemutual.com/admt-notice)\n\nWhat we use it for. We use the Underwriting Eligibility and Tier Model (UETM) to decide whether to accept your auto-policy application and, if accepted, your rating tier and premium.\n\nHow it works. UETM reads your driving history, prior-carrier lapse history, vehicle-use category, and credit-based insurance score, and returns an accept/decline determination and, if accepted, a rating tier that sets your premium. The determination issues automatically with no underwriter review before you are notified.\n\nYour right to appeal. Because this determination is used solely to assess your policy eligibility and is tested for unlawful discrimination, we rely on the § 7221(b)(1) human-appeal exception rather than offering a separate opt-out. You may request reconsideration within thirty days by calling 1-800-555-0166 or submitting the appeal form at goldengatemutual.com/appeal. A licensed reviewer who did not originate the determination re-reviews your file and has authority to reverse, adjust, or affirm it, issuing a decision in writing within thirty calendar days.\n\nYour right to an explanation. You can ask us for an explanation of how UETM reached your determination through the policyholder portal, by phone, or by email. We respond within 45 days and will tell you if we need one additional 45-day extension.\n\nNo retaliation. We will not deny your application, charge a higher premium, or provide a lower level of service because you requested an appeal or asked for an explanation.\n\nQuestions. Privacy Officer, Golden Gate Mutual Insurance Company, 1 Ferry Plaza, San Francisco, CA 94111 — privacy@goldengatemutual.com.",
@@ -1175,8 +1168,7 @@ export const PANEL_CPPA_ADMT: PanelFixture[] = [
       opt_out_no_account_required: "Confirmed — no account required",
       opt_out_confirmation_mechanism:
         "Member Services confirms the opt-out by mail within five business days and notes the account so the flag no longer runs for that member.",
-      opt_out_fairness_doc:
-        "No fairness or disparate-impact review of the flag has been commissioned; the flag only surfaces a payment-plan offer and does not itself determine any adverse outcome, so Cobalt's compliance committee has not prioritized a review to date.",
+      opt_out_fairness_doc: "",
       opt_out_15_day_process:
         "An opted-out account is instead reviewed manually by a billing specialist each cycle using the same payment-history data, using Cobalt's standard hardship-assistance criteria.",
 
@@ -1213,8 +1205,8 @@ export const PANEL_CPPA_ADMT: PanelFixture[] = [
           "The flag only surfaces a deferred-payment-plan offer; the disconnection decision it precedes always requires a billing specialist's independent review under the cooperative's tariff, so no § 7001(ddd) significant-decision category applies to the flag itself.",
         hi_reviewer_present: "No — fully automated",
         other_factors: "Current account balance and whether a hardship exemption is already on file",
-        sole_use_attestation: "Unsure",
-        nondiscrimination_testing: "No testing performed",
+        sole_use_attestation: "",
+        nondiscrimination_testing: "",
         access_secure_transmission: "Postal mail",
         access_denial_basis: "Not applicable — the response discloses whether the flag fired in full; no withholding applies.",
       },
@@ -1237,8 +1229,7 @@ export const PANEL_CPPA_ADMT: PanelFixture[] = [
       notice_element_text: {
         purpose:
           "We use the Payment Plan Eligibility Flag to identify accounts that may qualify for a deferred-payment plan based on payment history and current balance. It does not authorize or schedule a service disconnection.",
-        optout:
-          "You can ask us to stop flagging your account for the deferred-payment-plan offer. Call 1-800-555-0188, email Member Services, or write to the address on your bill. We confirm by mail within five business days.",
+        optout: "",
         access:
           "You can ask us for an explanation of whether your account was flagged for a cycle. Call Member Services, visit a service center, or write to the address on your bill; we respond within 45 calendar days.",
         antiretaliation:
@@ -1296,7 +1287,7 @@ export const PANEL_CPPA_ADMT: PanelFixture[] = [
       opt_out_no_cookie_banner: "Cookie banner is currently our only method (gap)",
       opt_out_no_account_required: "Account is currently required (gap)",
       opt_out_confirmation_mechanism: "A loan officer calls the member back within two business days to confirm the request.",
-      opt_out_fairness_doc: "No fairness or disparate-impact review of the Member Loan Scoring Tool has been conducted; none is currently scheduled.",
+      opt_out_fairness_doc: "",
       opt_out_15_day_process:
         "A member who opts out has their application reviewed manually by a loan officer using the same underlying data, with a decision targeted within fifteen business days.",
 
@@ -1338,8 +1329,8 @@ export const PANEL_CPPA_ADMT: PanelFixture[] = [
         hi_authority_override: "Yes",
         hi_override_rate: "About one recommendation in ten over the trailing twelve months",
         other_factors: "Member relationship tenure and share-account balance trend",
-        sole_use_attestation: "No — the output is also used for other purposes",
-        nondiscrimination_testing: "No testing performed",
+        sole_use_attestation: "",
+        nondiscrimination_testing: "",
         access_secure_transmission: "Not yet defined",
         access_denial_basis: "Not yet defined; Fairmont has not established a denial-basis disclosure process.",
       },
@@ -1427,8 +1418,7 @@ export const PANEL_CPPA_ADMT: PanelFixture[] = [
       opt_out_no_account_required: "Confirmed — no account required",
       opt_out_confirmation_mechanism:
         "An automated email confirms the opt-out within one business day from leasing@ridgelinepm.com, referencing the application ID.",
-      opt_out_fairness_doc:
-        "Ridgeline's compliance team commissioned a portfolio-wide disparate-impact review of PTS outcomes from Cedarline Housing Analytics, dated 2026-04-18, covering all 14 sites.",
+      opt_out_fairness_doc: "",
       opt_out_15_day_process:
         "Opt-out requests route to the regional director for manual review, with a leasing decision issued within fifteen business days.",
 
@@ -1484,8 +1474,8 @@ export const PANEL_CPPA_ADMT: PanelFixture[] = [
         other_factors: "Verified income-to-rent ratio and the applicant's written explanation",
         vendor_product: "Meadowlark Tenant Data Services — Rental Risk Score",
         vendor_training_rights: "Unsure — the standard data-license agreement does not address model-training rights",
-        sole_use_attestation: "No — the output is also used for other purposes",
-        nondiscrimination_testing: "Yes — documented testing record",
+        sole_use_attestation: "",
+        nondiscrimination_testing: "",
         access_secure_transmission: "Encrypted self-service portal",
         access_denial_basis: "Adverse leasing-decision reasons are disclosed in full to the applicant; no withholding applies to the outcome disclosure.",
       },
@@ -1574,8 +1564,7 @@ export const PANEL_CPPA_ADMT: PanelFixture[] = [
       opt_out_no_account_required: "Confirmed — no account required",
       opt_out_confirmation_mechanism:
         "The admissions office confirms the opt-out by email within two business days and flags the applicant file in Scholaris so no fit score is generated.",
-      opt_out_fairness_doc:
-        "Scholaris EdTech Inc. provides Beacon Hill an annual bias-testing summary; the 2026 summary, dated 2026-03-01, found no statistically significant disparity in fit-score distribution across race, sex, or socioeconomic-aid-status proxies.",
+      opt_out_fairness_doc: "",
       opt_out_15_day_process:
         "An opted-out applicant's file is placed directly in the standard committee reading queue with no differential timeline.",
 
@@ -1631,8 +1620,8 @@ export const PANEL_CPPA_ADMT: PanelFixture[] = [
         other_factors: "Personal essay, interview notes, and teacher recommendations",
         vendor_product: "Scholaris EdTech Inc. — Scholaris Admissions Platform",
         vendor_training_rights: "No — the agreement prohibits Scholaris from using Beacon Hill applicant data to train shared models",
-        sole_use_attestation: "No — the output is also used for other purposes",
-        nondiscrimination_testing: "Yes — documented testing record",
+        sole_use_attestation: "",
+        nondiscrimination_testing: "",
         access_secure_transmission: "Encrypted self-service portal",
         access_denial_basis: "Not applicable — the outcome disclosure is provided in full; no withholding applies.",
       },
@@ -1721,8 +1710,7 @@ export const PANEL_CPPA_ADMT: PanelFixture[] = [
       opt_out_no_account_required: "Confirmed — no account required",
       opt_out_confirmation_mechanism:
         "The assigned recruiter confirms the opt-out by email within one business day and notes the candidate file so no SkillProof invitation is sent.",
-      opt_out_fairness_doc:
-        "Insight Talent Systems LLC provides Compass Point an annual adverse-impact analysis of SkillProof outcomes; the 2026 analysis, dated 2026-05-12, found no statistically significant disparity across race, sex, or age proxies for the role-benchmark groups Compass Point uses.",
+      opt_out_fairness_doc: "",
       opt_out_15_day_process:
         "An opted-out candidate is evaluated by the recruiter from resume, references, and interview alone, with the same placement timeline as assessed candidates.",
 
@@ -1778,8 +1766,8 @@ export const PANEL_CPPA_ADMT: PanelFixture[] = [
         other_factors: "Reference-check results and structured interview notes",
         vendor_product: "Insight Talent Systems LLC — SkillProof Assessment Platform",
         vendor_training_rights: "No — the agreement prohibits Insight Talent Systems from using Compass Point candidate data to train shared models",
-        sole_use_attestation: "No — the output is also used for other purposes",
-        nondiscrimination_testing: "Yes — documented testing record",
+        sole_use_attestation: "",
+        nondiscrimination_testing: "",
         access_secure_transmission: "Encrypted self-service portal",
         access_denial_basis: "Not applicable — the outcome disclosure is provided in full; no withholding applies.",
       },
@@ -1866,8 +1854,7 @@ export const PANEL_CPPA_ADMT: PanelFixture[] = [
       opt_out_no_account_required: "Confirmed — no account required",
       opt_out_confirmation_mechanism:
         "The scheduling line confirms the opt-out verbally at the time of the call and sends a written confirmation to the patient portal within one business day.",
-      opt_out_fairness_doc:
-        "Meridix Clinical AI Inc. provides Willowmere an annual bias-testing report; the 2026 report, dated 2026-04-15, found no statistically significant disparity in tier assignment across race, ethnicity, sex, age, or insurance-type proxies over 13,700 intake requests.",
+      opt_out_fairness_doc: "",
       opt_out_15_day_process:
         "An opted-out caller is scheduled by a triage nurse using the standard symptom-severity protocol without the model, within the same scheduling windows offered to scored callers.",
 
@@ -1915,8 +1902,8 @@ export const PANEL_CPPA_ADMT: PanelFixture[] = [
         hi_reviewer_present: "No — fully automated",
         vendor_product: "Meridix Clinical AI Inc. — Intake Priority Triage Model",
         vendor_training_rights: "No — the business-associate agreement prohibits Meridix from using Willowmere patient data to train shared models",
-        sole_use_attestation: "No — the output is also used for other purposes",
-        nondiscrimination_testing: "Yes — documented testing record",
+        sole_use_attestation: "",
+        nondiscrimination_testing: "",
         access_secure_transmission: "Encrypted self-service portal",
         access_denial_basis: "Not applicable — the outcome disclosure is provided in full; no withholding applies.",
       },
@@ -2004,8 +1991,7 @@ export const PANEL_CPPA_ADMT: PanelFixture[] = [
       opt_out_no_account_required: "Confirmed — no account required",
       opt_out_confirmation_mechanism:
         "HR sends a confirmation email within one business day of an opt-out request, referencing the employee ID and effective date.",
-      opt_out_fairness_doc:
-        "Ironclad's HR Analytics group commissioned a quarterly disparate-impact review of TARE assignment outcomes from Northbeam Labor Analytics; the 2026-Q2 review, dated 2026-07-15, found no statistically significant disparity across race, sex, age, or disability-accommodation-status proxies over 980 associates.",
+      opt_out_fairness_doc: "",
       opt_out_15_day_process:
         "An associate who opts out has their daily assignment set manually by the shift supervisor using the same availability and qualification data, effective within fifteen business days of the request.",
 
@@ -2047,8 +2033,8 @@ export const PANEL_CPPA_ADMT: PanelFixture[] = [
         hi_reviews_other_info: "Yes",
         hi_authority_override: "No",
         hi_override_rate: "Not applicable — the supervisor may correct underlying data errors but has no authority to reassign a confirmed recommendation",
-        sole_use_attestation: "No — the output is also used for other purposes",
-        nondiscrimination_testing: "Yes — documented testing record",
+        sole_use_attestation: "",
+        nondiscrimination_testing: "",
         access_secure_transmission: "Encrypted self-service portal",
         access_denial_basis: "Not applicable — the outcome disclosure is provided in full; no withholding applies.",
       },

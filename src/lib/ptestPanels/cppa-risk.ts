@@ -41,7 +41,7 @@ export const PANEL_CPPA_RISK: PanelFixture[] = [
       public_privacy_policy_url: "https://www.wrenfieldmercantile.example/privacy",
 
       q6_right_know:
-        "Web form with email verification, in-store request desk, and a toll-free number.",
+        "Online form with identity verification, an email or written request process, and in-app account settings.",
       q6_right_know_multi: [
         "Online form with identity verification",
         "Email or written request process",
@@ -89,11 +89,11 @@ export const PANEL_CPPA_RISK: PanelFixture[] = [
       material_change_since_prior: "No",
 
       impact_intake: {
-        likelihood: "Unlikely",
-        severity: "Minimal",
+        likelihood: "Possible",
+        severity: "Moderate",
         benefitsOutweigh: "Yes",
         cyberGaps: "No",
-        harmTypes: ["Impairment of consumer control over personal information"],
+        harmTypes: ["Impairment of consumer control over personal information", "Unauthorised access, destruction, use, modification, or disclosure"],
       },
 
       a2_necessity_set: [
@@ -231,6 +231,13 @@ export const PANEL_CPPA_RISK: PanelFixture[] = [
           disclosure_purpose: "Interest-based advertising using hashed purchase-category segments — the disclosure constituting the sharing identified above.",
           contractual_protections: "Written contract with the CCPA-required restrictions in place",
         },
+        {
+          recipient_name_or_category: "Segment (customer data platform)",
+          recipient_type: "Service provider",
+          pi_categories_made_available: ["Contact identifiers (name, email, phone)", "Device identifiers (IP, cookies, device IDs)", "Internet or network activity"],
+          disclosure_purpose: "Provides the customer data platform that unifies loyalty-member purchase and browsing data for the recommendation engine.",
+          contractual_protections: "Written contract with the CCPA-required restrictions in place",
+        },
       ],
       section_7151_operational_participants: [
         {
@@ -364,7 +371,7 @@ export const PANEL_CPPA_RISK: PanelFixture[] = [
         severity: "Significant",
         benefitsOutweigh: "Yes",
         cyberGaps: "No",
-        harmTypes: ["Economic harm", "Unlawful discrimination"],
+        harmTypes: ["Economic harm", "Unlawful discrimination", "Unauthorised access, destruction, use, modification, or disclosure"],
       },
 
       a2_necessity_set: [
@@ -466,7 +473,7 @@ export const PANEL_CPPA_RISK: PanelFixture[] = [
 
       consumer_interaction_method: "Mobile app",
       consumer_interaction_purpose: "To let California consumers apply for and receive a decision on a Ledgerly revolving credit line.",
-      approximate_ca_consumers: "Approximately 42,000 credit-line applications from California consumers in the twelve months ending Q2 2026.",
+      approximate_ca_consumers: "Approximately 100,000 credit-line applications from California consumers in the twelve months ending Q2 2026.",
 
       retention_by_pi_category: [
         { pi_category: "Government identifiers (SSN, driver's license, state ID, passport number)", retention_period: "7 years from account closure or decline", retention_criteria: "" },
@@ -613,7 +620,7 @@ export const PANEL_CPPA_RISK: PanelFixture[] = [
       bought_sold_shared_count: "Under 100,000",
       public_privacy_policy_url: "https://www.meridianwellness.example/privacy",
 
-      q6_right_know: "In-app privacy center with identity verification and an email request address.",
+      q6_right_know: "Online form with identity verification and an email or written request process.",
       q6_right_know_multi: ["Online form with identity verification", "Email or written request process"],
       q7_right_delete: "Automated deletion with confirmation",
       q8_right_correct: "Online self-service",
@@ -784,6 +791,20 @@ export const PANEL_CPPA_RISK: PanelFixture[] = [
           disclosure_purpose: "De-identified aggregate research under an IRB-approved data-sharing agreement.",
           contractual_protections: "Written contract with the CCPA-required restrictions in place",
         },
+        {
+          recipient_name_or_category: "Twilio (in-app messaging)",
+          recipient_type: "Service provider",
+          pi_categories_made_available: ["Contact identifiers (name, email, phone)"],
+          disclosure_purpose: "Delivers in-app messaging between users and their assigned wellness coach.",
+          contractual_protections: "Written contract with the CCPA-required restrictions in place",
+        },
+        {
+          recipient_name_or_category: "AWS (HIPAA-eligible hosting)",
+          recipient_type: "Service provider",
+          pi_categories_made_available: ["Contact identifiers (name, email, phone)", "Health or medical information", "Precise geolocation (GPS-level / specific address)", "Device identifiers (IP, cookies, device IDs)"],
+          disclosure_purpose: "Provides HIPAA-eligible hosting for the wellness coaching app's check-in and location data.",
+          contractual_protections: "Written contract with the CCPA-required restrictions in place",
+        },
       ],
       section_7151_operational_participants: [
         {
@@ -860,7 +881,7 @@ export const PANEL_CPPA_RISK: PanelFixture[] = [
       bought_sold_shared_count: "1,000,000 or more",
       public_privacy_policy_url: "https://www.pixelgrovemedia.example/privacy",
 
-      q6_right_know: "Privacy portal with verified-identity access and a toll-free request line.",
+      q6_right_know: "Online form with identity verification and an email or written request process.",
       q6_right_know_multi: ["Online form with identity verification", "Email or written request process"],
       q7_right_delete: "Automated deletion with confirmation",
       q8_right_correct: "Online self-service",
@@ -905,10 +926,10 @@ export const PANEL_CPPA_RISK: PanelFixture[] = [
 
       impact_intake: {
         likelihood: "Possible",
-        severity: "Moderate",
+        severity: "Significant",
         benefitsOutweigh: "Yes",
         cyberGaps: "No",
-        harmTypes: ["Unauthorised access, destruction, use, modification, or disclosure", "Impairment of consumer control over personal information"],
+        harmTypes: ["Unauthorised access, destruction, use, modification, or disclosure", "Impairment of consumer control over personal information", "Reputational harm"],
       },
 
       a2_necessity_set: [
@@ -1008,7 +1029,7 @@ export const PANEL_CPPA_RISK: PanelFixture[] = [
 
       consumer_interaction_method: "No direct interaction (obtained from another source)",
       consumer_interaction_purpose: "Consumers interact with the partner publisher apps, which present the consent screen under which location data is collected.",
-      approximate_ca_consumers: "More than 1,000,000 California consumer devices contribute consented location signals annually across the eleven publisher integrations.",
+      approximate_ca_consumers: "Approximately 1,200,000 California consumer devices contribute consented location signals annually across the eleven publisher integrations.",
 
       retention_by_pi_category: [
         { pi_category: "Precise geolocation (GPS-level / specific address)", retention_period: "9 months from collection", retention_criteria: "Fixed period from collection" },
@@ -1041,6 +1062,20 @@ export const PANEL_CPPA_RISK: PanelFixture[] = [
           recipient_type: "Third party",
           pi_categories_made_available: ["Device identifiers (IP, cookies, device IDs)"],
           disclosure_purpose: "Sharing of segments for interest-based advertising — the sharing identified in the applicability analysis.",
+          contractual_protections: "Written contract with the CCPA-required restrictions in place",
+        },
+        {
+          recipient_name_or_category: "Databricks (data warehouse)",
+          recipient_type: "Service provider",
+          pi_categories_made_available: ["Device identifiers (IP, cookies, device IDs)", "Precise geolocation (GPS-level / specific address)"],
+          disclosure_purpose: "Provides the data warehouse that stores and processes location-ping data for segment construction.",
+          contractual_protections: "Written contract with the CCPA-required restrictions in place",
+        },
+        {
+          recipient_name_or_category: "AWS (ingestion hosting)",
+          recipient_type: "Service provider",
+          pi_categories_made_available: ["Device identifiers (IP, cookies, device IDs)", "Precise geolocation (GPS-level / specific address)"],
+          disclosure_purpose: "Provides the ingestion hosting infrastructure that receives location pings from the publisher SDK.",
           contractual_protections: "Written contract with the CCPA-required restrictions in place",
         },
       ],
@@ -1171,7 +1206,7 @@ export const PANEL_CPPA_RISK: PanelFixture[] = [
 
       impact_intake: {
         likelihood: "Unlikely",
-        severity: "Minimal",
+        severity: "Moderate",
         benefitsOutweigh: "Yes",
         cyberGaps: "No",
         harmTypes: ["Unauthorised access, destruction, use, modification, or disclosure"],
@@ -1237,7 +1272,7 @@ export const PANEL_CPPA_RISK: PanelFixture[] = [
 
       consumer_interaction_method: "Mobile app",
       consumer_interaction_purpose: "To let California consumers use the free-tier plan and receive relevant upgrade information.",
-      approximate_ca_consumers: "Approximately 190,000 active California free-tier accounts as of Q2 2026.",
+      approximate_ca_consumers: "Approximately 310,000 active California free-tier accounts as of Q2 2026.",
 
       retention_by_pi_category: [
         { pi_category: "Internet or network activity", retention_period: "18 months rolling", retention_criteria: "" },
@@ -1258,6 +1293,20 @@ export const PANEL_CPPA_RISK: PanelFixture[] = [
           recipient_type: "Service provider",
           pi_categories_made_available: ["Contact identifiers (name, email, phone)"],
           disclosure_purpose: "Delivers the churn-prevention email track.",
+          contractual_protections: "Written contract with the CCPA-required restrictions in place",
+        },
+        {
+          recipient_name_or_category: "Segment (customer data platform)",
+          recipient_type: "Service provider",
+          pi_categories_made_available: ["Contact identifiers (name, email, phone)", "Internet or network activity"],
+          disclosure_purpose: "Joins account and feature-usage telemetry to feed the propensity-scoring pipeline.",
+          contractual_protections: "Written contract with the CCPA-required restrictions in place",
+        },
+        {
+          recipient_name_or_category: "Amplitude (product analytics)",
+          recipient_type: "Service provider",
+          pi_categories_made_available: ["Internet or network activity", "Device identifiers (IP, cookies, device IDs)"],
+          disclosure_purpose: "Provides product-analytics processing of feature-usage events for the propensity model.",
           contractual_protections: "Written contract with the CCPA-required restrictions in place",
         },
       ],
@@ -1335,7 +1384,7 @@ export const PANEL_CPPA_RISK: PanelFixture[] = [
       bought_sold_shared_count: "Under 100,000",
       public_privacy_policy_url: "https://www.cobaltlearning.example/privacy",
 
-      q6_right_know: "District-administered request process with parent/guardian identity verification.",
+      q6_right_know: "Online form with parent/guardian identity verification and an email or written request process.",
       q6_right_know_multi: ["Online form with identity verification", "Email or written request process"],
       q7_right_delete: "Manual process, documented",
       q8_right_correct: "Handled via support",
@@ -1384,7 +1433,7 @@ export const PANEL_CPPA_RISK: PanelFixture[] = [
 
       impact_intake: {
         likelihood: "Possible",
-        severity: "Moderate",
+        severity: "Significant",
         benefitsOutweigh: "Yes",
         cyberGaps: "No",
         harmTypes: ["Unlawful discrimination", "Psychological harm"],
@@ -1470,7 +1519,7 @@ export const PANEL_CPPA_RISK: PanelFixture[] = [
 
       consumer_interaction_method: "Website",
       consumer_interaction_purpose: "To let California students complete coursework and receive placement recommendations through their district's Cobalt account.",
-      approximate_ca_consumers: "Approximately 64,000 California students across 38 participating districts in the 2025-2026 school year.",
+      approximate_ca_consumers: "Approximately 100,000 California students across 38 participating districts in the 2025-2026 school year.",
 
       retention_by_pi_category: [
         { pi_category: "Education information", retention_period: "", retention_criteria: "Statutory or regulatory retention requirement" },
@@ -1492,6 +1541,13 @@ export const PANEL_CPPA_RISK: PanelFixture[] = [
           recipient_type: "Service provider",
           pi_categories_made_available: ["Contact identifiers (name, email, phone)", "Education information"],
           disclosure_purpose: "Synchronizes student rosters from each district's student information system.",
+          contractual_protections: "Written contract with the CCPA-required restrictions in place",
+        },
+        {
+          recipient_name_or_category: "AWS GovCloud (hosting)",
+          recipient_type: "Service provider",
+          pi_categories_made_available: ["Contact identifiers (name, email, phone)", "Education information", "Health or medical information", "Children's data (under 16)"],
+          disclosure_purpose: "Provides the hosting environment for the adaptive-learning platform and the placement-scoring model.",
           contractual_protections: "Written contract with the CCPA-required restrictions in place",
         },
       ],
@@ -1639,10 +1695,10 @@ export const PANEL_CPPA_RISK: PanelFixture[] = [
 
       impact_intake: {
         likelihood: "Possible",
-        severity: "Significant",
+        severity: "Severe",
         benefitsOutweigh: "Yes",
         cyberGaps: "No",
-        harmTypes: ["Economic harm", "Reputational harm"],
+        harmTypes: ["Economic harm", "Reputational harm", "Unauthorised access, destruction, use, modification, or disclosure"],
       },
 
       a2_necessity_set: [
@@ -1742,7 +1798,7 @@ export const PANEL_CPPA_RISK: PanelFixture[] = [
 
       consumer_interaction_method: "Website",
       consumer_interaction_purpose: "To let California policyholders submit and track auto and homeowners insurance claims.",
-      approximate_ca_consumers: "Approximately 58,000 California claims filed in the twelve months ending Q2 2026.",
+      approximate_ca_consumers: "Approximately 100,000 California claims filed in the twelve months ending Q2 2026.",
 
       retention_by_pi_category: [
         { pi_category: "Government identifiers (SSN, driver's license, state ID, passport number)", retention_period: "", retention_criteria: "Statutory or regulatory retention requirement" },
@@ -1870,7 +1926,7 @@ export const PANEL_CPPA_RISK: PanelFixture[] = [
       bought_sold_shared_count: "100,000 to under 250,000",
       public_privacy_policy_url: "https://www.ferrovance.example/privacy",
 
-      q6_right_know: "In-app privacy center with identity verification and a dealer-service-desk request option.",
+      q6_right_know: "Online form with identity verification and in-app account settings.",
       q6_right_know_multi: ["Online form with identity verification", "In-app account settings"],
       q7_right_delete: "Automated deletion with confirmation",
       q8_right_correct: "Online self-service",
@@ -1920,7 +1976,7 @@ export const PANEL_CPPA_RISK: PanelFixture[] = [
         severity: "Moderate",
         benefitsOutweigh: "Yes",
         cyberGaps: "No",
-        harmTypes: ["Impairment of consumer control over personal information"],
+        harmTypes: ["Impairment of consumer control over personal information", "Unauthorised access, destruction, use, modification, or disclosure"],
       },
 
       a2_necessity_set: [
@@ -2003,7 +2059,7 @@ export const PANEL_CPPA_RISK: PanelFixture[] = [
 
       consumer_interaction_method: "Mobile app",
       consumer_interaction_purpose: "To let California owners of an enrolled connected vehicle receive personalized dealer offers and track loyalty-reward status.",
-      approximate_ca_consumers: "Approximately 210,000 California vehicles enrolled in the telematics programme as of Q2 2026.",
+      approximate_ca_consumers: "Approximately 260,000 California vehicles enrolled in the telematics programme as of Q2 2026.",
 
       retention_by_pi_category: [
         { pi_category: "Precise geolocation (GPS-level / specific address)", retention_period: "", retention_criteria: "Until purpose is fulfilled, then deletion" },
@@ -2031,6 +2087,13 @@ export const PANEL_CPPA_RISK: PanelFixture[] = [
           recipient_type: "Service provider",
           pi_categories_made_available: ["Precise geolocation (GPS-level / specific address)", "Device identifiers (IP, cookies, device IDs)"],
           disclosure_purpose: "Processes and aggregates telematics data for the offer-ranking model.",
+          contractual_protections: "Written contract with the CCPA-required restrictions in place",
+        },
+        {
+          recipient_name_or_category: "AWS IoT (ingestion hosting)",
+          recipient_type: "Service provider",
+          pi_categories_made_available: ["Precise geolocation (GPS-level / specific address)", "Device identifiers (IP, cookies, device IDs)"],
+          disclosure_purpose: "Provides the ingestion hosting infrastructure that receives telematics data from the vehicle's control unit.",
           contractual_protections: "Written contract with the CCPA-required restrictions in place",
         },
       ],
@@ -2107,7 +2170,7 @@ export const PANEL_CPPA_RISK: PanelFixture[] = [
       bought_sold_shared_count: "Under 100,000",
       public_privacy_policy_url: "https://www.gablethorne.example/privacy",
 
-      q6_right_know: "Front-desk request process with photo-ID verification and an email request address.",
+      q6_right_know: "Online form with photo-ID identity verification and an email or written request process.",
       q6_right_know_multi: ["Online form with identity verification", "Email or written request process"],
       q7_right_delete: "Manual process, documented",
       q8_right_correct: "Handled via support",
@@ -2155,7 +2218,7 @@ export const PANEL_CPPA_RISK: PanelFixture[] = [
         severity: "Moderate",
         benefitsOutweigh: "Yes",
         cyberGaps: "No",
-        harmTypes: ["Unauthorised access, destruction, use, modification, or disclosure"],
+        harmTypes: ["Unauthorised access, destruction, use, modification, or disclosure", "Impairment of consumer control over personal information"],
       },
 
       a2_necessity_set: [
@@ -2255,6 +2318,13 @@ export const PANEL_CPPA_RISK: PanelFixture[] = [
           recipient_type: "Service provider",
           pi_categories_made_available: ["Biometric information"],
           disclosure_purpose: "Provides the on-device facial-matching kiosk hardware and software.",
+          contractual_protections: "Written contract with the CCPA-required restrictions in place",
+        },
+        {
+          recipient_name_or_category: "Oracle Hospitality (property management system)",
+          recipient_type: "Service provider",
+          pi_categories_made_available: ["Contact identifiers (name, email, phone)", "Financial information"],
+          disclosure_purpose: "Maintains the property management system that supplies stay-history data for offer personalization.",
           contractual_protections: "Written contract with the CCPA-required restrictions in place",
         },
       ],
@@ -2487,7 +2557,7 @@ export const PANEL_CPPA_RISK: PanelFixture[] = [
     sector: "logistics",
     geo: "us",
     summary:
-      "A last-mile delivery operator scores driver GPS and performance telemetry to assign routes and calculate bonus pay. Exercises: ADMT for an allocation-of-work/compensation significant decision, the workforce systematic-observation profiling trigger, no sensitive PI, no sell/share, a planned bias-testing safeguard, and a fully assessed eight-category harm-review status.",
+      "A last-mile delivery operator scores driver GPS and performance telemetry to assign routes and calculate bonus pay. Exercises: ADMT for an allocation-of-work/compensation significant decision, the workforce systematic-observation profiling trigger, sensitive precise-geolocation PI processed on an employment-contract basis, no sell/share, a planned bias-testing safeguard, and a fully assessed eight-category harm-review status.",
     intake: {
       entity_name: "Cardinal Route Logistics, Inc.",
       subject_anchor: "California delivery drivers employed by Cardinal Route Logistics",
@@ -2511,7 +2581,7 @@ export const PANEL_CPPA_RISK: PanelFixture[] = [
       bought_sold_shared_count: "Under 100,000",
       public_privacy_policy_url: "https://www.cardinalroutelogistics.example/privacy",
 
-      q6_right_know: "HR request portal with employee-identity verification.",
+      q6_right_know: "Online form with employee identity verification and an email or written request process.",
       q6_right_know_multi: ["Online form with identity verification", "Email or written request process"],
       q7_right_delete: "Manual process, documented",
       q8_right_correct: "Handled via support",
@@ -2522,8 +2592,13 @@ export const PANEL_CPPA_RISK: PanelFixture[] = [
       q13_notice_content: "Yes, all three",
       q14_employee_notice: "Yes",
 
-      q15_sensitive_pi: "No",
+      q15_sensitive_pi: "Yes",
       q15b_under16_knowledge: "No — we do not knowingly process under-16 data",
+      q15c_spi_volume: "Fewer than 50,000",
+      q16_sensitive_limit: "Yes, handled within privacy settings",
+      q17_sensitive_basis: "Employment contract",
+      q15d_hr_carveout: "Yes — solely for those personnel purposes",
+      spi_employment_exception_facts: "Precise GPS location is captured only during scheduled shift hours and is used solely to assign delivery routes and calculate performance-based pay, both strictly necessary to the driver's employment relationship with Cardinal Route Logistics; location tracking is disabled outside shift hours.",
 
       q18_admt_use: "Yes",
       q19_admt_description:
@@ -2558,7 +2633,7 @@ export const PANEL_CPPA_RISK: PanelFixture[] = [
 
       impact_intake: {
         likelihood: "Possible",
-        severity: "Moderate",
+        severity: "Significant",
         benefitsOutweigh: "Yes",
         cyberGaps: "No",
         harmTypes: ["Unlawful discrimination", "Economic harm"],
@@ -2665,6 +2740,13 @@ export const PANEL_CPPA_RISK: PanelFixture[] = [
           recipient_type: "Service provider",
           pi_categories_made_available: ["Precise geolocation (GPS-level / specific address)", "Employment information"],
           disclosure_purpose: "Captures and processes the GPS and delivery-completion telemetry the scoring model consumes.",
+          contractual_protections: "Written contract with the CCPA-required restrictions in place",
+        },
+        {
+          recipient_name_or_category: "Google Maps Platform (routing engine)",
+          recipient_type: "Service provider",
+          pi_categories_made_available: ["Precise geolocation (GPS-level / specific address)"],
+          disclosure_purpose: "Provides the routing engine that sequences each driver's daily route from GPS stop-completion data.",
           contractual_protections: "Written contract with the CCPA-required restrictions in place",
         },
       ],
@@ -2798,7 +2880,7 @@ export const PANEL_CPPA_RISK: PanelFixture[] = [
       material_change_since_prior: "No",
 
       impact_intake: {
-        likelihood: "Unlikely",
+        likelihood: "Possible",
         severity: "Minimal",
         benefitsOutweigh: "Yes",
         cyberGaps: "No",
@@ -2886,6 +2968,13 @@ export const PANEL_CPPA_RISK: PanelFixture[] = [
           recipient_type: "Third party",
           pi_categories_made_available: ["Internet or network activity", "Device identifiers (IP, cookies, device IDs)"],
           disclosure_purpose: "Interest-based advertising using viewing-interest segments — the sharing identified in the applicability analysis.",
+          contractual_protections: "Written contract with the CCPA-required restrictions in place",
+        },
+        {
+          recipient_name_or_category: "Conviva (streaming analytics)",
+          recipient_type: "Service provider",
+          pi_categories_made_available: ["Internet or network activity", "Device identifiers (IP, cookies, device IDs)"],
+          disclosure_purpose: "Provides streaming-analytics processing of viewing events for the recommendation model.",
           contractual_protections: "Written contract with the CCPA-required restrictions in place",
         },
       ],
@@ -3109,6 +3198,13 @@ export const PANEL_CPPA_RISK: PanelFixture[] = [
           recipient_type: "Service provider",
           pi_categories_made_available: ["Employment information"],
           disclosure_purpose: "Provides the structured-interview transcription model.",
+          contractual_protections: "Written contract with the CCPA-required restrictions in place",
+        },
+        {
+          recipient_name_or_category: "AWS (hosting)",
+          recipient_type: "Service provider",
+          pi_categories_made_available: ["Contact identifiers (name, email, phone)", "Employment information", "Health or medical information"],
+          disclosure_purpose: "Provides the hosting infrastructure for the applicant-screening platform and its stored candidate data.",
           contractual_protections: "Written contract with the CCPA-required restrictions in place",
         },
       ],
@@ -3338,7 +3434,7 @@ export const PANEL_CPPA_RISK: PanelFixture[] = [
 
       consumer_interaction_method: "Website",
       consumer_interaction_purpose: "To let California rental applicants apply for and receive a decision on a Millbrook-managed unit.",
-      approximate_ca_consumers: "Approximately 27,000 rental applications submitted across the California portfolio in the twelve months ending Q2 2026.",
+      approximate_ca_consumers: "Approximately 100,000 rental applications submitted across the California portfolio in the twelve months ending Q2 2026.",
 
       retention_by_pi_category: [
         { pi_category: "Government identifiers (SSN, driver's license, state ID, passport number)", retention_period: "", retention_criteria: "Statutory or regulatory retention requirement" },
@@ -3468,7 +3564,7 @@ export const PANEL_CPPA_RISK: PanelFixture[] = [
       bought_sold_shared_count: "Under 100,000",
       public_privacy_policy_url: "https://www.sundialgridcoop.example/privacy",
 
-      q6_right_know: "Member account portal with identity verification and a member-services phone line.",
+      q6_right_know: "Online form with identity verification and an email or written request process.",
       q6_right_know_multi: ["Online form with identity verification", "Email or written request process"],
       q7_right_delete: "Manual process, documented",
       q8_right_correct: "Handled via support",
@@ -3513,7 +3609,7 @@ export const PANEL_CPPA_RISK: PanelFixture[] = [
 
       impact_intake: {
         likelihood: "Possible",
-        severity: "Moderate",
+        severity: "Significant",
         benefitsOutweigh: "Yes",
         cyberGaps: "No",
         harmTypes: ["Unlawful discrimination", "Economic harm"],
@@ -3601,7 +3697,7 @@ export const PANEL_CPPA_RISK: PanelFixture[] = [
 
       consumer_interaction_method: "No direct interaction (obtained from another source)",
       consumer_interaction_purpose: "To serve electricity to California member-households and to prioritize payment-assistance outreach for delinquent accounts.",
-      approximate_ca_consumers: "Approximately 88,000 California member-households served as of Q2 2026.",
+      approximate_ca_consumers: "Approximately 100,000 California member-households served as of Q2 2026.",
 
       retention_by_pi_category: [
         { pi_category: "Financial information", retention_period: "5 years from the billing period", retention_criteria: "" },
@@ -3629,6 +3725,13 @@ export const PANEL_CPPA_RISK: PanelFixture[] = [
           recipient_type: "Service provider",
           pi_categories_made_available: ["Contact identifiers (name, email, phone)", "Financial information"],
           disclosure_purpose: "Hosts the billing system and the outreach-priority scoring pipeline.",
+          contractual_protections: "Written contract with the CCPA-required restrictions in place",
+        },
+        {
+          recipient_name_or_category: "Itron (advanced metering infrastructure)",
+          recipient_type: "Service provider",
+          pi_categories_made_available: ["Contact identifiers (name, email, phone)", "General location (city, region, ZIP, IP-derived)"],
+          disclosure_purpose: "Provides the smart-meter infrastructure that generates interval usage reads for grid-planning and outreach scoring.",
           contractual_protections: "Written contract with the CCPA-required restrictions in place",
         },
       ],

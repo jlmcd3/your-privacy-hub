@@ -95,6 +95,9 @@ interface JobRow {
   run_by: string | null;
   golden_id?: string | null;
   payload?: Record<string, unknown> | null;
+  /** claim_ptest_job returns the whole row; carried through to a W-LAW
+   *  continuation job so its attempt cap matches (doc 263). */
+  max_attempts?: number;
 }
 
 /** POST a product function as the internal (service-key) caller. */
@@ -221,7 +224,15 @@ async function runJob(admin: any, job: JobRow) {
         tool: job.tool_slug as ReviewTool, assessmentId: job.assessment_id!, batchId: job.batch_id,
         companyName: job.company_name, effort: job.effort as Effort, worker: wk.worker, vendor: wk.vendor,
         userId: job.run_by, jobId: job.id,
+        payload: job.payload ?? null, kind: job.kind, goldenId: job.golden_id ?? null, maxAttempts: job.max_attempts,
       });
+      // A W-LAW chunk left over when the job's own budget ran out (doc 263):
+      // a continuation job is already queued, so this job is simply DONE —
+      // never an error — and the existing gated next-hop below picks it up.
+      if (out.ok && out.body.continued === true) {
+        await finish({ status: "done", note: `continued: next chunk ${out.body.next_chunk} of ${out.body.chunks}` });
+        return;
+      }
       await finish({
         status: out.ok ? "done" : "failed",
         error: out.ok ? null : String(out.body.error ?? "worker_failed"),
@@ -620,7 +631,10 @@ const handler = async (req: Request): Promise<Response> => {
   // ── tick: claim exactly one job and run it in the background ─────────────
   if (action !== "tick") return json({ error: "unknown_action", detail: action }, 400);
 
-  const { data: claimed, error: claimErr } = await admin.rpc("claim_ptest_job", { _batch_id: batchId });
+  // The heartbeat beats every 30s, so a 4-minute silence is a dead worker;
+  // the RPC's own default of 15 minutes let a dead W-LAW job sit that long
+  // before the stale rule re-queued it (doc 263).
+  const { data: claimed, error: claimErr } = await admin.rpc("claim_ptest_job", { _batch_id: batchId, _stale_after: "4 minutes" });
   if (claimErr) return json({ error: "claim_failed", detail: claimErr.message }, 500);
   const job = Array.isArray(claimed) ? claimed[0] as JobRow | undefined : undefined;
   if (!job) {

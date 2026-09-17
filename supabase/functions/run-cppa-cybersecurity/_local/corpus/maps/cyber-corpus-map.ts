@@ -223,7 +223,7 @@ export const CYBER_CORPUS_MAP: CorpusMap = {
       source_row_id: "d384dc3a-d42c-4360-9549-2f7d7a36feb7",
       excerpt_field: "agency_position_summary",
       pinned_excerpt:
-        "Regulation 11 CCR § 7123(c)(2) requires encryption of personal information maintained by businesses.",
+        "The Agency rejected the commenter's recommendation to expand the encryption requirement to explicitly cover sensitive information, determining that the existing requirement to encrypt \"personal information\" under § 7123(c)(2) already encompasses the protections sought.",
       render_eligible: false, // doc 263 run 2 (2026-09-17, batch fc0119e9 cyber f5/f6): the summary states the component as an implementation duty; dark until recurated (doc 267 item 12)
       trail_impact:
         "CPPA, FSOR (Appendix, p. 84) — \"personal information\" encryption already encompasses sensitive data — interpretive",
