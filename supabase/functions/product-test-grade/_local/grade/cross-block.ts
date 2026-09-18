@@ -38,6 +38,35 @@ const PROFILED_RULES: ReadonlySet<LintRuleId> = new Set([
   "L-XREF", "L-PROMISE", "L-LABEL", "L-DUP", "L-CITE", "L-QUOTE", "L-LEADIN", "L-CELL", "L-DATE",
 ]);
 
+/**
+ * L-DUP restatement filter (lead, 2026-09-18). A summary or register TABLE
+ * that quotes a body sentence verbatim is by design in the DPIA risk
+ * register (each register table restates the risk) and the LIA balancing
+ * ledger (the ledger cell restates the paragraph it scores); prose that
+ * repeats prose is still a defect. A duplicate hit is dropped when either
+ * side of it is a table.
+ */
+function tableKeysOf(doc: RenderedSkeletonDocument): Set<string> {
+  const keys = new Set<string>();
+  for (const s of doc.sections) {
+    s.paragraphs.forEach((p, i) => {
+      if (p.table) {
+        if (p.table.key) keys.add(p.table.key);
+        if (p.key) keys.add(p.key);
+        keys.add(`${s.id}:${i}`);
+      }
+    });
+  }
+  return keys;
+}
+
+function isTableRestatement(h: LintHit, tableKeys: Set<string>): boolean {
+  if (h.rule !== "L-DUP") return false;
+  if (h.block_key && tableKeys.has(h.block_key)) return true;
+  const m = /also rendered at (\S+)/.exec(h.detail ?? "");
+  return !!(m && tableKeys.has(m[1]));
+}
+
 function hitToCheck(h: LintHit): Check {
   return {
     check_id: `lint.${h.rule}`,
@@ -141,15 +170,42 @@ function governanceCrosswalkCheck(doc: RenderedSkeletonDocument, overallReadines
 
 const CITATION_RE = /\b11\s?CCR\s?§\s?\d{4}(?:\([a-z0-9]{1,3}\))*|\bCiv\.\s?Code\s?§\s?1798\.\d+(?:\([a-z0-9]{1,3}\))*|\bArt(?:icle)?\.?\s?\d{1,3}[A-Za-z]?\b/g;
 
-function tableOfAuthoritiesCheck(doc: RenderedSkeletonDocument): Check[] {
-  const toa = doc.sections.find((s) => /table.of.authorities|authority.exhibit/i.test(s.id) || /table of authorities/i.test(s.title));
+/**
+ * Section-level key of a citation (lead correction 2026-09-18 after the
+ * CEO's first Risk run): the body cites pinpoints ("11 CCR § 7150(b)(1)")
+ * while an authority matrix cites ranges ("11 CCR § 7150(a)–(b)"), so an
+ * exact-string comparison reported ten false omissions on a clean
+ * document. A body citation is covered when its section (the part before
+ * any pinpoint, whitespace-normalised) appears in the authorities section;
+ * a section cited in the body and absent from the table still fails.
+ */
+export function citationSectionKey(c: string): string {
+  return c
+    .replace(/\((?:[a-z0-9]{1,3})\)/gi, "")
+    .replace(/\s+/g, " ")
+    .replace(/\s?§\s?/, " § ")
+    // "Article 35", "Art 35" and "Art. 35" are one citation.
+    .replace(/^Art(?:icle)?\.?\s?/i, "Art. ")
+    .trim();
+}
+
+/** In the CPPA products "Article 9" / "Article 11" name a CCR article
+ *  heading (the cybersecurity-audit or ADMT article), not a citation the
+ *  authorities table would list; only the § forms are citations there. */
+const CPPA_CITATION_TOOLS: ReadonlySet<ProductTestTool> = new Set(["cppa-risk", "cppa-cyber", "cppa-admt"]);
+
+function tableOfAuthoritiesCheck(tool: ProductTestTool, doc: RenderedSkeletonDocument): Check[] {
+  const toa = doc.sections.find((s) => /table.of.authorities|authority.exhibit/i.test(s.id) || /table of authorities|authorities cited|authority matrix/i.test(s.title));
   if (!toa) return []; // no ToA section in this document — nothing to check.
+  const keyOf = (m: RegExpMatchArray) => citationSectionKey(m[0]);
+  const isCitationForTool = (k: string) => !(CPPA_CITATION_TOOLS.has(tool) && k.startsWith("Art."));
   const toaText = toa.paragraphs.map((p) => (p.table ? p.table.rows.map((r) => r.join(" ")).join(" ") : p.text)).join("\n");
+  const toaKeys = new Set([...toaText.matchAll(CITATION_RE)].map(keyOf));
   const bodySections = doc.sections.filter((s) => s.id !== toa.id);
   const bodyText = bodySections.map((s) => s.paragraphs.map((p) => (p.table ? p.table.rows.map((r) => r.join(" ")).join(" ") : p.text)).join("\n")).join("\n");
 
-  const cited = new Set([...bodyText.matchAll(CITATION_RE)].map((m) => m[0]));
-  const missing = [...cited].filter((c) => !toaText.includes(c));
+  const cited = new Set([...bodyText.matchAll(CITATION_RE)].map(keyOf).filter(isCitationForTool));
+  const missing = [...cited].filter((c) => !toaKeys.has(c));
   return [{
     check_id: "cross-block.table_of_authorities_complete",
     family: "cross-block",
@@ -171,6 +227,7 @@ export function checkCrossBlock(
   if (!SKELETON_TOOLS.has(tool) || !doc || !Array.isArray(doc.sections)) return [];
 
   const checks: Check[] = [];
+  const tableKeys = tableKeysOf(doc);
 
   if (PROFILED_TOOLS.has(tool)) {
     const profile = LINT_PROFILES[tool] ?? EMPTY_PROFILE;
@@ -178,6 +235,7 @@ export function checkCrossBlock(
     const seenPass = new Set<LintRuleId>();
     for (const h of result.hits) {
       if (!PROFILED_RULES.has(h.rule)) continue; // L-ENUM excluded here (structure.ts owns it).
+      if (isTableRestatement(h, tableKeys)) continue;
       checks.push(hitToCheck(h));
       seenPass.add(h.rule);
     }
@@ -187,6 +245,7 @@ export function checkCrossBlock(
     const seenPass = new Set<LintRuleId>();
     for (const h of result.hits) {
       if (!PROFILE_FREE_RULES.has(h.rule)) continue;
+      if (isTableRestatement(h, tableKeys)) continue;
       checks.push(hitToCheck(h));
       seenPass.add(h.rule);
     }
@@ -198,7 +257,7 @@ export function checkCrossBlock(
     checks.push(...governanceCrosswalkCheck(doc, typeof output?.overall_readiness_rating === "string" ? output.overall_readiness_rating as string : undefined));
   }
 
-  checks.push(...tableOfAuthoritiesCheck(doc));
+  checks.push(...tableOfAuthoritiesCheck(tool, doc));
 
   return checks;
 }

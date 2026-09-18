@@ -161,7 +161,24 @@ function renderCppaAdmt(intake: Bag): Bag {
   const citations = gatherCitations(computed.allFindings.map((f) => f.authority).filter(Boolean));
   const exhibit = buildAuthorityExhibit(citations, vaRegistryAsProvisions());
   const skeleton = assembleAdmtV2Document({ intake, computed, exhibit, organizationName, systemName });
-  return { skeleton_document: skeleton };
+  // Lead correction 2026-09-18: production (run-admt-checker-v2/index.ts:158-172)
+  // persists the posture and path summary under _meta.internal, which the
+  // grading function's ADMT truth-table rows read; the render carries the
+  // same block so offline and live grading see one shape.
+  return {
+    _meta: {
+      internal: {
+        overall_posture_label: computed.overallPostureLabel,
+        overall_record_grade: computed.overallRecordGrade,
+        scope_state: computed.scope.scopeState,
+        opt_out_path: computed.optOutPath,
+        finding_count: computed.allFindings.length,
+        findings: computed.allFindings,
+      },
+    },
+    skeleton_document: skeleton,
+    authority_exhibit: exhibit,
+  };
 }
 
 // ── cppa-cyber — tests/edge/ptest/determinism.test.ts `genCyber`, byte-for-byte.

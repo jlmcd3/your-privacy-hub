@@ -427,7 +427,7 @@ export async function startRun(rawSettings: ProductTestSettings, opts: StartRunO
 export async function fetchRecentRuns(limit = 20): Promise<RunRow[]> {
   const { data, error } = await (supabase as any)
     .from(RUNS_TABLE)
-    .select("id, created_at, created_by, status, settings, log, summary")
+    .select("id, created_at, created_by, status, settings, log, summary, lead_note")
     .order("created_at", { ascending: false })
     .limit(limit);
   if (error) throw new Error(`product_test_runs read: ${error.message}`);
@@ -437,7 +437,7 @@ export async function fetchRecentRuns(limit = 20): Promise<RunRow[]> {
 export async function fetchRun(runId: string): Promise<RunRow | null> {
   const { data, error } = await (supabase as any)
     .from(RUNS_TABLE)
-    .select("id, created_at, created_by, status, settings, log, summary")
+    .select("id, created_at, created_by, status, settings, log, summary, lead_note")
     .eq("id", runId)
     .maybeSingle();
   if (error) throw new Error(`product_test_runs read: ${error.message}`);
@@ -462,6 +462,12 @@ export async function fetchRunChecks(runId: string): Promise<CheckRow[]> {
     .order("created_at", { ascending: true });
   if (error) throw new Error(`product_test_checks read: ${error.message}`);
   return (data ?? []) as CheckRow[];
+}
+
+/** The CEO's free-text report on a run: what a check did not catch (doc 275). */
+export async function updateRunLeadNote(runId: string, note: string | null): Promise<void> {
+  const { error } = await (supabase as any).from(RUNS_TABLE).update({ lead_note: note }).eq("id", runId);
+  if (error) throw new Error(`product_test_runs lead_note update: ${error.message}`);
 }
 
 export async function updateCheck(

@@ -113,6 +113,8 @@ export interface RunRow {
   settings: ProductTestSettings;
   log: string[];
   summary: RunSummary | null;
+  /** The CEO's free-text report on the run: what no check caught (doc 275). */
+  lead_note?: string | null;
 }
 
 export interface DocumentRow {

@@ -172,19 +172,32 @@ interface Headings {
   subsections: Set<string>; // "4.D"
   appendices: Set<string>;  // "B"
   steps: Set<number>;
+  /** Roman-numbered section headings ("II. The Purpose Test") — the LIA
+   *  scheme. When non-empty the document's own scheme is Roman and a
+   *  "Section II" cross-reference is resolved against this set instead of
+   *  being reported as a scheme mismatch (2026-09-18). */
+  romanSections: Set<string>;
 }
 
+// Three heading schemes are rendered across the products (2026-09-18):
+//   "4. Title"          — risk, admt, cyber (Arabic, dotted)
+//   "Section 2 — Title" — dpia (Arabic, worded)
+//   "II. Title"         — lia (Roman, dotted)
 const SECTION_TITLE_RE = /^(\d{1,2})\.\s+\S/;
+const SECTION_WORD_TITLE_RE = /^Section\s+(\d{1,2})\b/;
+const ROMAN_TITLE_RE = /^([IVX]{1,5})\.\s+\S/;
 const APPENDIX_TITLE_RE = /^Appendix\s+([A-Z])\b/;
 const SUBSECTION_LEAD_RE = /^([A-Z])\.\s+[A-Z]/;
 const STEP_LEAD_RE = /^Step\s+(\d{1,2})\b/;
 
 function collectHeadings(doc: RenderedSkeletonDocument): Headings {
-  const h: Headings = { sections: new Set(), subsections: new Set(), appendices: new Set(), steps: new Set() };
+  const h: Headings = { sections: new Set(), subsections: new Set(), appendices: new Set(), steps: new Set(), romanSections: new Set() };
   for (const s of doc.sections) {
-    const m = SECTION_TITLE_RE.exec(s.title);
+    const m = SECTION_TITLE_RE.exec(s.title) ?? SECTION_WORD_TITLE_RE.exec(s.title);
     const a = APPENDIX_TITLE_RE.exec(s.title);
     if (a) h.appendices.add(a[1]);
+    const rm = ROMAN_TITLE_RE.exec(s.title);
+    if (rm) h.romanSections.add(rm[1]);
     const n = m ? Number(m[1]) : null;
     if (n !== null) h.sections.add(n);
     for (const p of s.paragraphs) {
@@ -208,7 +221,11 @@ const XREF_BARE_SECTION_RE = /§\s?(\d{1,2})\b(?![\d.]\d)(?!\.[A-Z])/g;
 const XREF_APPENDIX_RE = /\bAppendi(?:x|ces)\s+([A-Z])\b((?:\s?(?:,|and|through|to|–|-)\s?[A-Z]\b)*)/g;
 const XREF_APPENDIX_TAIL_RE = /\b([A-Z])\b/g;
 const XREF_STEP_RE = /\bSteps?\s+(\d{1,2})\b((?:\s?(?:,|and|through|to|–|-)\s?\d{1,2}\b)*)/g;
-const XREF_ROMAN_RE = /\b(?:Section|Appendix|Part)\s+(?=[IVX]{2,}\b)([IVX]+)\b|§\s?(?=[IVX]{2,}\b)([IVX]+)\b/g;
+// A Roman numeral followed by a TWO-level dotted pinpoint ("§ III.D.d" in a
+// WP248 citation) is an external authority, never an internal
+// cross-reference, so the negative lookahead leaves it alone; a one-level
+// form ("§ IV.A") is still an internal reference and still fires (2026-09-18).
+const XREF_ROMAN_RE = /\b(?:Section|Appendix|Part)\s+(?=[IVX]{2,}\b)([IVX]+)\b(?!\.[A-Za-z0-9]+\.[A-Za-z0-9])|§\s?(?=[IVX]{2,}\b)([IVX]+)\b(?!\.[A-Za-z0-9]+\.[A-Za-z0-9])/g;
 
 function lintXref(doc: RenderedSkeletonDocument): LintHit[] {
   const h = collectHeadings(doc);
@@ -244,6 +261,12 @@ function lintXref(doc: RenderedSkeletonDocument): LintHit[] {
       }
     }
     for (const m of t.matchAll(XREF_ROMAN_RE)) {
+      const r = m[1] ?? m[2];
+      if (h.romanSections.size) {
+        // The document's own scheme is Roman: resolve, do not report a mismatch.
+        if (!h.romanSections.has(r)) out.push(hit("L-XREF", "unresolved_section", "defect", u, m[0], `Section ${r} names no rendered Roman-numbered section`));
+        continue;
+      }
       out.push(hit("L-XREF", "roman_numeral_scheme", "defect", u, m[0], "Roman-numeral cross-reference; the rendered scheme is Arabic"));
     }
   }

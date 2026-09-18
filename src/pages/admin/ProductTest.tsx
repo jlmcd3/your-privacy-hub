@@ -27,9 +27,11 @@ import {
 } from "@/components/ui/select";
 
 import {
-  fetchRecentRuns, fetchRun, fetchRunChecks, fetchRunDocuments, startRun, updateCheck,
+  fetchRecentRuns, fetchRun, fetchRunChecks, fetchRunDocuments, startRun, updateCheck, updateRunLeadNote,
   type RunHandle,
 } from "@/lib/productTest/run";
+import { buildLeadSummary } from "@/lib/productTest/leadSummary";
+import { buildScoreMatrix, formatDelta } from "@/lib/productTest/scoreMatrix";
 import {
   DEFAULT_TOOLS, MAX_COPIES, MIN_COPIES, TOOL_GROUPS, VARIANT_KIND_ORDER,
   clampCopies, evaluateLaunchBars, toolSummary, wantsMessyVariants,
@@ -251,6 +253,55 @@ export default function ProductTest() {
     downloadMarkdown(runExportFilename(activeRun), md);
   }, [activeRun, documents, checks]);
 
+  // ── Handoff to the lead (doc 275): run id, copy summary, report note ────
+  const [copied, setCopied] = useState<"" | "id" | "summary">("");
+  const copyText = useCallback(async (text: string, what: "id" | "summary") => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopied(what);
+      setTimeout(() => setCopied(""), 2000);
+    } catch (e) {
+      setLogLines((prev) => [...prev, `Copy failed — ${(e as Error).message}`].slice(-LOG_LIMIT));
+    }
+  }, []);
+  const copySummary = useCallback(() => {
+    if (!activeRun) return;
+    void copyText(buildLeadSummary(activeRun, documents, checks), "summary");
+  }, [activeRun, documents, checks, copyText]);
+
+  // ── Tools & batch scores matrix (CEO request 2026-09-18) ────────────────
+  // Baseline choice is a per-viewer convenience kept in localStorage; the
+  // scores themselves are the run rows' summaries.
+  const BASELINE_KEY = "product-test.baselineRunId";
+  const [baselineRunId, setBaselineRunId] = useState<string | null>(() => {
+    try { return localStorage.getItem(BASELINE_KEY); } catch { return null; }
+  });
+  const pinBaseline = useCallback((runId: string | null) => {
+    setBaselineRunId(runId);
+    try { if (runId) localStorage.setItem(BASELINE_KEY, runId); else localStorage.removeItem(BASELINE_KEY); } catch { /* per-viewer only */ }
+  }, []);
+  const matrix = useMemo(() => buildScoreMatrix(recentRuns, baselineRunId), [recentRuns, baselineRunId]);
+  const matrixScrollRef = useRef<HTMLDivElement | null>(null);
+  useEffect(() => {
+    const el = matrixScrollRef.current;
+    if (el) el.scrollLeft = el.scrollWidth; // open on the newest batches
+  }, [matrix.columns.length]);
+
+  const [leadNote, setLeadNote] = useState("");
+  const [leadNoteSaved, setLeadNoteSaved] = useState(false);
+  useEffect(() => { setLeadNote(activeRun?.lead_note ?? ""); setLeadNoteSaved(false); }, [activeRun?.id, activeRun?.lead_note]);
+  const saveLeadNote = useCallback(async () => {
+    if (!activeRun) return;
+    try {
+      await updateRunLeadNote(activeRun.id, leadNote.trim() || null);
+      setActiveRun((prev) => (prev ? { ...prev, lead_note: leadNote.trim() || null } : prev));
+      setLeadNoteSaved(true);
+      setTimeout(() => setLeadNoteSaved(false), 2000);
+    } catch (e) {
+      setLogLines((prev) => [...prev, `Report note save failed — ${(e as Error).message}`].slice(-LOG_LIMIT));
+    }
+  }, [activeRun, leadNote]);
+
   return (
     <div className="mx-auto max-w-7xl space-y-6 px-4 py-8 sm:px-6 lg:px-8">
       <header className="space-y-1">
@@ -352,6 +403,47 @@ export default function ProductTest() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Handoff to the lead (doc 275): run id, copy summary, report note */}
+      {!!activeRun && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">
+              Run <span className="font-mono">{activeRun.id}</span>
+            </CardTitle>
+            <CardDescription>
+              {activeRun.status} · {new Date(activeRun.created_at).toLocaleString()} · paste the id or the summary into the chat; the lead reads the full rows from the database.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <div className="flex flex-wrap items-center gap-2">
+              <Button variant="outline" size="sm" onClick={() => void copyText(activeRun.id, "id")}>
+                {copied === "id" ? "Copied run id" : "Copy run id"}
+              </Button>
+              <Button variant="outline" size="sm" onClick={copySummary} disabled={busy}>
+                {copied === "summary" ? "Copied summary" : "Copy summary for lead"}
+              </Button>
+              <span className="text-xs text-muted-foreground">
+                The summary carries the settings, per-product figures and one line per failed check (tool · fixture · variant · block · check id · quote).
+              </span>
+            </div>
+            <label className="block space-y-1 text-sm">
+              <span className="block text-muted-foreground">
+                Report note — anything you saw that no check caught (a sentence that reads wrongly, a missing element). Saved on the run; the lead turns it into a check or a fix.
+              </span>
+              <Textarea
+                value={leadNote}
+                onChange={(ev) => setLeadNote(ev.target.value)}
+                className="min-h-20"
+                placeholder="e.g. Risk p01, Section 4.B second paragraph: the retention sentence contradicts the table above it."
+              />
+            </label>
+            <Button size="sm" onClick={() => void saveLeadNote()} disabled={busy || (leadNote.trim() === (activeRun.lead_note ?? "").trim())}>
+              {leadNoteSaved ? "Saved" : "Save report note"}
+            </Button>
+          </CardContent>
+        </Card>
+      )}
 
       {/* (e) Results */}
       {!!documents.length && (
@@ -492,6 +584,80 @@ export default function ProductTest() {
                 );
               })}
               {!failedChecks.length && <p className="text-muted-foreground">No failures match the current filters.</p>}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Tools & batch scores (CEO request 2026-09-18, mirrors /admin/all-products-test) */}
+      {!!matrix.columns.length && (
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between">
+            <div>
+              <CardTitle className="text-base">Tools & batch scores</CardTitle>
+              <CardDescription>
+                Check pass rate per product per run (document pass rate beneath). Pin a batch as the baseline to see deltas in points.
+              </CardDescription>
+            </div>
+            {matrix.baselineRunId && (
+              <Button size="sm" variant="outline" onClick={() => pinBaseline(null)}>Clear baseline</Button>
+            )}
+          </CardHeader>
+          <CardContent>
+            <div ref={matrixScrollRef} className="overflow-x-auto">
+              <table className="w-full min-w-max text-sm">
+                <thead>
+                  <tr className="border-b text-left">
+                    <th className="sticky left-0 z-20 bg-background py-2 pr-3">Product</th>
+                    {matrix.columns.map((col) => (
+                      <th key={col.runId} className="whitespace-nowrap py-2 pr-3" title={`${col.runId} · ${new Date(col.createdAt).toLocaleString()}`}>
+                        <button type="button" className="text-left hover:underline" onClick={() => void loadRun(col.runId)}>
+                          Batch {col.n}
+                        </button>
+                        <div className="text-[10px] font-normal text-muted-foreground">
+                          {new Date(col.createdAt).toLocaleDateString()} · {col.status}
+                          {col.variantKinds.some((k) => k !== "golden") ? " · messy" : ""}
+                          {matrix.baselineRunId === col.runId ? " · baseline" : ""}
+                        </div>
+                        <button
+                          type="button"
+                          className={`mt-1 text-[10px] underline hover:no-underline ${matrix.baselineRunId === col.runId ? "font-semibold text-foreground no-underline" : "text-brand-teal-text"}`}
+                          onClick={() => pinBaseline(col.runId)}
+                          title="Pin this batch as the baseline"
+                        >
+                          {matrix.baselineRunId === col.runId ? "★ baseline" : "baseline"}
+                        </button>
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {matrix.rows.map((row) => (
+                    <tr key={row.tool} className="border-b align-top">
+                      <td className="sticky left-0 z-10 bg-background py-2 pr-3 font-mono">{row.tool}</td>
+                      {row.cells.map((cell, i) => (
+                        <td key={matrix.columns[i].runId} className="py-2 pr-3 font-mono">
+                          {cell ? (
+                            <div title={`${cell.documents} doc(s) · critical ${cell.critical} · high ${cell.high} · editorial ${cell.editorial}`}>
+                              <span className={cell.checkPassRate >= 0.98 - 1e-9 ? "text-emerald-600" : "text-destructive"}>
+                                {pct(cell.checkPassRate)}
+                              </span>
+                              {cell.deltaVsBaseline !== null && matrix.baselineRunId !== cell.runId && (
+                                <span className={`ml-1 text-[10px] ${cell.deltaVsBaseline >= 0 ? "text-emerald-600" : "text-destructive"}`}>
+                                  {formatDelta(cell.deltaVsBaseline)}
+                                </span>
+                              )}
+                              <div className="text-[10px] text-muted-foreground">doc {pct(cell.documentPassRate)}</div>
+                            </div>
+                          ) : (
+                            <span className="text-muted-foreground">—</span>
+                          )}
+                        </td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           </CardContent>
         </Card>

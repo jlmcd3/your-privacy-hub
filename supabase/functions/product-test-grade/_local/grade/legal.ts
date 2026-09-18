@@ -18,6 +18,37 @@ const CPPA_MARKERS_RE = /(§\s?7150|§\s?7120|\bCPPA\b|\bCCPA\b)/;
 const CPPA_TOOLS: ReadonlySet<ProductTestTool> = new Set(["cppa-risk", "cppa-cyber", "cppa-admt", "registration"]);
 const GDPR_TOOLS: ReadonlySet<ProductTestTool> = new Set(["dpia", "lia", "governance"]);
 
+/**
+ * A persuasive-authority appendix cites the OTHER regime's enforcement
+ * decisions by ratified design (Risk "Appendix B — Persuasive Authority
+ * (Analogous Enforcement)", section id `appendix_i`, whose lead sentence
+ * says the decisions "were issued under the EU General Data Protection
+ * Regulation, not the CCPA"; the LIA and DPIA products carry the mirror
+ * appendix). Lead correction 2026-09-18 after the CEO's first run: the
+ * contamination check flagged all twelve GDPR mentions of that appendix on
+ * a clean Risk document. The check now scans the body with that appendix
+ * excluded; the appendix is recognised by id or title, never by content.
+ */
+function isPersuasiveAuthoritySection(s: { id?: string; title?: string }): boolean {
+  const id = String(s.id ?? "").toLowerCase();
+  const title = String(s.title ?? "").toLowerCase();
+  return id === "appendix_i" || id.includes("persuasive") ||
+    title.includes("persuasive authority") || title.includes("analogous enforcement");
+}
+
+function bodyTextExcludingPersuasive(doc: RenderedSkeletonDocument | undefined, fallback: string): string {
+  if (!doc || !Array.isArray(doc.sections)) return fallback;
+  const parts: string[] = [];
+  for (const s of doc.sections) {
+    if (isPersuasiveAuthoritySection(s)) continue;
+    for (const p of s.paragraphs) {
+      if (p.table) for (const row of p.table.rows) parts.push(row.join(" "));
+      else if (typeof p.text === "string") parts.push(p.text);
+    }
+  }
+  return parts.join("\n\n");
+}
+
 function contaminationCheck(tool: ProductTestTool, text: string): Check[] {
   if (CPPA_TOOLS.has(tool)) {
     const m = GDPR_MARKERS_RE.exec(text);
@@ -189,7 +220,7 @@ export function checkLegal(
   const { text } = customerTextOf(tool, output);
   const doc = SKELETON_TOOLS.has(tool) ? (output?.skeleton_document as RenderedSkeletonDocument | undefined) : undefined;
 
-  checks.push(...contaminationCheck(tool, text));
+  checks.push(...contaminationCheck(tool, bodyTextExcludingPersuasive(doc, text)));
   checks.push(...citationRegistryCheck(tool, doc));
 
   if (tool === "cppa-risk" || tool === "cppa-cyber" || tool === "cppa-admt") {

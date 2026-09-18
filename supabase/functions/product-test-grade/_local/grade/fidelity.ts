@@ -179,10 +179,18 @@ export function checkFidelity(
   }
 
   // 6. golden variants only: no not-recorded phrasing about ANSWERED keys.
+  // Lead correction 2026-09-18: the key IS the label (no label field), so a
+  // single ordinary word as a key ("sector", "purpose") matches prose that
+  // merely contains that word and flagged a not-recorded sentence about a
+  // different fact in the same paragraph. Only keys that could only appear
+  // in prose as a rendered key (an underscore or dot in them) are swept, and
+  // the proximity is the sentence, not the paragraph.
   if (variantKind === "golden" && contract) {
+    const sentences = paragraphs.flatMap((p) => p.split(/(?<=[.;:!?])\s+/));
     for (const f of answeredAskedKeys(contract, intake)) {
-      const label = f.key; // no `label` field on IntakeField (2026-09-18) — key is the label.
-      const { found, withNotRecorded, quote } = sameParagraphAsLabel(paragraphs, label);
+      const label = f.key.replace(/\[\]/g, "");
+      if (!/[_.]/.test(label)) continue;
+      const { found, withNotRecorded, quote } = sameParagraphAsLabel(sentences, label);
       if (!found) continue; // the label text itself may never appear verbatim; nothing to check.
       checks.push({
         check_id: "fidelity.golden_no_false_absence",

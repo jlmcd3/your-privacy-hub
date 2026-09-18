@@ -61,7 +61,11 @@ export const ROPA_OPTIONAL_LOOKING_KEYS: readonly string[] = [
 /** The `entity/organisation name` key per tool (PANEL-BRIEF.md §"company"). */
 export const COMPANY_KEY_BY_TOOL: Readonly<Record<ProductTestTool, string>> = {
   "cppa-risk": "entity_name",
-  "cppa-cyber": "profile.company_name",
+  // Lead correction 2026-09-18: the cyber contract and panel carry
+  // profile.entity_name (cppa-cybersecurity.ts:263; PANEL-BRIEF's
+  // "company_name" was stale). With the wrong key the fixture's own name read
+  // as empty and was reported as a foreign company on every cyber document.
+  "cppa-cyber": "profile.entity_name",
   "cppa-admt": "organization_name",
   "dpia": "organization_name",
   "lia": "organization_name",
