@@ -168,7 +168,12 @@ function governanceCrosswalkCheck(doc: RenderedSkeletonDocument, overallReadines
 // ── generic table-of-authorities completeness (doc 269 §3.5 row 3, every
 //    skeleton product) ───────────────────────────────────────────────────
 
-const CITATION_RE = /\b11\s?CCR\s?§\s?\d{4}(?:\([a-z0-9]{1,3}\))*|\bCiv\.\s?Code\s?§\s?1798\.\d+(?:\([a-z0-9]{1,3}\))*|\bArt(?:icle)?\.?\s?\d{1,3}[A-Za-z]?\b/g;
+// Case-insensitive on the article form (2026-09-18, run 2d1a0be2): the
+// corpus exhibit lists an article in its long form, "Regulation (EU)
+// 2016/679 (General Data Protection Regulation) art. 9", and the product's
+// own coverage test reads that lowercase "art." as covering Article 9, so
+// the check must too.
+const CITATION_RE = /\b11\s?CCR\s?§\s?\d{4}(?:\([a-z0-9]{1,3}\))*|\bCiv\.\s?Code\s?§\s?1798\.\d+(?:\([a-z0-9]{1,3}\))*|\b[Aa]rt(?:icle)?\.?\s?\d{1,3}[A-Za-z]?\b/g;
 
 /**
  * A "§§ A, B" list ("11 CCR §§ 7001(ddd), 7200(a)"; "Civ. Code §§ 1798.140,

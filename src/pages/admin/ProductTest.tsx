@@ -260,9 +260,23 @@ export default function ProductTest() {
   }, [editing]);
 
   // ── Export (section h) ──────────────────────────────────────────────────
-  const exportRun = useCallback(() => {
+  // The export re-reads the run from the tables first (lead fix 2026-09-18,
+  // run 2d1a0be2: an export taken seconds after completion showed the last
+  // document as "generated" with no checks — the page's local state had not
+  // yet caught up with the final grade the database already held).
+  const exportRun = useCallback(async () => {
     if (!activeRun) return;
-    const md = buildRunMarkdown(activeRun, documents, checks);
+    let docs = documents;
+    let checkRows = checks;
+    try {
+      [docs, checkRows] = await Promise.all([fetchRunDocuments(activeRun.id), fetchRunChecks(activeRun.id)]);
+      documentsRef.current = new Map(docs.map((d) => [d.id, d]));
+      setDocuments(docs);
+      setChecks(checkRows);
+    } catch (e) {
+      setLogLines((prev) => [...prev, `Export re-read failed — exporting the page's current state (${(e as Error).message})`].slice(-LOG_LIMIT));
+    }
+    const md = buildRunMarkdown(activeRun, docs, checkRows);
     downloadMarkdown(runExportFilename(activeRun), md);
   }, [activeRun, documents, checks]);
 

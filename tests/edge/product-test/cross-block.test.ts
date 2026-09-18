@@ -139,3 +139,14 @@ Deno.test("cross-block: a negated mention ('Article 44 was omitted from the UK G
   assert(c);
   assertEquals(c!.passed, true, `expected negated mention ignored; got ${c!.actual}`);
 });
+
+// The corpus exhibit's long form ("… (General Data Protection Regulation) art. 9") covers Article 9 (run 2d1a0be2).
+Deno.test("cross-block: a lowercase 'art. 9' long-form row in the authorities table covers 'Article 9' in the body", () => {
+  const d = doc(
+    "The special categories of health data engage Article 9. Designation follows GDPR Art. 37(1)(b).",
+    [["Regulations", "GDPR Art. 37(1)(b)", "Regulation (EU) 2016/679 (General Data Protection Regulation) art. 9"]],
+  );
+  const c = checkCrossBlock("governance", { skeleton_document: d }).find((x) => x.check_id === "cross-block.table_of_authorities_complete");
+  assert(c);
+  assertEquals(c!.passed, true, `expected covered; got ${c!.actual}`);
+});
