@@ -256,7 +256,12 @@ export const TOA_ALLOWLIST: Readonly<Partial<Record<ProductTestTool, readonly st
   // in the body with no matrix row for the rights walk; adding rows is a
   // spine change for the CEO to ratify (doc 275 §10). Allowed pending that
   // ruling; remove entries as rows are added.
-  "dpia": ["Art. 9", "Art. 12", "Art. 20", "Art. 21", "Art. 22", "Art. 24", "Art. 46"],
+  // Art. 10 (criminal-convictions data) is named in the executive summary's
+  // sensitive-data definition ("data relating to criminal convictions or
+  // offences under Article 10"), a definitional mention like Art. 9 — seen
+  // on the live document of run b86c44d0, not on the offline render (the
+  // live corpus pass supplies that sentence).
+  "dpia": ["Art. 9", "Art. 10", "Art. 12", "Art. 20", "Art. 21", "Art. 22", "Art. 24", "Art. 46"],
 };
 
 /** A body mention that DENIES a provision ("Article 44 was omitted from the
