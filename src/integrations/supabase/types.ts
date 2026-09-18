@@ -5380,6 +5380,7 @@ export type Database = {
           created_at: string
           created_by: string | null
           id: string
+          lead_note: string | null
           log: Json
           settings: Json
           status: string
@@ -5389,6 +5390,7 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           id?: string
+          lead_note?: string | null
           log?: Json
           settings?: Json
           status?: string
@@ -5398,6 +5400,7 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           id?: string
+          lead_note?: string | null
           log?: Json
           settings?: Json
           status?: string
