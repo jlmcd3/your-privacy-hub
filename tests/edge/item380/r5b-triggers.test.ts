@@ -136,3 +136,40 @@ Deno.test("run1: notice_element_text.altprocess — asked only when the notice c
   // "Partial" how-it-works does not demand both how-it-works excerpts.
   assert(!emptyAskedKeys(cppaAdmtContract, { ...base, notice_has_how_it_works: "Partial — some elements missing" }).includes("notice_element_text.howworks_inputs"));
 });
+
+// 2026-09-18 — MULTI-ENUM TRIGGER WITHOUT "[]" (doc 271 §4 item 1; CEO
+// instruction). `decision_domains` (ADMT) and `q19a_decision_categories`
+// (Risk) are multi-enum keys whose VALUE-EQUALS triggers are written without
+// the "[]" marker, so readPath handed the whole array to the string test and
+// the conditional field was never counted as asked. The equals branch now
+// tests array values element-wise. Proved in both directions for both keys.
+const HOUSING_ADMT = "Housing (rental or purchase eligibility)";
+const HOUSING_RISK = "Housing (a home, residence, or sleeping place)";
+
+Deno.test("2026-09-18: admt_detail.housing_decision_basis — ON + empty when Housing is among the selected domains", () => {
+  const empty = emptyAskedKeys(cppaAdmtContract, {
+    decision_domains: ["Financial or lending services (credit decisions, loans, accounts)", HOUSING_ADMT],
+    admt_detail: {},
+  });
+  assert(empty.includes("admt_detail.housing_decision_basis"), "Housing selected among others: the basis question was asked and left blank");
+});
+
+Deno.test("2026-09-18: admt_detail.housing_decision_basis — OFF when Housing is not selected; not counted when answered", () => {
+  const off = emptyAskedKeys(cppaAdmtContract, {
+    decision_domains: ["Financial or lending services (credit decisions, loans, accounts)"],
+    admt_detail: {},
+  });
+  assert(!off.includes("admt_detail.housing_decision_basis"), "no Housing domain: the basis question was never shown");
+  const answered = emptyAskedKeys(cppaAdmtContract, {
+    decision_domains: [HOUSING_ADMT],
+    admt_detail: { housing_decision_basis: "Rental application screening" },
+  });
+  assert(!answered.includes("admt_detail.housing_decision_basis"), "answered: not an empty ask");
+});
+
+Deno.test("2026-09-18: q19b_housing_basis — ON + empty when Housing is among q19a's selected categories, OFF otherwise", () => {
+  const on = emptyAskedKeys(cppaRiskContract, { q19a_decision_categories: ["Employment", HOUSING_RISK], q19b_housing_basis: "" });
+  assert(on.includes("q19b_housing_basis"), "Housing selected among others: q19b was asked and left blank");
+  const off = emptyAskedKeys(cppaRiskContract, { q19a_decision_categories: ["Employment"], q19b_housing_basis: "" });
+  assert(!off.includes("q19b_housing_basis"), "no Housing category: q19b was never shown");
+});

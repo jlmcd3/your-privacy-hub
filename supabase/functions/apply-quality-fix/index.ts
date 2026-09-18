@@ -14,6 +14,8 @@ const SERVICE_KEY   = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const ANON_KEY      = Deno.env.get("SUPABASE_ANON_KEY")!;
 const GITHUB_TOKEN  = Deno.env.get("GITHUB_TOKEN") ?? "";
 const APPLY_BRANCH  = Deno.env.get("QUALITY_APPLY_BRANCH") ?? "quality-auto";
+// Hard off-switch (doc 271 §3, 2026-09-18). Not an environment flag on purpose.
+const DISABLED = true;
 const DEFAULT_MAIN  = Deno.env.get("GITHUB_BRANCH") ?? "main";
 
 
@@ -50,6 +52,20 @@ const TOOL_FILE_PATH: Record<string, string> = {
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: cors });
   if (req.method !== "POST") return json({ error: "POST only" }, 405);
+
+  // DISABLED (CEO instruction, 2026-09-18; doc 271 §3). This function wrote a
+  // model-authored patch into a product's source file and committed it. No
+  // model-written change may reach product code by any automated path; fixes
+  // go through the lead's review and the CEO's commit instruction only.
+  // The refusal sits before authentication so the path is dead for every
+  // caller, admin included. The code below is retained for the record and
+  // is unreachable.
+  if (DISABLED) {
+    return json({
+      error: "disabled",
+      message: "apply-quality-fix is disabled (2026-09-18). Product code is changed only through reviewed commits.",
+    }, 410);
+  }
 
   const auth = req.headers.get("Authorization") ?? "";
   const token = auth.replace("Bearer ", "");

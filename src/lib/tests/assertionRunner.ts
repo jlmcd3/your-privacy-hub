@@ -276,6 +276,195 @@ async function setupAndRunEUNotice(userId: string, input: Record<string, unknown
   return { sessionId: session.id, documentCount: docs?.length ?? 0, documents: docs ?? [] };
 }
 
+// ─── Per-tool generation arm (extracted, round-3.5 product-test reuse) ────────
+//
+// This is the exact insert → invoke → poll → fetch-output sequence a
+// customer's browser performs for each tool, previously inlined in
+// runSingleTool's try block. Extracted unchanged (same branches, same log
+// lines, same table/column names) so src/lib/productTest/generate.ts can
+// call it directly instead of duplicating it. runSingleTool below is the
+// only caller within this file; behaviour is identical to before the
+// extraction.
+export async function generateForTool(
+  test: Pick<AssertionTest, "toolId" | "edgeFunction" | "testInput" | "pollConfig">,
+  userId: string,
+  addLog: (msg: string) => void,
+  combinedSignal: AbortSignal,
+): Promise<{ output: unknown; recordId?: string }> {
+  let output: unknown;
+  let recordId: string | undefined;
+
+  if (test.toolId === "cppa-scope") {
+    addLog("Computing scope deterministically…");
+    output = computeCppaScopeResult(test.testInput);
+    addLog("✓ Complete");
+
+  } else if (test.toolId === "ropa") {
+    const result = await setupAndRunRopa(userId, addLog, combinedSignal);
+    recordId = result.sessionId;
+    output = { documentVersionId: result.documentVersionId, activitiesCount: result.activitiesCount, jurisdictionsCovered: result.jurisdictionsCovered };
+    addLog(`✓ RoPA generated — version ID: ${result.documentVersionId}, activities: ${result.activitiesCount}`);
+
+  } else if (test.toolId === "us-notice") {
+    output = await setupAndRunUSNotice(userId, test.testInput, addLog, combinedSignal);
+    recordId = (output as Record<string, unknown>)?.sessionId as string;
+
+  } else if (test.toolId === "eu-notice") {
+    output = await setupAndRunEUNotice(userId, test.testInput, addLog, combinedSignal);
+    recordId = (output as Record<string, unknown>)?.sessionId as string;
+
+  } else if (test.toolId === "biometric") {
+    addLog("Invoking check-biometric-compliance…");
+    const { data, error } = await invokeWithRetry(test.edgeFunction, { ...test.testInput, user_id: userId }, combinedSignal);
+    if (error) throw error;
+    output = data;
+    recordId = (data as Record<string, unknown>)?.id as string;
+    addLog(`✓ Complete — id: ${recordId}`);
+
+  } else if (test.toolId === "dpa") {
+    addLog("Invoking generate-dpa…");
+    const { data, error } = await invokeWithRetry(test.edgeFunction, { ...test.testInput, user_id: userId }, combinedSignal);
+    if (error) throw error;
+    const d = data as Record<string, unknown>;
+    if (!d?.id) throw new Error("generate-dpa returned no id");
+    recordId = d.id as string;
+    addLog(`Polling dpa_documents (id: ${recordId})…`);
+    await pollUntilComplete("dpa_documents", recordId, "complete", test.pollConfig!.maxPolls, test.pollConfig!.intervalMs, addLog, combinedSignal);
+    const { data: row } = await (supabase as any).from("dpa_documents").select("document_text, report_data").eq("id", recordId).single();
+    output = { ...(row?.report_data ?? {}), dpa_text: row?.document_text ?? "" };
+    addLog(`✓ Complete — ${(row?.document_text ?? "").length} chars`);
+
+  } else if (test.toolId === "ir-playbook") {
+    addLog("Invoking generate-ir-playbook…");
+    const { data, error } = await invokeWithRetry(test.edgeFunction, { ...test.testInput, user_id: userId }, combinedSignal);
+    if (error) throw error;
+    const d = data as Record<string, unknown>;
+    if (!d?.id) throw new Error("generate-ir-playbook returned no id");
+    recordId = d.id as string;
+    addLog(`Polling ir_playbooks (id: ${recordId})…`);
+    await pollUntilComplete("ir_playbooks", recordId, "complete", test.pollConfig!.maxPolls, test.pollConfig!.intervalMs, addLog, combinedSignal);
+    const { data: row } = await (supabase as any).from("ir_playbooks").select("playbook_text, report_data").eq("id", recordId).single();
+    output = { ...(row?.report_data ?? {}), playbook_text: row?.playbook_text ?? "" };
+    addLog(`✓ Complete — ${(row?.playbook_text ?? "").length} chars`);
+
+  } else if (test.toolId === "brief") {
+    addLog("Querying latest weekly_briefs row…");
+    const { data: brief, error: briefErr } = await (supabase as any)
+      .from("weekly_briefs")
+      .select("headline, executive_summary, eu_uk, us_states, us_federal, enforcement_trends, published_at")
+      .order("published_at", { ascending: false })
+      .limit(1)
+      .single();
+    if (briefErr || !brief) throw new Error(`No weekly brief found: ${briefErr?.message ?? "empty"}`);
+    output = brief;
+    addLog(`✓ Found brief published ${brief.published_at}`);
+
+  } else if (test.toolId === "cppa-risk" || test.toolId === "cppa-cyber" || test.toolId === "cppa-admt") {
+    // ADMT runs the deterministic v2 engine (module "admt_v2" →
+    // run-admt-checker-v2), the engine customers receive; the v1 module
+    // "admt" was retired (doc 271 §4 item 2, 2026-09-18).
+    const module = test.toolId === "cppa-risk" ? "risk_assessment" : test.toolId === "cppa-cyber" ? "cybersecurity" : "admt_v2";
+    addLog(`Inserting cppa_assessments (module=${module})…`);
+    const { data: rec, error: insErr } = await (supabase as any).from("cppa_assessments").insert({ user_id: userId, module, status: "pending", intake_data: test.testInput }).select("id").single();
+    if (insErr || !rec) throw new Error(`cppa_assessments insert: ${insErr?.message}`);
+    recordId = rec.id;
+    addLog(`Invoking ${test.edgeFunction}…`);
+    const { error: fnErr } = await invokeWithRetry(test.edgeFunction, { assessment_id: recordId }, combinedSignal);
+    if (fnErr) addLog(`⚠ dispatch: ${fnErr.message}`);
+    addLog("Polling cppa_assessments…");
+    await pollUntilComplete("cppa_assessments", recordId, "complete", test.pollConfig!.maxPolls, test.pollConfig!.intervalMs, addLog, combinedSignal);
+    const { data: row } = await (supabase as any).from("cppa_assessments").select("report_data, document_a_text, document_b_text").eq("id", recordId).single();
+    output = { ...(row?.report_data ?? {}), document_a: row?.document_a_text ?? "", document_b: row?.document_b_text ?? "" };
+    addLog(`✓ Complete`);
+
+  } else if (test.toolId === "lia") {
+    addLog("Inserting li_assessments row…");
+    const { data: rec, error: insErr } = await (supabase as any).from("li_assessments").insert({ ...test.testInput, user_id: userId }).select("id").single();
+    if (insErr || !rec) throw new Error(`li_assessments insert: ${insErr?.message}`);
+    recordId = rec.id;
+    addLog(`Invoking run-li-assessment (id: ${recordId})…`);
+    const { error: fnErr } = await invokeWithRetry(test.edgeFunction, { assessment_id: recordId }, combinedSignal);
+    if (fnErr) addLog(`⚠ dispatch: ${fnErr.message}`);
+    await pollUntilComplete("li_assessments", recordId, "complete", test.pollConfig!.maxPolls, test.pollConfig!.intervalMs, addLog, combinedSignal);
+    const { data: row } = await (supabase as any).from("li_assessments").select("report_data").eq("id", recordId).single();
+    output = { ...(row?.report_data ?? {}) };
+    addLog(`✓ Complete`);
+
+  } else if (test.toolId === "dpia") {
+    addLog("Inserting dpia_frameworks row…");
+    const { data: rec, error: insErr } = await (supabase as any).from("dpia_frameworks").insert({ user_id: userId, status: "pending", intake_data: test.testInput, is_subscriber_credit: true }).select("id").single();
+    if (insErr || !rec) throw new Error(`dpia_frameworks insert: ${insErr?.message}`);
+    recordId = rec.id;
+    addLog(`Invoking run-dpia-framework (id: ${recordId})…`);
+    const { error: fnErr } = await invokeWithRetry(test.edgeFunction, { dpia_id: recordId }, combinedSignal);
+    if (fnErr) addLog(`⚠ dispatch: ${fnErr.message}`);
+    await pollUntilComplete("dpia_frameworks", recordId, "complete", test.pollConfig!.maxPolls, test.pollConfig!.intervalMs, addLog, combinedSignal);
+    const { data: row } = await (supabase as any).from("dpia_frameworks").select("report_data").eq("id", recordId).single();
+    output = row?.report_data ?? {};
+    addLog(`✓ Complete`);
+
+  } else if (test.toolId === "governance") {
+    addLog("Inserting governance_assessments row…");
+    const { data: rec, error: insErr } = await (supabase as any).from("governance_assessments").insert({ user_id: userId, status: "pending", intake_data: test.testInput }).select("id").single();
+    if (insErr || !rec) throw new Error(`governance_assessments insert: ${insErr?.message}`);
+    recordId = rec.id;
+    addLog(`Invoking run-governance-assessment (id: ${recordId})…`);
+    const { error: fnErr } = await invokeWithRetry(test.edgeFunction, { assessment_id: recordId }, combinedSignal);
+    if (fnErr) addLog(`⚠ dispatch: ${fnErr.message}`);
+    await pollUntilComplete("governance_assessments", recordId, "complete", test.pollConfig!.maxPolls, test.pollConfig!.intervalMs, addLog, combinedSignal);
+    const { data: row } = await (supabase as any).from("governance_assessments").select("report_data").eq("id", recordId).single();
+    output = row?.report_data ?? {};
+    addLog(`✓ Complete`);
+
+  } else if (test.toolId === "registration") {
+    addLog("Invoking run-registration-assessment…");
+    const { data: assess, error: assessErr } = await invokeWithRetry("run-registration-assessment", { intake_data: test.testInput, user_id: userId }, combinedSignal);
+    if (assessErr || !(assess as Record<string, unknown>)?.assessment_id) throw new Error(`run-registration-assessment: ${assessErr?.message ?? "no assessment_id"}`);
+    const a = assess as Record<string, unknown>;
+    const assessmentId = a.assessment_id as string;
+    const codes: string[] = ((a.recommended_jurisdictions as string[]) || []).slice(0, 3);
+    if (!codes.length) throw new Error("No jurisdictions recommended");
+    addLog(`Jurisdictions: ${codes.join(", ")}`);
+    const { data: order, error: orderErr } = await (supabase as any).from("registration_orders").insert({ user_id: userId, assessment_id: assessmentId, tier: "diy", jurisdictions: codes, organization_snapshot: test.testInput, amount_cents: 0, currency: "usd", payment_status: "paid", fulfillment_status: "generating", delivery_email: test.testInput.email, renewal_reminders_enabled: false }).select("id").single();
+    if (orderErr || !order) throw new Error(`registration_orders: ${orderErr?.message}`);
+    recordId = order.id;
+    addLog("Invoking generate-registration-docs…");
+    const { error: genErr } = await invokeWithRetry("generate-registration-docs", { order_id: order.id }, combinedSignal);
+    if (genErr) throw new Error(`generate-registration-docs: ${genErr.message}`);
+    // The function now returns 202 immediately and runs in the background.
+    // Poll until the order leaves "generating" (or fails) — never trust the 202.
+    const maxPolls = test.pollConfig?.maxPolls ?? 60;
+    const intervalMs = test.pollConfig?.intervalMs ?? 4000;
+    let regTerminal = false;
+    for (let p = 0; p < maxPolls; p++) {
+      if (combinedSignal.aborted) throw new Error("aborted");
+      await new Promise((r) => setTimeout(r, intervalMs));
+      const { data: o } = await (supabase as any)
+        .from("registration_orders")
+        .select("fulfillment_status")
+        .eq("id", order.id)
+        .single();
+      if (o?.fulfillment_status === "generation_failed") throw new Error("registration generation_failed");
+      if (o && o.fulfillment_status !== "generating") { regTerminal = true; break; }
+    }
+    if (!regTerminal) throw new Error("registration generation timed out");
+    const { data: regDocs } = await (supabase as any).from("registration_documents").select("content_text, document_type, jurisdiction_code").eq("order_id", order.id);
+    const docList = regDocs ?? [];
+    const combinedText = docList.map((d: any) => d.content_text ?? "").join("\n\n");
+    output = { documents: docList, documentCount: docList.length, text: combinedText };
+    addLog(`✓ Complete — ${docList.length} docs`);
+
+  } else if (test.toolId === "word-export-removal") {
+    // DOM-check placeholder — assertions are browser-verified externally and pass here.
+    addLog("DOM-check (Word export removal): browser-verified externally; no edge invoke.");
+    output = {};
+  } else {
+    throw new Error(`Unknown toolId: ${test.toolId}`);
+  }
+
+  return { output, recordId };
+}
+
 // ─── Run a single tool ────────────────────────────────────────────────────────
 
 async function runSingleTool(
@@ -304,170 +493,9 @@ async function runSingleTool(
     const combinedSignal = ac.signal;
 
     try {
-      if (test.toolId === "cppa-scope") {
-        addLog("Computing scope deterministically…");
-        output = computeCppaScopeResult(test.testInput);
-        addLog("✓ Complete");
-
-      } else if (test.toolId === "ropa") {
-        const result = await setupAndRunRopa(userId, addLog, combinedSignal);
-        recordId = result.sessionId;
-        output = { documentVersionId: result.documentVersionId, activitiesCount: result.activitiesCount, jurisdictionsCovered: result.jurisdictionsCovered };
-        addLog(`✓ RoPA generated — version ID: ${result.documentVersionId}, activities: ${result.activitiesCount}`);
-
-      } else if (test.toolId === "us-notice") {
-        output = await setupAndRunUSNotice(userId, test.testInput, addLog, combinedSignal);
-        recordId = (output as Record<string, unknown>)?.sessionId as string;
-
-      } else if (test.toolId === "eu-notice") {
-        output = await setupAndRunEUNotice(userId, test.testInput, addLog, combinedSignal);
-        recordId = (output as Record<string, unknown>)?.sessionId as string;
-
-      } else if (test.toolId === "biometric") {
-        addLog("Invoking check-biometric-compliance…");
-        const { data, error } = await invokeWithRetry(test.edgeFunction, { ...test.testInput, user_id: userId }, combinedSignal);
-        if (error) throw error;
-        output = data;
-        recordId = (data as Record<string, unknown>)?.id as string;
-        addLog(`✓ Complete — id: ${recordId}`);
-
-      } else if (test.toolId === "dpa") {
-        addLog("Invoking generate-dpa…");
-        const { data, error } = await invokeWithRetry(test.edgeFunction, { ...test.testInput, user_id: userId }, combinedSignal);
-        if (error) throw error;
-        const d = data as Record<string, unknown>;
-        if (!d?.id) throw new Error("generate-dpa returned no id");
-        recordId = d.id as string;
-        addLog(`Polling dpa_documents (id: ${recordId})…`);
-        await pollUntilComplete("dpa_documents", recordId, "complete", test.pollConfig!.maxPolls, test.pollConfig!.intervalMs, addLog, combinedSignal);
-        const { data: row } = await (supabase as any).from("dpa_documents").select("document_text, report_data").eq("id", recordId).single();
-        output = { ...(row?.report_data ?? {}), dpa_text: row?.document_text ?? "" };
-        addLog(`✓ Complete — ${(row?.document_text ?? "").length} chars`);
-
-      } else if (test.toolId === "ir-playbook") {
-        addLog("Invoking generate-ir-playbook…");
-        const { data, error } = await invokeWithRetry(test.edgeFunction, { ...test.testInput, user_id: userId }, combinedSignal);
-        if (error) throw error;
-        const d = data as Record<string, unknown>;
-        if (!d?.id) throw new Error("generate-ir-playbook returned no id");
-        recordId = d.id as string;
-        addLog(`Polling ir_playbooks (id: ${recordId})…`);
-        await pollUntilComplete("ir_playbooks", recordId, "complete", test.pollConfig!.maxPolls, test.pollConfig!.intervalMs, addLog, combinedSignal);
-        const { data: row } = await (supabase as any).from("ir_playbooks").select("playbook_text, report_data").eq("id", recordId).single();
-        output = { ...(row?.report_data ?? {}), playbook_text: row?.playbook_text ?? "" };
-        addLog(`✓ Complete — ${(row?.playbook_text ?? "").length} chars`);
-
-      } else if (test.toolId === "brief") {
-        addLog("Querying latest weekly_briefs row…");
-        const { data: brief, error: briefErr } = await (supabase as any)
-          .from("weekly_briefs")
-          .select("headline, executive_summary, eu_uk, us_states, us_federal, enforcement_trends, published_at")
-          .order("published_at", { ascending: false })
-          .limit(1)
-          .single();
-        if (briefErr || !brief) throw new Error(`No weekly brief found: ${briefErr?.message ?? "empty"}`);
-        output = brief;
-        addLog(`✓ Found brief published ${brief.published_at}`);
-
-      } else if (test.toolId === "cppa-risk" || test.toolId === "cppa-cyber" || test.toolId === "cppa-admt") {
-        const module = test.toolId === "cppa-risk" ? "risk_assessment" : test.toolId === "cppa-cyber" ? "cybersecurity" : "admt";
-        addLog(`Inserting cppa_assessments (module=${module})…`);
-        const { data: rec, error: insErr } = await (supabase as any).from("cppa_assessments").insert({ user_id: userId, module, status: "pending", intake_data: test.testInput }).select("id").single();
-        if (insErr || !rec) throw new Error(`cppa_assessments insert: ${insErr?.message}`);
-        recordId = rec.id;
-        addLog(`Invoking ${test.edgeFunction}…`);
-        const { error: fnErr } = await invokeWithRetry(test.edgeFunction, { assessment_id: recordId }, combinedSignal);
-        if (fnErr) addLog(`⚠ dispatch: ${fnErr.message}`);
-        addLog("Polling cppa_assessments…");
-        await pollUntilComplete("cppa_assessments", recordId, "complete", test.pollConfig!.maxPolls, test.pollConfig!.intervalMs, addLog, combinedSignal);
-        const { data: row } = await (supabase as any).from("cppa_assessments").select("report_data, document_a_text, document_b_text").eq("id", recordId).single();
-        output = { ...(row?.report_data ?? {}), document_a: row?.document_a_text ?? "", document_b: row?.document_b_text ?? "" };
-        addLog(`✓ Complete`);
-
-      } else if (test.toolId === "lia") {
-        addLog("Inserting li_assessments row…");
-        const { data: rec, error: insErr } = await (supabase as any).from("li_assessments").insert({ ...test.testInput, user_id: userId }).select("id").single();
-        if (insErr || !rec) throw new Error(`li_assessments insert: ${insErr?.message}`);
-        recordId = rec.id;
-        addLog(`Invoking run-li-assessment (id: ${recordId})…`);
-        const { error: fnErr } = await invokeWithRetry(test.edgeFunction, { assessment_id: recordId }, combinedSignal);
-        if (fnErr) addLog(`⚠ dispatch: ${fnErr.message}`);
-        await pollUntilComplete("li_assessments", recordId, "complete", test.pollConfig!.maxPolls, test.pollConfig!.intervalMs, addLog, combinedSignal);
-        const { data: row } = await (supabase as any).from("li_assessments").select("report_data").eq("id", recordId).single();
-        output = { ...(row?.report_data ?? {}) };
-        addLog(`✓ Complete`);
-
-      } else if (test.toolId === "dpia") {
-        addLog("Inserting dpia_frameworks row…");
-        const { data: rec, error: insErr } = await (supabase as any).from("dpia_frameworks").insert({ user_id: userId, status: "pending", intake_data: test.testInput, is_subscriber_credit: true }).select("id").single();
-        if (insErr || !rec) throw new Error(`dpia_frameworks insert: ${insErr?.message}`);
-        recordId = rec.id;
-        addLog(`Invoking run-dpia-framework (id: ${recordId})…`);
-        const { error: fnErr } = await invokeWithRetry(test.edgeFunction, { dpia_id: recordId }, combinedSignal);
-        if (fnErr) addLog(`⚠ dispatch: ${fnErr.message}`);
-        await pollUntilComplete("dpia_frameworks", recordId, "complete", test.pollConfig!.maxPolls, test.pollConfig!.intervalMs, addLog, combinedSignal);
-        const { data: row } = await (supabase as any).from("dpia_frameworks").select("report_data").eq("id", recordId).single();
-        output = row?.report_data ?? {};
-        addLog(`✓ Complete`);
-
-      } else if (test.toolId === "governance") {
-        addLog("Inserting governance_assessments row…");
-        const { data: rec, error: insErr } = await (supabase as any).from("governance_assessments").insert({ user_id: userId, status: "pending", intake_data: test.testInput }).select("id").single();
-        if (insErr || !rec) throw new Error(`governance_assessments insert: ${insErr?.message}`);
-        recordId = rec.id;
-        addLog(`Invoking run-governance-assessment (id: ${recordId})…`);
-        const { error: fnErr } = await invokeWithRetry(test.edgeFunction, { assessment_id: recordId }, combinedSignal);
-        if (fnErr) addLog(`⚠ dispatch: ${fnErr.message}`);
-        await pollUntilComplete("governance_assessments", recordId, "complete", test.pollConfig!.maxPolls, test.pollConfig!.intervalMs, addLog, combinedSignal);
-        const { data: row } = await (supabase as any).from("governance_assessments").select("report_data").eq("id", recordId).single();
-        output = row?.report_data ?? {};
-        addLog(`✓ Complete`);
-
-      } else if (test.toolId === "registration") {
-        addLog("Invoking run-registration-assessment…");
-        const { data: assess, error: assessErr } = await invokeWithRetry("run-registration-assessment", { intake_data: test.testInput, user_id: userId }, combinedSignal);
-        if (assessErr || !(assess as Record<string, unknown>)?.assessment_id) throw new Error(`run-registration-assessment: ${assessErr?.message ?? "no assessment_id"}`);
-        const a = assess as Record<string, unknown>;
-        const assessmentId = a.assessment_id as string;
-        const codes: string[] = ((a.recommended_jurisdictions as string[]) || []).slice(0, 3);
-        if (!codes.length) throw new Error("No jurisdictions recommended");
-        addLog(`Jurisdictions: ${codes.join(", ")}`);
-        const { data: order, error: orderErr } = await (supabase as any).from("registration_orders").insert({ user_id: userId, assessment_id: assessmentId, tier: "diy", jurisdictions: codes, organization_snapshot: test.testInput, amount_cents: 0, currency: "usd", payment_status: "paid", fulfillment_status: "generating", delivery_email: test.testInput.email, renewal_reminders_enabled: false }).select("id").single();
-        if (orderErr || !order) throw new Error(`registration_orders: ${orderErr?.message}`);
-        recordId = order.id;
-        addLog("Invoking generate-registration-docs…");
-        const { error: genErr } = await invokeWithRetry("generate-registration-docs", { order_id: order.id }, combinedSignal);
-        if (genErr) throw new Error(`generate-registration-docs: ${genErr.message}`);
-        // The function now returns 202 immediately and runs in the background.
-        // Poll until the order leaves "generating" (or fails) — never trust the 202.
-        const maxPolls = test.pollConfig?.maxPolls ?? 60;
-        const intervalMs = test.pollConfig?.intervalMs ?? 4000;
-        let regTerminal = false;
-        for (let p = 0; p < maxPolls; p++) {
-          if (combinedSignal.aborted) throw new Error("aborted");
-          await new Promise((r) => setTimeout(r, intervalMs));
-          const { data: o } = await (supabase as any)
-            .from("registration_orders")
-            .select("fulfillment_status")
-            .eq("id", order.id)
-            .single();
-          if (o?.fulfillment_status === "generation_failed") throw new Error("registration generation_failed");
-          if (o && o.fulfillment_status !== "generating") { regTerminal = true; break; }
-        }
-        if (!regTerminal) throw new Error("registration generation timed out");
-        const { data: regDocs } = await (supabase as any).from("registration_documents").select("content_text, document_type, jurisdiction_code").eq("order_id", order.id);
-        const docList = regDocs ?? [];
-        const combinedText = docList.map((d: any) => d.content_text ?? "").join("\n\n");
-        output = { documents: docList, documentCount: docList.length, text: combinedText };
-        addLog(`✓ Complete — ${docList.length} docs`);
-
-      } else if (test.toolId === "word-export-removal") {
-        // DOM-check placeholder — assertions are browser-verified externally and pass here.
-        addLog("DOM-check (Word export removal): browser-verified externally; no edge invoke.");
-        output = {};
-      } else {
-        throw new Error(`Unknown toolId: ${test.toolId}`);
-      }
+      const gen = await generateForTool(test, userId, addLog, combinedSignal);
+      output = gen.output;
+      recordId = gen.recordId;
     } finally {
       clearTimeout(timeoutTimer);
     }

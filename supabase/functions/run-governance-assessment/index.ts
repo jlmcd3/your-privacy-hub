@@ -1533,7 +1533,15 @@ Every insufficient-basis or "Insufficient information" finding elsewhere in this
         refineIntake,
         makeGovernanceRefinementDeps(assessment_id ?? currentSourceRowId() ?? null, refineModel),
         {
-          enabled: GOVERNANCE_REFINEMENT_ENABLED,
+          // 2026-09-18 (lead, CEO instruction on the governance model call):
+          // the critic → verifier pass is a model pass. It stays available on
+          // the legacy path but is OFF whenever the deterministic path is on,
+          // exactly as run-li-assessment gates its own refinement
+          // (`LIA_REFINEMENT_ENABLED && !LIA_DETERMINISTIC_ENABLED`). With
+          // GOVERNANCE_DETERMINISTIC_ENABLED=true this function then makes
+          // zero model calls in document generation (doc 184 table, row
+          // Governance), which is the state doc 18 §V2 specified.
+          enabled: GOVERNANCE_REFINEMENT_ENABLED && !GOVERNANCE_DETERMINISTIC_ENABLED,
           coverageList: coverageListForCritic(preCoverage),
           coverageAnchors: coverageAnchorTokens(preCoverage),
         },

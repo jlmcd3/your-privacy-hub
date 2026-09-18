@@ -898,64 +898,80 @@ const ADMT_INPUT = {
   },
 };
 
+// ADMT v2 (2026-09-18, doc 271 §4 item 2): the smoke test used to invoke the
+// retired v1 engine (run-admt-checker, module "admt") and read its
+// `scope_analysis` block, which the v2 report never carries. Customers
+// receive run-admt-checker-v2 (module "admt_v2"), whose persisted
+// report_data has exactly three top-level keys — `skeleton_document`,
+// `authority_exhibit`, `_meta` (with `_meta.internal.scope_state`,
+// `opt_out_path`, `overall_posture_label`, `findings`); see
+// run-admt-checker-v2/_local/report-schemas/admt-v2.ts. The assertions
+// below read that shape. The fixture is a fully automated lending decision
+// with a full opt-out right, so scope is IN_SCOPE and the path FULL_OPT_OUT.
+function admtV2Internal(output: unknown): Record<string, unknown> {
+  const meta = (output as Record<string, unknown>)?._meta as Record<string, unknown> | undefined;
+  return (meta?.internal as Record<string, unknown> | undefined) ?? {};
+}
+
 export const ADMT_TEST: AssertionTest = {
   toolId: "cppa-admt",
   toolName: "ADMT Compliance Assessment",
-  edgeFunction: "run-admt-checker",
+  edgeFunction: "run-admt-checker-v2",
   testInput: ADMT_INPUT,
   expectedSeconds: 120,
   pollConfig: { table: "cppa_assessments", successStatus: "complete", maxPolls: 90, intervalMs: 4000 },
   assertions: [
     {
-      id: "admt-is-admt",
-      description: "scope_analysis.is_admt must be true for a fully-automated scoring model",
+      id: "admt-v2-skeleton-present",
+      description: "skeleton_document must be present with at least one section",
       category: "requirement",
       check: (output) => {
-        const s = (output as Record<string, unknown>)?.scope_analysis as Record<string, unknown> | undefined;
-        return s?.is_admt === true;
+        const doc = (output as Record<string, unknown>)?.skeleton_document as Record<string, unknown> | undefined;
+        return Array.isArray(doc?.sections) && (doc!.sections as unknown[]).length >= 1;
       },
-      errorMessage: "scope_analysis.is_admt is not true for a clear ADMT system.",
+      errorMessage: "report_data.skeleton_document is missing or has no sections (v2 report shape).",
     },
     {
-      id: "admt-significant-decision",
-      description: "scope_analysis.triggers_significant_decision must be true for a lending decision",
+      id: "admt-v2-in-scope",
+      description: "_meta.internal.scope_state must be IN_SCOPE for a fully automated lending decision (§ 7001(ddd) significant decision, no qualifying human involvement)",
       category: "requirement",
-      check: (output) => {
-        const s = (output as Record<string, unknown>)?.scope_analysis as Record<string, unknown> | undefined;
-        return s?.triggers_significant_decision === true;
-      },
-      errorMessage: "Lending decision not recognised as a § 7001(ddd) significant decision.",
+      check: (output) => admtV2Internal(output).scope_state === "IN_SCOPE",
+      errorMessage: "scope_state is not IN_SCOPE for a fully automated lending decision.",
     },
     {
-      id: "admt-human-review-not-qualified",
-      description: "Fully-automated system, no reviewer → human_review_qualifies must be false (verifies the § 7001(e)(1) self-test inputs are consumed)",
+      id: "admt-v2-full-opt-out-path",
+      description: "_meta.internal.opt_out_path must be FULL_OPT_OUT when the intake selects 'No exception — we provide a full opt-out right'",
       category: "consistency",
-      check: (output) => {
-        const s = (output as Record<string, unknown>)?.scope_analysis as Record<string, unknown> | undefined;
-        return s?.human_review_qualifies === false;
-      },
-      errorMessage: "human_review_qualifies should be false when the intake describes no human in the loop and the self-test answers are all 'No'.",
+      check: (output) => admtV2Internal(output).opt_out_path === "FULL_OPT_OUT",
+      errorMessage: "opt_out_path is not FULL_OPT_OUT although the intake claims no exception.",
     },
     {
-      id: "admt-third-party-note-present",
-      description: "Disclosed vendor that makes the ADMT available → third_party_responsibility_note must be non-empty (verifies vendor-detail consumption)",
-      category: "requirement",
-      check: (output) => {
-        const s = (output as Record<string, unknown>)?.scope_analysis as Record<string, unknown> | undefined;
-        const note = s?.third_party_responsibility_note;
-        return typeof note === "string" && note.trim().length > 0;
-      },
-      errorMessage: "third_party_responsibility_note is empty despite a disclosed third-party ADMT vendor.",
+      id: "admt-v2-duties-apply",
+      description: "The document must state that ADMT duties apply to this decision (the IN_SCOPE determination sentence)",
+      category: "consistency",
+      check: (output) => /ADMT duties apply to this decision/.test(getText(output)),
+      errorMessage: "The in-scope determination sentence is absent from the document.",
     },
     {
-      id: "admt-gap-arrays-present",
-      description: "notice_gaps, opt_out_gaps and access_gaps must all be arrays",
+      id: "admt-v2-findings-and-exhibit",
+      description: "_meta.internal.findings must be an array and authority_exhibit must be present",
       category: "requirement",
       check: (output) => {
         const o = output as Record<string, unknown>;
-        return Array.isArray(o?.notice_gaps) && Array.isArray(o?.opt_out_gaps) && Array.isArray(o?.access_gaps);
+        return Array.isArray(admtV2Internal(output).findings) && o?.authority_exhibit != null;
       },
-      errorMessage: "One or more of notice_gaps / opt_out_gaps / access_gaps is not an array.",
+      errorMessage: "findings is not an array or authority_exhibit is missing.",
+    },
+    {
+      id: "admt-v2-no-render-leak",
+      description: "Customer text must not contain undefined, [object Object], NaN or an unfilled {slot}",
+      category: "prohibition",
+      check: (output) => {
+        const doc = (output as Record<string, unknown>)?.skeleton_document;
+        const text = JSON.stringify(doc ?? "");
+        return !/\bundefined\b|\[object Object\]|\bNaN\b|\{[a-z_]+\}/.test(text);
+      },
+      errorMessage: "The rendered document contains a render leak (undefined / [object Object] / NaN / unfilled slot).",
     },
     {
       id: "admt-deadline-cited",

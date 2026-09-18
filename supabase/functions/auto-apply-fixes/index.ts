@@ -20,6 +20,8 @@ import { applyPatchToBranch, ensureBranch } from "../_shared/github-apply.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_KEY  = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+// Hard off-switch (doc 271 §3, 2026-09-18). Not an environment flag on purpose.
+const DISABLED = true;
 const ANON_KEY     = Deno.env.get("SUPABASE_ANON_KEY")!;
 
 const cors = {
@@ -204,6 +206,19 @@ async function autoApplyRun(runId: string): Promise<Summary[]> {
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: cors });
   if (req.method !== "POST") return json({ error: "POST only" }, 405);
+
+  // DISABLED (CEO instruction, 2026-09-18; doc 271 §3). This function
+  // committed model-authored patches to product source with no human step.
+  // No model-written change may reach product code by any automated path.
+  // The refusal sits before body parsing and authentication so the path is
+  // dead for every caller, including the internal-resume header. The code
+  // below is retained for the record and is unreachable.
+  if (DISABLED) {
+    return json({
+      error: "disabled",
+      message: "auto-apply-fixes is disabled (2026-09-18). Product code is changed only through reviewed commits.",
+    }, 410);
+  }
 
   let body: any;
   try { body = await req.json(); } catch { return json({ error: "Invalid JSON" }, 400); }

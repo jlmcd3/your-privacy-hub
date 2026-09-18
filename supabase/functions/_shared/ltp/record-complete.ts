@@ -179,8 +179,22 @@ function conditionalTriggered(intake: Record<string, unknown>, f: IntakeField): 
         return !(lead !== undefined && skip.includes(lead));
       });
     }
+    // VALUE-EQUALS on a multi-enum / string-array key (CEO instruction,
+    // 2026-09-18; doc 271 §4 item 1). A trigger written without the "[]"
+    // marker on an array-valued key ("decision_domains" in the ADMT
+    // contract, "q19a_decision_categories" in the Risk contract) reaches
+    // the whole array as ONE frontier value, so the string test below never
+    // matched and the conditional field was treated as never asked. An
+    // array value is now tested element-wise, which is what the form does
+    // (the option is selected among others) and what the fixture validator's
+    // copy already did. A trigger written WITH "[]" is unaffected: readPath
+    // has already fanned it out to strings.
     const equals = f.trigger.equals ?? [];
-    return vals.some((v) => typeof v === "string" && equals.includes(v));
+    return vals.some((v) =>
+      Array.isArray(v)
+        ? v.some((x) => typeof x === "string" && equals.includes(x))
+        : typeof v === "string" && equals.includes(v)
+    );
   }
   if (!f.key.includes("[]")) return false;
   const parent = f.key.slice(0, f.key.indexOf("[]") + 2);

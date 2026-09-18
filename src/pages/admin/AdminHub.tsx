@@ -19,12 +19,13 @@ const SHORTCUTS: Array<{ label: string; to: string; group: string }> = [
   { group: "Ops",     label: "Toolbox",             to: "/admin/tools" },
   { group: "Ops",     label: "Cron status",         to: "/admin/cron-status" },
   { group: "Ops",     label: "Function health",     to: "/admin/function-health" },
+  { group: "Quality", label: "Product test",        to: "/admin/product-test" },
   { group: "Quality", label: "Quality loop",        to: "/admin/quality-loop" },
-  { group: "Quality", label: "Quality loop 2",      to: "/admin/quality-loop2" },
+  // Quality loop 2 and Quality augmentation removed 2026-09-18 (doc 271 §3):
+  // both drove the disabled apply-quality-fix / auto-apply-fixes functions.
   { group: "Quality", label: "Quality loop 3",      to: "/admin/quality-loop3" },
   { group: "Quality", label: "Quality batch",       to: "/admin/quality-batch" },
   { group: "Quality", label: "Quality batch 2 (Revision QA)", to: "/admin/quality-batch2" },
-  { group: "Quality", label: "Quality augmentation", to: "/admin/quality-augmentation" },
   { group: "Quality", label: "Quality score ledger", to: "/admin/quality-score-ledger" },
   { group: "Quality", label: "Assertion tests",      to: "/admin/test-assertions" },
   { group: "Content", label: "Articles",            to: "/admin/articles" },

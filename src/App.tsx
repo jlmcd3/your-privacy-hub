@@ -162,7 +162,6 @@ const AdminFsorIngestion = lazy(() => import("./pages/admin/AdminFsorIngestion")
 const AdminSampleReports = lazy(() => import("./pages/admin/AdminSampleReports"));
 const AdminStaticStress = lazy(() => import("./pages/admin/AdminStaticStress"));
 const QualityLoop = lazy(() => import("./pages/admin/QualityLoop"));
-const QualityLoop2 = lazy(() => import("./pages/admin/QualityLoop2"));
 const AdminReplayReview = lazy(() => import("./pages/admin/AdminReplayReview"));
 const QualityLoop3 = lazy(() => import("./pages/admin/QualityLoop3"));
 const QualityBatch = lazy(() => import("./pages/admin/QualityBatch"));
@@ -171,6 +170,7 @@ const FinalTest = lazy(() => import("./pages/admin/FinalTest"));
 const SOFinalTest = lazy(() => import("./pages/admin/SOFinalTest"));
 const AllProductsTest = lazy(() => import("./pages/admin/AllProductsTest"));
 const AllPTest = lazy(() => import("./pages/admin/AllPTest"));
+const ProductTest = lazy(() => import("./pages/admin/ProductTest"));
 const QualityBatch2 = lazy(() => import("./pages/admin/QualityBatch2"));
 const QualityBatch2Review = lazy(() => import("./pages/admin/QualityBatch2Review"));
 const FunctionHealth = lazy(() => import("./pages/admin/FunctionHealth"));
@@ -190,7 +190,6 @@ const AdminTools = lazy(() => import("./pages/admin/AdminTools"));
 const AdminSpend = lazy(() => import("./pages/admin/AdminSpend"));
 const AdminProvisions = lazy(() => import("./pages/admin/AdminProvisions"));
 const ReportVersions = lazy(() => import("./pages/ReportVersions"));
-const QualityLoopAugmentation = lazy(() => import("./pages/admin/AdminQualityAugmentationRoute"));
 import PageViewTracker from "@/components/PageViewTracker";
 const queryClient = new QueryClient();
 
@@ -685,18 +684,8 @@ const App = () => (
                 </ProtectedRoute>
               }
             />
-            <Route
-              path="/admin/quality-loop2"
-              element={
-                <ProtectedRoute>
-                  <AdminOnly fallback={<NotFound />}>
-                    <Suspense fallback={<div className="p-8 text-gray-400">Loading…</div>}>
-                      <QualityLoop2 />
-                    </Suspense>
-                  </AdminOnly>
-                </ProtectedRoute>
-              }
-            />
+            {/* /admin/quality-loop2 removed 2026-09-18 (doc 271 §3): it committed
+                model-written patches through apply-quality-fix. */}
             <Route
               path="/admin/replay-review"
               element={
@@ -766,6 +755,19 @@ const App = () => (
                   <AdminOnly fallback={<NotFound />}>
                     <Suspense fallback={<div className="p-8 text-gray-400">Loading…</div>}>
                       <AllProductsTest />
+                    </Suspense>
+                  </AdminOnly>
+                </ProtectedRoute>
+              }
+            />
+            {/* PRODUCT-TEST — doc 272: generate + grade + track, no model call. */}
+            <Route
+              path="/admin/product-test"
+              element={
+                <ProtectedRoute>
+                  <AdminOnly fallback={<NotFound />}>
+                    <Suspense fallback={<div className="p-8 text-gray-400">Loading…</div>}>
+                      <ProductTest />
                     </Suspense>
                   </AdminOnly>
                 </ProtectedRoute>
@@ -893,16 +895,8 @@ const App = () => (
             <Route path="/admin/spend" element={<ProtectedRoute><AdminOnly fallback={<NotFound />}>{<AdminSpend />}</AdminOnly></ProtectedRoute>} />
             <Route path="/admin/provisions" element={<ProtectedRoute><AdminOnly fallback={<NotFound />}>{<AdminProvisions />}</AdminOnly></ProtectedRoute>} />
             <Route path="/reports/versions/:tool/:id" element={<ProtectedRoute>{<ReportVersions />}</ProtectedRoute>} />
-            <Route
-              path="/admin/quality-augmentation"
-              element={
-                <ProtectedRoute>
-                  <AdminOnly fallback={<NotFound />}>
-                    <QualityLoopAugmentation />
-                  </AdminOnly>
-                </ProtectedRoute>
-              }
-            />
+            {/* /admin/quality-augmentation removed 2026-09-18 (doc 271 §3): it
+                drove auto-apply-fixes. */}
 
 
             <Route path="/li-assessment" element={<LIAssessment />} />
