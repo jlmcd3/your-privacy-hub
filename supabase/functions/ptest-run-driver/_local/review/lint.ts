@@ -435,6 +435,8 @@ function lintLabels(doc: RenderedSkeletonDocument, profile: LintProfile): LintHi
 // ── L-LEADIN ────────────────────────────────────────────────────────────────
 
 const LIST_SHAPED_RE = /^\s*(?:\d{1,2}[.)]\s|[•\-–—]\s|\([a-z0-9]{1,3}\)\s|[A-Z][a-z]+\.\s|(?:Conditions|Follow-Ups|Recommendations)\.)/;
+// A short numbered sub-heading line: "8.2 Required Assessment Follow-Up".
+const HEADING_SHAPED_RE = /^\s*\d{1,2}\.\d{1,2}\s+[A-Z][^.:]{2,80}$/;
 
 // Enumerated prose: a lead-in ("has identified the following:") answered by
 // parallel paragraphs, one per item ("The consumer benefit …", "The business
@@ -455,7 +457,15 @@ function lintLeadins(doc: RenderedSkeletonDocument): LintHit[] {
       const text = p.text.trimEnd();
       if (!text.endsWith(":")) return;
       const next = s.paragraphs[i + 1];
-      const ok = !!next && (!!next.table || LIST_SHAPED_RE.test(next.text ?? "") || parallelItems(next, s.paragraphs[i + 2]));
+      // A numbered sub-heading ("8.2 Required Assessment Follow-Up") that
+      // itself introduces the table or list satisfies the lead-in
+      // (2026-09-18, Product Test run 72e9a63c: ADMT § 8 renders "The
+      // following tables list …:" → "8.2 …" → table, which is a table
+      // announced by a heading, not a dangling lead-in).
+      const after = s.paragraphs[i + 2];
+      const headingThenList = !!next && !next.table && HEADING_SHAPED_RE.test(next.text ?? "") &&
+        !!after && (!!after.table || LIST_SHAPED_RE.test(after.text ?? ""));
+      const ok = !!next && (!!next.table || LIST_SHAPED_RE.test(next.text ?? "") || parallelItems(next, s.paragraphs[i + 2]) || headingThenList);
       if (!ok) {
         out.push(hit("L-LEADIN", "dangling_lead_in", "defect", { section_id: s.id, block_key: `${s.id}#p${i}` }, text.slice(-160),
           next ? "lead-in is followed by prose, not a table or list" : "lead-in is the last paragraph of its section"));

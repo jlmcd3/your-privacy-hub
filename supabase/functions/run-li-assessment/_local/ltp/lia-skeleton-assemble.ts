@@ -1916,6 +1916,18 @@ export function assembleLiaSkeletonDocument(
       // (the §I note above) actually names it. Corpus anchor:
       // ukgdpr-art-6-1-f, verified at encode time (see 3E9AD759-L1).
       ...(mixedEuUk ? ["Article 6(1)(f) UK GDPR"] : []),
+      // Doc 275 §9 (2026-09-18, Product Test run 72e9a63c, CEO "make the
+      // changes"): the findings section cites the right to object ("as
+      // Article 21(4) requires") on five of fifteen panel fixtures, and the
+      // transparency articles on two, with no ledger candidate, so the
+      // iff-cited filter could never list them. Offered here in the house
+      // form; the filter still keeps each one out unless the body cites it.
+      "Article 21 GDPR",
+      "Article 21(1) GDPR",
+      "Article 21(4) GDPR",
+      "Article 12 GDPR",
+      "Article 13 GDPR",
+      "Article 14 GDPR",
       ...persuasive.ledger,
       // DOC 207 TRACK 3b — a rule clause rendered into a test lead
       // (renderRuleClause) cites the SAME way; its citation must be

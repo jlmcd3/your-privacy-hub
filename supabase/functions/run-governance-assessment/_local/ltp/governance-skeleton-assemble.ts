@@ -843,6 +843,37 @@ function governanceToa(report: Bag, body: string): string {
     if (CITATION_NEGATION.test(before) || CITATION_NEGATION.test(after)) continue;
     citedArticles.add(`${uk ? "UK " : ""}${token}`);
   }
+  // Doc 275 §9 (2026-09-18, Product Test run 72e9a63c, CEO "make the
+  // changes"): the scan above only sees an article written NEXT TO the word
+  // "GDPR". The body's own prose cites bare forms throughout — "Articles 38
+  // and 39 apply in full", "resources sufficient for the Article 39 tasks",
+  // "an Article 49 derogation", "large-scale Article 9 processing" — and none
+  // of those reached the Authorities Cited appendix, on every fixture. The
+  // bare forms are read here under the same negation guard. Governance is a
+  // GDPR-only product (CEO ruling 2026-08-28, doc 95 §6), so a bare article
+  // is the GDPR article; a "UK GDPR" pinpoint the body spells out is caught
+  // by the scan above and keeps its prefix. Lists ("Articles 38 and 39",
+  // "Articles 37 through 39") are expanded.
+  const bareRe = /\bArticles?\s+(\d{1,2}[A-C]?(?:\s?(?:,|and|–|-|to|through)\s?\d{1,2}[A-C]?)*)(?![\w.]*\s*(?:of the )?(?:UK\s+)?GDPR)/g;
+  let bm: RegExpExecArray | null;
+  while ((bm = bareRe.exec(body))) {
+    const at = bm.index;
+    const before = body.slice(Math.max(0, at - CITATION_NEG_WINDOW), at);
+    const after = body.slice(at + bm[0].length, at + bm[0].length + CITATION_NEG_WINDOW).split(/(?<=[.!?])\s/)[0] ?? "";
+    if (CITATION_NEGATION.test(before) || CITATION_NEGATION.test(after)) continue;
+    for (const tok of bm[1].split(/\s?(?:,|and|–|-|to|through)\s?/)) {
+      const token = tok.trim().toUpperCase();
+      const n = parseInt(token, 10);
+      if (!(n >= 1 && n <= 99)) continue;
+      const isRange = /\b(?:–|-|to|through)\b/.test(bm[1]);
+      citedArticles.add(token);
+      if (isRange) {
+        // "Articles 37 through 39" cites every article in the range.
+        const parts = bm[1].split(/\s?(?:–|-|to|through)\s?/).map((x) => parseInt(x, 10)).filter((x) => x >= 1 && x <= 99);
+        if (parts.length === 2 && parts[0] < parts[1]) for (let k = parts[0]; k <= parts[1]; k++) citedArticles.add(String(k));
+      }
+    }
+  }
   const covered = new Set<string>();
   for (const c of groups["Regulations"]) {
     let cm: RegExpExecArray | null;

@@ -171,6 +171,29 @@ function governanceCrosswalkCheck(doc: RenderedSkeletonDocument, overallReadines
 const CITATION_RE = /\b11\s?CCR\s?§\s?\d{4}(?:\([a-z0-9]{1,3}\))*|\bCiv\.\s?Code\s?§\s?1798\.\d+(?:\([a-z0-9]{1,3}\))*|\bArt(?:icle)?\.?\s?\d{1,3}[A-Za-z]?\b/g;
 
 /**
+ * A "§§ A, B" list ("11 CCR §§ 7001(ddd), 7200(a)"; "Civ. Code §§ 1798.140,
+ * 1798.82") cites every section in the list, but CITATION_RE reads only a
+ * single-§ form, so the ADMT matrix row "11 CCR §§ 7001(ddd), 7200(a)" was
+ * read as citing neither and § 7200 was reported missing on every fixture
+ * (lead correction 2026-09-18). Lists are expanded to one citation per
+ * section before matching. Article lists ("Articles 38 and 39") likewise.
+ */
+function expandCitationLists(text: string): string {
+  // "11 CCR § 7152(a)(5)–(6); § 7154" — a "; § B" or ", § B" continuation
+  // inherits the "11 CCR" prefix of the citation before it (the Risk matrix
+  // writes every § 7154 reference this way).
+  let t = text.replace(/(11\s?CCR\s?§\s?\d{4}[^;\n|]*?)((?:\s?[;,]\s?§\s?\d{4}(?:\([a-z0-9]{1,3}\))*)+)/g,
+    (_m, first: string, rest: string) => first + rest.replace(/([;,])\s?§\s?/g, "$1 11 CCR § "));
+  t = t.replace(/\b(11\s?CCR)\s?§§\s?((?:\d{4}(?:\([a-z0-9]{1,3}\))*)(?:\s?(?:,|and|–|-|to|through)\s?(?:§\s?)?\d{4}(?:\([a-z0-9]{1,3}\))*)*)/g,
+    (_m, pre: string, list: string) => list.split(/\s?(?:,|and|–|-|to|through)\s?/).map((x) => `${pre} § ${x.replace(/^§\s?/, "").trim()}`).join(" "));
+  t = t.replace(/\b(Civ\.\s?Code)\s?§§\s?((?:1798\.\d+(?:\([a-z0-9]{1,3}\))*)(?:\s?(?:,|and|–|-)\s?(?:§\s?)?1798\.\d+(?:\([a-z0-9]{1,3}\))*)*)/g,
+    (_m, pre: string, list: string) => list.split(/\s?(?:,|and|–|-)\s?/).map((x) => `${pre} § ${x.replace(/^§\s?/, "").trim()}`).join(" "));
+  t = t.replace(/\bArticles\s+(\d{1,3}[A-Za-z]?(?:\s?(?:,|and|–|-|to|through)\s?\d{1,3}[A-Za-z]?)+)\b/g,
+    (_m, list: string) => list.split(/\s?(?:,|and|–|-|to|through)\s?/).map((x) => `Article ${x.trim()}`).join(" "));
+  return t;
+}
+
+/**
  * Section-level key of a citation (lead correction 2026-09-18 after the
  * CEO's first Risk run): the body cites pinpoints ("11 CCR § 7150(b)(1)")
  * while an authority matrix cites ranges ("11 CCR § 7150(a)–(b)"), so an
@@ -208,20 +231,65 @@ export const TOA_ALLOWLIST: Readonly<Partial<Record<ProductTestTool, readonly st
   // sub-part E and the Agency Submission Checklist, not an assessed factor.
   // Ruled after run ae174db5 (ten fixtures, the only failure on each).
   "cppa-risk": ["11 CCR § 7157"],
+  // ADMT Appendix A is the factor/determination/authority matrix (§§ 7001,
+  // 7200(a), 7220–7222). Its governance block cross-refers to the Article 10
+  // risk-assessment duties (§ 7150(b)(3), § 7155) and its notice block to
+  // the notice-at-collection rule (§ 7050): administrative cross-references,
+  // not assessed factors — the same ruling as Risk § 7157 (CEO 2026-09-18,
+  // "make the changes" on doc 275 §9 item 1). § 7200 itself IS a matrix
+  // authority ("11 CCR §§ 7001(ddd), 7200(a)") and is found once §§ lists
+  // are expanded; it is deliberately NOT allow-listed.
+  "cppa-admt": [
+    "11 CCR § 7150", "11 CCR § 7155", "11 CCR § 7050",
+    // § 7222 (access right): the ADMT matrix carries the four SCOPE factors
+    // only (significant decision, human involvement, advertising exclusion,
+    // output role); the notice, opt-out and access determinations are body
+    // sections with no matrix row, so § 7222 is cited by the body on 9 of
+    // 15 fixtures with no row to match. Allowed pending the CEO's ruling on
+    // whether Appendix A should carry notice/opt-out/access rows (doc 275
+    // §10); remove this entry if the rows are added.
+    "11 CCR § 7222",
+  ],
+  // DPIA Appendix A is the spine-ratified factor matrix (spine v4.6.1,
+  // 2026-08-22): three columns, one row per material factor. The Section 2
+  // rights and conditions analysis cites Arts. 9, 12, 20, 21, 22, 24 and 46
+  // in the body with no matrix row for the rights walk; adding rows is a
+  // spine change for the CEO to ratify (doc 275 §10). Allowed pending that
+  // ruling; remove entries as rows are added.
+  "dpia": ["Art. 9", "Art. 12", "Art. 20", "Art. 21", "Art. 22", "Art. 24", "Art. 46"],
 };
+
+/** A body mention that DENIES a provision ("Article 44 was omitted from the
+ *  UK GDPR", "there is no UK GDPR Article 44 in force") is not a citation the
+ *  authorities table must carry (lead correction 2026-09-18, two governance
+ *  fixtures). Mirrors the product's own CITATION_NEGATION guard. */
+const NEGATED_CITATION_RE = /\b(?:omitted|not in force|does not exist|no longer|repealed|is not (?:a |an )?(?:provision|article)|there is no)\b/i;
+
+function citationsInBody(text: string): string[] {
+  const out: string[] = [];
+  for (const m of text.matchAll(CITATION_RE)) {
+    const at = m.index ?? 0;
+    const sentenceStart = Math.max(0, text.lastIndexOf(". ", at) + 2, text.lastIndexOf("\n", at) + 1);
+    const sentenceEndIdx = text.indexOf(". ", at + m[0].length);
+    const sentence = text.slice(sentenceStart, sentenceEndIdx === -1 ? Math.min(text.length, at + 160) : sentenceEndIdx);
+    if (NEGATED_CITATION_RE.test(sentence)) continue;
+    out.push(m[0]);
+  }
+  return out;
+}
 
 function tableOfAuthoritiesCheck(tool: ProductTestTool, doc: RenderedSkeletonDocument): Check[] {
   const toa = doc.sections.find((s) => /table.of.authorities|authority.exhibit/i.test(s.id) || /table of authorities|authorities cited|authority matrix/i.test(s.title));
   if (!toa) return []; // no ToA section in this document — nothing to check.
   const keyOf = (m: RegExpMatchArray) => citationSectionKey(m[0]);
   const isCitationForTool = (k: string) => !(CPPA_CITATION_TOOLS.has(tool) && k.startsWith("Art."));
-  const toaText = toa.paragraphs.map((p) => (p.table ? p.table.rows.map((r) => r.join(" ")).join(" ") : p.text)).join("\n");
+  const toaText = expandCitationLists(toa.paragraphs.map((p) => (p.table ? p.table.rows.map((r) => r.join(" ")).join(" ") : p.text)).join("\n"));
   const toaKeys = new Set([...toaText.matchAll(CITATION_RE)].map(keyOf));
   const bodySections = doc.sections.filter((s) => s.id !== toa.id);
-  const bodyText = bodySections.map((s) => s.paragraphs.map((p) => (p.table ? p.table.rows.map((r) => r.join(" ")).join(" ") : p.text)).join("\n")).join("\n");
+  const bodyText = expandCitationLists(bodySections.map((s) => s.paragraphs.map((p) => (p.table ? p.table.rows.map((r) => r.join(" ")).join(" ") : p.text)).join("\n")).join("\n"));
 
   const allowed = new Set(TOA_ALLOWLIST[tool] ?? []);
-  const cited = new Set([...bodyText.matchAll(CITATION_RE)].map(keyOf).filter(isCitationForTool));
+  const cited = new Set(citationsInBody(bodyText).map((c) => citationSectionKey(c)).filter(isCitationForTool));
   const missing = [...cited].filter((c) => !toaKeys.has(c) && !allowed.has(c));
   return [{
     check_id: "cross-block.table_of_authorities_complete",

@@ -74,3 +74,68 @@ Deno.test("cross-block: § 7157 absent from the Risk matrix is allowed by the CE
   assert(c3);
   assertEquals(c3!.passed, false);
 });
+
+// 2026-09-18 (run 72e9a63c): "§§ A, B" lists cite every listed section; the
+// ADMT matrix row "11 CCR §§ 7001(ddd), 7200(a)" covers § 7200.
+Deno.test("cross-block: a §§ list in the authorities table covers each listed section", () => {
+  const d = doc(
+    "Article 11 applies when a business uses ADMT to make a significant decision (11 CCR § 7200(a)); definitions at 11 CCR § 7001(ddd).",
+    [["Significant decision", "engaged", "11 CCR §§ 7001(ddd), 7200(a)"]],
+  );
+  const c = checkCrossBlock("cppa-admt", { skeleton_document: d }).find((x) => x.check_id === "cross-block.table_of_authorities_complete");
+  assert(c);
+  assertEquals(c!.passed, true, `expected covered; got ${c!.actual}`);
+});
+
+Deno.test("cross-block: ADMT allow-list covers the Article 10 cross-references (§ 7150, § 7155) and § 7050, not other sections", () => {
+  const ok = doc(
+    "A risk assessment is also triggered (11 CCR § 7150(b)(3)) and must be reviewed (11 CCR § 7155(a)(2)); notice at collection under 11 CCR § 7050. Scope under 11 CCR § 7200(a).",
+    [["Significant decision", "engaged", "11 CCR §§ 7001(ddd), 7200(a)"]],
+  );
+  const c1 = checkCrossBlock("cppa-admt", { skeleton_document: ok }).find((x) => x.check_id === "cross-block.table_of_authorities_complete");
+  assert(c1);
+  assertEquals(c1!.passed, true, `expected allowed; got ${c1!.actual}`);
+  const bad = doc("Opt-out under 11 CCR § 7221(b).", [["Significant decision", "engaged", "11 CCR §§ 7001(ddd), 7200(a)"]]);
+  const c2 = checkCrossBlock("cppa-admt", { skeleton_document: bad }).find((x) => x.check_id === "cross-block.table_of_authorities_complete");
+  assert(c2);
+  assertEquals(c2!.passed, false);
+});
+
+// Lead-in → numbered sub-heading → table is a table announced by a heading,
+// not a dangling lead-in (ADMT § 8; three false L-LEADIN hits in run 72e9a63c).
+Deno.test("cross-block: a lead-in followed by a numbered sub-heading and then a table does not fail L-LEADIN", () => {
+  const d = {
+    _typed: "skeleton-document@so-wire-in" as const,
+    spine_version: "test",
+    title: "t", subtitle: "s",
+    sections: [{ id: "actions", title: "8. Actions", paragraphs: [
+      { kind: "skeleton", text: "The following tables list any conditions, follow-up items, and recommendations generated from the Company's responses:", key: "actions#p0" },
+      { kind: "skeleton", text: "8.2 Required Assessment Follow-Up", key: "actions#p1" },
+      { kind: "table", text: "", key: "actions:8.2", table: { key: "actions:8.2", rows: [["Area", "Item", "Why", "What"]] } },
+    ] }],
+  };
+  const hits = checkCrossBlock("cppa-admt", { skeleton_document: d }).filter((x) => x.check_id === "lint.L-LEADIN" && !x.passed);
+  assertEquals(hits.length, 0, JSON.stringify(hits));
+});
+
+// "; § B" continuations inherit the CCR prefix (Risk matrix: "11 CCR § 7152(a)(5)–(6); § 7154").
+Deno.test("cross-block: a '; § B' continuation in the authorities matrix covers § B", () => {
+  const d = doc(
+    "Residual risk is weighed under 11 CCR § 7154 and 11 CCR § 7152(a)(6).",
+    [["Residual risk", "acceptable", "11 CCR § 7152(a)(5)–(6); § 7154"]],
+  );
+  const c = checkCrossBlock("cppa-risk", { skeleton_document: d }).find((x) => x.check_id === "cross-block.table_of_authorities_complete");
+  assert(c);
+  assertEquals(c!.passed, true, `expected covered; got ${c!.actual}`);
+});
+
+// A denied provision is not a citation the table must carry.
+Deno.test("cross-block: a negated mention ('Article 44 was omitted from the UK GDPR') is not a required citation", () => {
+  const d = doc(
+    "The UK chapter is a different body of law. Article 44 was omitted from the UK GDPR on 5 February 2020. Transfers rest on Article 46(1).",
+    [["Transfers", "safeguards", "UK GDPR Art. 46(1)"]],
+  );
+  const c = checkCrossBlock("governance", { skeleton_document: d }).find((x) => x.check_id === "cross-block.table_of_authorities_complete");
+  assert(c);
+  assertEquals(c!.passed, true, `expected negated mention ignored; got ${c!.actual}`);
+});

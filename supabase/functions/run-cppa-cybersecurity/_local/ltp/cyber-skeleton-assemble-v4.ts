@@ -808,6 +808,13 @@ export function assembleCyberSkeletonDocumentV4(
       "11 CCR § 7123(e)(4)",
       "11 CCR § 7123(f)",
       "11 CCR § 7124",
+      // Doc 275 §9 (2026-09-18, Product Test run 72e9a63c): the body spells
+      // this "Civ. Code § 1798.140(d)(1)(C)" (applicability table) — never
+      // "Cal. Civ. Code …" — so the iff-cited substring test could never
+      // match and the statute was missing from the ToA on every fixture.
+      // The candidate now uses the body's own spelling; the "Cal." form is
+      // kept for any body that renders it.
+      "Civ. Code § 1798.140(d)(1)",
       "Cal. Civ. Code § 1798.140(d)(1)",
       // DOC 159 — authorities the body now cites: the § 7123(b)(2)
       // applicability limit, the § 7123(c)(1)(B) password condition, the
@@ -822,6 +829,7 @@ export function assembleCyberSkeletonDocumentV4(
       "11 CCR § 7001(v)",
       "Cal. Civ. Code § 1798.140(d)",
       "Cal. Civ. Code § 1798.82(a)",
+      "Civ. Code § 1798.82(a)", // body spelling (doc 275 §9; 4 of 15 fixtures cite it)
     ])],
     skeletonDocumentToText(draft),
   );
