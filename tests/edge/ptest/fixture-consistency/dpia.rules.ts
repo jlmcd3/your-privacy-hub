@@ -275,4 +275,41 @@ export const DPIA_RULES: readonly FixtureRule[] = [
       return violations;
     },
   },
+  {
+    id: "dpia.retention-covers-categories",
+    title: "retention_period must name every recorded data category",
+    // doc 263 run 3 (2026-09-17, batch 3edc00df, DPIA D6) — a category selected in data_categories
+    // must be nameable within retention_period (case-insensitive, on the
+    // category label or one of its recognised synonyms — build.ts's
+    // DATA_CATEGORY_RETENTION_KEYWORDS mirrors this list independently, so
+    // the two files can drift without one importing the other, per this
+    // fixture-consistency suite's own convention). "Other" is free-text and
+    // is not checked — see the same carve-out in build.ts.
+    check(intake: Bag): string[] {
+      const retention = str(intake.retention_period);
+      const categories = arr(intake.data_categories);
+      if (!retention || categories.length === 0) return [];
+      const keywords: Record<string, readonly string[]> = {
+        "Contact details": ["contact detail", "contact information", "address", "phone", "email"],
+        "Employee records": ["employee", "personnel", "hr record", "staff record"],
+        "Customer records": ["customer", "client record"],
+        "Health or medical data": ["health", "medical", "clinical"],
+        "Financial data": ["financial", "payment", "billing", "bank"],
+        "Biometric data": ["biometric", "fingerprint", "facial", "iris", "voiceprint", "template"],
+        "Children's data": ["child", "pupil", "minor", "student"],
+        "Location data": ["location", "gps", "geolocation"],
+        "Communications content": ["communication", "message", "call recording"],
+      };
+      const lc = retention.toLowerCase();
+      const violations: string[] = [];
+      for (const category of categories) {
+        if (/^other\b/i.test(category)) continue;
+        const terms = keywords[category] ?? [category.toLowerCase()];
+        if (!terms.some((t) => lc.includes(t))) {
+          violations.push(`data_categories includes "${category}" but retention_period does not name it (or a recognised synonym)`);
+        }
+      }
+      return violations;
+    },
+  },
 ];

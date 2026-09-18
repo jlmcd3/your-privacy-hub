@@ -1291,6 +1291,40 @@ function facts(intake: unknown): RiskFacts {
   };
 }
 
+/**
+ * doc 263 run 3 (2026-09-17, batch 3edc00df, DPIA D3) — `residual_risks` records a risk the company
+ * has ALREADY identified and accepted, alongside the basis for accepting it.
+ * Until now it was read only for its stated COUNT (statedResidualRiskCount,
+ * below) and for negation/impact heuristics elsewhere in this file — never
+ * composed into the register or the Section 4 "most significant remaining
+ * risk" statement, so a genuinely recorded company risk was invisible next
+ * to the four engine-triggered ones (Thornfield: peer pressure to enrol
+ * despite the PIN alternative). Every fixture in this panel that populates
+ * the field states it in one consistent authored form — "<risk>; accepted
+ * because <basis>." — and that literal pattern is the ONLY thing parsed
+ * here; a narrative that does not follow it is left alone rather than
+ * guessed at (no risk_register row is fabricated from it).
+ */
+export function parseCompanyStatedResidualRisk(narrative: unknown): { risk: string; basis: string } | null {
+  const text = str(narrative);
+  if (!text) return null;
+  const m = /^(.*?);\s*accepted because\s+(.+)$/is.exec(text);
+  if (m) {
+    const risk = m[1].trim().replace(/[.\s]+$/, "");
+    const basis = m[2].trim().replace(/[.\s]+$/, "");
+    if (risk && basis) return { risk, basis };
+  }
+  // doc 263 run 3 (2026-09-17, batch 3edc00df, DPIA F3) — a plain-sentence
+  // narrative (no "<risk>; accepted because <basis>" clause) was silently
+  // dropped, so a genuinely recorded company risk with no stated acceptance
+  // basis never reached the register or the Section 4 lead sentence. Read
+  // instead as the whole narrative with an empty basis; the two consumers
+  // (riskRegisterTable's basis cell, composeRiskLead's sentence) each
+  // degrade an empty basis honestly rather than fabricating one.
+  const risk = text.trim().replace(/[.\s]+$/, "");
+  return risk ? { risk, basis: "" } : null;
+}
+
 function bandFromSeverity(sev: string): RiskBand {
   if (sev === "Severe") return "high";
   if (sev === "Significant") return "moderate";
@@ -1417,6 +1451,22 @@ export function buildRiskRegister(intake: unknown): RiskRegisterEntry[] {
     });
   }
 
+  // doc 263 run 3 (2026-09-17, batch 3edc00df, DPIA D3) — a company-identified residual risk
+  // (`residual_risks`) is intentionally NOT added to this engine register:
+  // every band this register can carry ("low"/"moderate"/"high" or the
+  // honest-absence "undetermined") feeds Art. 36(1) and sign-off GATING
+  // logic downstream (buildArt36Consultation, buildDecision) and several
+  // band-counted sentences (composeExecutiveBody's "N remaining risk levels
+  // are undetermined because the company has not recorded the measures it
+  // applies" — false for a risk whose acceptance basis IS recorded). A risk
+  // the company has already recorded and accepted, outside this assessment's
+  // own scoring methodology, would corrupt every one of those readings if it
+  // rode this array. It is instead surfaced as a DISPLAY-ONLY addition to the
+  // rendered risk-register table (dpia-skeleton-tables.ts's riskRegisterTable
+  // call) and as its own sentence in Section 4's closing lead
+  // (composeRiskLead, dpia-skeleton-assemble.ts) — both read
+  // parseCompanyStatedResidualRisk(intake.residual_risks) directly, never via
+  // this array.
   return out;
 }
 
@@ -2230,6 +2280,7 @@ export function recordedApprovalCondition(basisText: string): string {
 
 export function applyApprovalCurrency(intake: unknown, decision: DpiaDecision, asOf: Date = new Date()): DpiaDecision {
   if (decision.determination !== "approved") return decision;
+  const regime = readDpiaRegime(intake);
   const conditions: string[] = [];
   const approvalDate = str(get(intake, "dpia_approval_date"));
   const basisText = str(get(intake, "dpia_signoff_basis"));
@@ -2240,7 +2291,12 @@ export function applyApprovalCurrency(intake: unknown, decision: DpiaDecision, a
       const months = (asOf.getUTCFullYear() - d.getUTCFullYear()) * 12 + (asOf.getUTCMonth() - d.getUTCMonth()) - (asOf.getUTCDate() < d.getUTCDate() ? 1 : 0);
       if (months >= 12) {
         const annual = /\bannual(?:ly)?\b|every (?:12|twelve) months|\byearly\b/i.test(basisText);
-        conditions.push(`completing and recording the current review of this assessment — the approval recorded on ${approvalDate.slice(0, 10)} is more than twelve months old at the date of this report${annual ? ", and the sign-off basis itself calls for an annual re-review" : ""}`);
+        // doc 263 run 3 (2026-09-17, batch 3edc00df, DPIA D8) — the twelve-month currency check is
+        // THIS ASSESSMENT'S OWN METHODOLOGY, not a term of Art. 35(11) (which
+        // requires a review where necessary and at least on a change in the
+        // risk represented by the processing). Stated as such; Art. 35(11)
+        // is named only in basisTail's review-on-change framing, below.
+        conditions.push(`completing and recording the current review of this assessment — this assessment treats an approval more than twelve months old, at the date of this report, as needing current confirmation (the approval recorded on ${approvalDate.slice(0, 10)} is more than twelve months old); that twelve-month treatment is this assessment's own practice, not a term of ${cit(regime, "Art. 35(11)")}${annual ? ", and the sign-off basis itself separately calls for an annual re-review" : ""}`);
       }
     }
   }
@@ -2259,9 +2315,16 @@ export function applyApprovalCurrency(intake: unknown, decision: DpiaDecision, a
     conditions.push(`meeting the condition the approver attached to the sign-off — "${approverCondition}" — and recording that it is met`);
   }
   if (!conditions.length) return decision;
+  // doc 263 run 3 (2026-09-17, batch 3edc00df, DPIA D8) — the parenthetical previously cited
+  // Art. 35(11) as if it were the SOURCE of the twelve-month condition; it
+  // is now named only for its actual, narrower duty (review where the risk
+  // represented by the processing changes), with the twelve-month practice
+  // attributed to this assessment's own methodology.
   const basisTail = approverCondition
-    ? (currencyConditions ? " (Art. 35(11); the approver's recorded sign-off basis)" : " (the approver's recorded sign-off basis)")
-    : " (Art. 35(11))";
+    ? (currencyConditions
+      ? ` (this assessment's practice; ${cit(regime, "Art. 35(11)")} review-on-change duty; the approver's recorded sign-off basis)`
+      : " (the approver's recorded sign-off basis)")
+    : ` (this assessment's practice; ${cit(regime, "Art. 35(11)")} review-on-change duty)`;
   return {
     ...decision,
     determination: "conditionally_approved",
@@ -3006,11 +3069,18 @@ const PORTABILITY_CONDITIONS_UNRESOLVED =
   // DOC 141 (2026-09-02) — BUG 2: "the current intake does not collect either
   // fact" was internal-design language in customer prose; house style is the
   // record-facing form. Structure and legal content unchanged (DPIA-1 ratified).
-  "that the data was provided by or observed from the data subject (WP242 rev.01) and that the processing is carried out by automated means — the record does not state either fact, so this assessment reaches no conclusion on whether Article 20 applies to this processing";
+  // doc 263 run 3 (2026-09-17, batch 3edc00df, DPIA D5) — "the record does not state either fact"
+  // read as though free text had been searched and found silent; DPIA-1's
+  // own point is that there is NO FIELD for either condition, so free text
+  // is never read for this purpose in the first place. Reworded to say what
+  // is actually true: the record's structured answers do not establish
+  // either condition, and the free text is not read to fill the gap.
+  "that the data was provided by or observed from the data subject (WP242 rev.01) and that the processing is carried out by automated means — the record's structured answers do not establish either condition (the free-text description is not read for this purpose), so this assessment reaches no conclusion on whether Article 20 applies to this processing";
 // doc 263 run 2 — the same residual where the typed automated-decision answer
 // has already settled the automated-means condition.
 const PORTABILITY_CONDITION_PROVENANCE_UNRESOLVED =
-  "that the data was provided by or observed from the data subject (WP242 rev.01) — the record does not state that fact, so this assessment reaches no conclusion on whether Article 20 applies to this processing";
+  // doc 263 run 3 (2026-09-17, batch 3edc00df, DPIA D5) — same accuracy fix as PORTABILITY_CONDITIONS_UNRESOLVED above.
+  "that the data was provided by or observed from the data subject (WP242 rev.01) — the record's structured answers do not establish that condition (the free-text description is not read for this purpose), so this assessment reaches no conclusion on whether Article 20 applies to this processing";
 
 /**
  * PROMPT 10B(1) — resolve the Art. 9(2)(x) pinpoint carried by the intake's
@@ -3485,7 +3555,15 @@ export function buildSection2Coverage(
     ? {
       processors: processorNames,
       dpa_recorded: true,
-      finding: `The record selects a signed processing contract as a safeguard and names ${processorNames.join(", ")}, so the Art. 28 instrument is recorded for the processor chain described; the processors' obligations and tasks — the coverage the Art. 28(3) terms must reach — are recorded in the Section 2 inventory.`,
+      // doc 263 run 3 (2026-09-17, batch 3edc00df, DPIA D10) — "the coverage the Art. 28(3) terms
+      // must reach" was a vague paraphrase narrower than the row itself.
+      // Art. 28(3) requires the contract to set out: the subject-matter and
+      // duration of the processing, the nature and purpose of the
+      // processing, the type of personal data and categories of data
+      // subjects, and the obligations and rights of the controller
+      // (registry row processor_written_contract / uk_processor_written_contract,
+      // GDPR/UK GDPR Art. 28(3)) — that list now replaces the paraphrase.
+      finding: `The record selects a signed processing contract as a safeguard and names ${processorNames.join(", ")}, so the Art. 28 instrument is recorded for the processor chain described; the processors' obligations and tasks — the subject-matter and duration of the processing, the nature and purpose of the processing, the types of personal data and categories of data subjects, and the obligations and rights of the controller, which Article 28(3) requires the contract to set out — are recorded in the Section 2 inventory.`,
       citation: a28.citation,
       authority_verbatim: a28.verbatim,
       status: "analysed",
@@ -3573,6 +3651,19 @@ export function buildSection2Coverage(
 
   // ── TIER 2c — security safeguards, one row per recorded selection ───
   const aSec = anchorStrict("security", regime, "Art. 32(1)");
+  // doc 263 run 3 (2026-09-17, batch 3edc00df, DPIA D11) — every selected safeguard was cited under
+  // the single "Security of processing" authority (Art. 32(1)), including
+  // two options this assessment separately anchors elsewhere under their own
+  // provisions: "DPA signed with processor" is the Art. 28(3) processor
+  // contract (a28, computed above) and "Data minimisation" is the Art.
+  // 5(1)(c) principle (aMin, computed above). Every other listed safeguard
+  // (encryption, access controls, pseudonymisation, staff training,
+  // anonymisation, contractual restrictions) is a genuine Art. 32(1)
+  // security-of-processing measure and is unaffected.
+  const SAFEGUARD_AUTHORITY_OVERRIDE: Readonly<Record<string, { citation: string; verbatim: string }>> = {
+    "DPA signed with processor": a28,
+    "Data minimisation": aMin,
+  };
   const measures_security: DpiaMeasureRow[] = [];
   if (safeguards.length === 0) {
     measures_security.push({
@@ -3587,13 +3678,14 @@ export function buildSection2Coverage(
   } else {
     for (const sel of safeguards) {
       const spec = DPIA_SAFEGUARD_SPECS.find((sp) => sp.measure === sel);
+      const authority = SAFEGUARD_AUTHORITY_OVERRIDE[sel] ?? aSec;
       measures_security.push({
         measure: sel,
         description: spec
           ? spec.description
           : "The record selects this measure; the record does not describe it further.",
-        citation: aSec.citation,
-        authority_verbatim: aSec.verbatim,
+        citation: authority.citation,
+        authority_verbatim: authority.verbatim,
         status: "analysed",
         source_field: "existing_safeguards",
       });
@@ -3970,10 +4062,17 @@ export function buildGapLedgerDetailed(
       if (!Number.isNaN(d.getTime()) && months >= 12) {
         const basis = str(get(_intake, "dpia_signoff_basis"));
         const annual = /\bannual(?:ly)?\b|every (?:12|twelve) months|\byearly\b/i.test(basis);
+        // doc 263 run 3 (2026-09-17, batch 3edc00df, DPIA D8) — the twelve-month currency check is
+        // this assessment's own methodology, not a term of Art. 35(11)
+        // (review where necessary, at least on a change in the risk
+        // represented by the processing). Stated as such, and the Authority
+        // cell now names both: this assessment's practice for the
+        // twelve-month trigger, and Art. 35(11) only for the distinct
+        // review-on-change duty.
         push(
           "dpia_approval_date",
-          `The approval recorded on ${approvalDate} is more than twelve months old at the date of this report${annual ? ", and the sign-off basis itself calls for an annual re-review" : ""}. Record the outcome of the current review, or a new approval, so the decision in Section 7 rests on a current one.`,
-          cit(ledgerRegime, "Art. 35(11)"),
+          `This assessment treats an approval more than twelve months old as needing current confirmation; the approval recorded on ${approvalDate} is more than twelve months old at the date of this report${annual ? ", and the sign-off basis itself separately calls for an annual re-review" : ""}. That twelve-month treatment is this assessment's own practice, not a term of ${cit(ledgerRegime, "Art. 35(11)")}, which requires a review where the risk represented by the processing changes. Record the outcome of the current review, or a new approval, so the decision in Section 7 rests on a current one.`,
+          `Assessment practice; ${cit(ledgerRegime, "Art. 35(11)")} (review on change)`,
           "the currency of the approval on which the decision rests",
         );
       }

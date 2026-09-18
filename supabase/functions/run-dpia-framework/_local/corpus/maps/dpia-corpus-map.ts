@@ -594,8 +594,16 @@ export const DPIA_CORPUS_MAP: CorpusMap = {
         matter: "AEPD (Spain) — CARTONAJES BAÑERES, S.A. (2024)",
         what_happened:
           "Spain's authority fined the company €220,000 for biometric clock-in processing — photographing employees' faces at the entrance — without informed consent, and for ignoring an access request.",
+        // doc 264 (2026-09-17, R2 D2b) — reworded off "Employee biometrics
+        // are special-category data on both sides of the analogy": this row
+        // still applies to biometrics generally (its gate,
+        // dpiaPrecedentApplies's "special-category-condition/ap-01" case, is
+        // unchanged and does not require an employee/workplace fact), so the
+        // bearing no longer asserts that the COMPANY's own data subjects are
+        // employees or that this report evaluates workplace monitoring —
+        // only that biometric data is special-category data on both sides.
         bearing:
-          "Employee biometrics are special-category data on both sides of the analogy; the special-category condition this report analyses is the safeguard that processing lacked.",
+          "Biometric data is special-category data on both sides of the analogy; the special-category condition this report analyses is the safeguard that processing lacked.",
         authority_label:
           "AEPD (Spain), CARTONAJES BAÑERES, S.A., decision of 5 January 2024, ref. EXP202212247 — persuasive authority",
         trail_cite: "AEPD, Cartonajes Bañeres (2024)",

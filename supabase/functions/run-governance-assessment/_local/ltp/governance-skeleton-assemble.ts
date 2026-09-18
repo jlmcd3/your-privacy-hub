@@ -571,10 +571,26 @@ function deriveIcoCrosswalkTable(report: Bag): RenderedTable | null {
 // closing sentence (it used to glue onto the last crosswalk line); the ten
 // rows render in the table above it.
 function composeIcoCrosswalk(report: Bag): string {
+  const rd = (report.readiness_determination ?? {}) as Bag;
   const acct = (report.accountability_determination ?? {}) as Bag;
   const transfer = (report.transfer_analysis ?? {}) as Bag;
-  const acctTail = s(acct.verdict)
-    ? `The headline Article 5(2)/24(1) determination above is ${verdictPhrase(s(acct.verdict))}${s(transfer.regime) && s(transfer.regime) !== "not_engaged" ? ", with the Chapter V transfer analysis carried in Section 4" : ""}.`
+  // doc 263 run 3 (2026-09-17, batch 3edc00df gov f3 — Castleforth Capital
+  // Partners Ltd) — this read the RAW accountability_determination.verdict
+  // through verdictPhrase(), which can print "evidenced" (verdict
+  // "satisfied") even where the readiness determination's own bucket —
+  // the SAME bucket the_determination:0 (ratingLead) prints — is "Partly
+  // evidenced" because an adverse sibling determination or a High/Critical
+  // domain finding pulls the overall rating down without changing the
+  // accountability verdict itself. The crosswalk's headline row must read
+  // that same bucket, not a narrower one. Falls back to the raw verdict
+  // only when no readiness determination is attached (legacy callers/tests
+  // that construct a report without one), so behaviour is unchanged there.
+  const ratingPhrase = RATING_PHRASE[s(rd.rating)];
+  const phrase = ratingPhrase
+    ? ratingPhrase.replace(/^accountability is /, "")
+    : (s(acct.verdict) ? verdictPhrase(s(acct.verdict)) : "");
+  const acctTail = phrase
+    ? `The headline Article 5(2)/24(1) determination above is ${phrase}${s(transfer.regime) && s(transfer.regime) !== "not_engaged" ? ", with the Chapter V transfer analysis carried in Section 4" : ""}.`
     : "";
   return repairRegister(acctTail);
 }
@@ -741,6 +757,54 @@ function governanceToa(report: Bag, body: string): string {
     const group = cls === "regulation" || /GDPR/i.test(citation)
       ? "Regulations"
       : cls === "statute"
+      ? "Statutes"
+      : "Guidance and Persuasive Authority";
+    groups[group].push(citation);
+  }
+  // doc 263 run 3 (2026-09-17, batch 3edc00df gov f20 — Castleforth Capital
+  // Partners Ltd) — `authority_exhibit` is populated only by the
+  // Supabase-backed corpus pass in run-governance-assessment/index.ts;
+  // nothing in this LOCAL pipeline ever writes it, so the ToA fell back
+  // entirely to the bare-article-number body scan below. That scan has two
+  // blind spots it can never see past: (1) once a broader pinpoint for an
+  // article is already listed (e.g. "UK GDPR Art. 44A(1)"), the "covered"
+  // check below treats the whole article as covered, so a narrower
+  // subsection quoted elsewhere (Art. 44A(2)(a), 44A(2)(b)) never gets its
+  // own row even though its verbatim text is quoted in the body; and (2)
+  // it only ever matches "(UK )?GDPR Art. N", so a non-GDPR statute
+  // citation (DPA 2018, s. 119A) can never be recovered from body text at
+  // all. Both gaps are closed here by reading the citations the report's
+  // own determinations — the same typed objects the composed blocks above
+  // were built from — record as RELIED ON, the "block → row map"
+  // alternative: the transfer analysis's own `citations_used` (already
+  // collected by `cite()` in buildTransferAnalysis, just never surfaced
+  // downstream before now), plus the DPO trigger/independence and
+  // records-of-processing anchors those sections always engage whenever
+  // they are present in the report. These are proven cited BY
+  // CONSTRUCTION — they are read from the exact objects the document was
+  // assembled from — so they skip the exhibit loop's `bodyCitesAuthority`
+  // guard (that guard exists to keep a corpus-fetched exhibit that may be
+  // broader than this document honest; it does not apply to a citation
+  // this render itself just used).
+  const relied: string[] = [];
+  const ta = (report.transfer_analysis ?? {}) as Bag;
+  if (Array.isArray(ta.citations_used)) {
+    for (const c of ta.citations_used as unknown[]) relied.push(s(c));
+  }
+  const dpo = (report.dpo_determination ?? {}) as Bag;
+  if (dpo.designation_trigger) relied.push("GDPR Art. 37(1)(b)");
+  if (dpo.position_and_independence) relied.push("GDPR Art. 38(6)");
+  const art30Findings = Array.isArray(report.art30_element_findings)
+    ? (report.art30_element_findings as unknown[])
+    : [];
+  if (art30Findings.length) relied.push("GDPR Art. 30(1)");
+  for (const citation of relied) {
+    if (!citation || seen.has(citation)) continue;
+    if (isNonApplicableAuthority(citation)) continue;
+    seen.add(citation);
+    const group = /GDPR/i.test(citation)
+      ? "Regulations"
+      : /Data Protection Act|DPA 2018/i.test(citation)
       ? "Statutes"
       : "Guidance and Persuasive Authority";
     groups[group].push(citation);
@@ -1023,25 +1087,25 @@ export function deriveGovernanceScoreboard(report: Bag): RenderedTable | null {
 
   const domains = domainEntries(report);
   if (domains.length > 0) {
+    // doc 263 run 3 (2026-09-17, batch 3edc00df gov f4 — Castleforth Capital
+    // Partners Ltd) — the run 2 fix above still printed "0 of 10" beside a
+    // determination paragraph reading "nine of the ten fully evidenced."
+    // `composeExecutiveSummaryTyped`'s "fully evidenced" count is
+    // `clean.length` — Compliant severities ONLY; a Medium/Low domain with
+    // no recorded gap is reported there as "evidenced ... but carries a
+    // point to watch," which its own sentence does NOT count as fully
+    // evidenced. The run-2 filter still excluded that same domain from
+    // "not fully evidenced" (treating it as evidenced), so a record with
+    // nine Compliant domains and one such "point to watch" domain read
+    // "nine of the ten fully evidenced" above and "0 of 10" here. This row
+    // now counts every severity that is not empty and not Compliant — the
+    // exact complement of `composeExecutiveSummaryTyped`'s `clean.length` —
+    // so the two surfaces always agree: `withGap === domains.length -
+    // clean.length`.
     const withGap = domains.filter((d) => {
       const sev = s(d.severity).toLowerCase();
-      // doc 263 run 2 (2026-09-17, batch fc0119e9 gov f3) — the same buckets as
-      // the determination paragraph (composeExecutiveSummaryTyped): a Medium/Low
-      // domain with no recorded gap is evidenced with a point to watch.
-      if (sev === "" || sev === "compliant") return false;
-      if (sev === "medium" || sev === "low") return !!s(d.gap_description);
-      return true;
+      return sev !== "" && sev !== "compliant";
     }).length;
-    // A-TEAM DELTA (ChatGPT Dropbox Batch 1 review, 2026-08-31, Governance
-    // P0) — this counts EVERY non-compliant severity (Unresolved through
-    // Low). `composeExecutiveSummaryTyped`'s "N domains carry recorded gaps"
-    // sentence deliberately counts only the Medium/Low-with-gap_description
-    // subset (High/Critical/Unresolved domains get their own separate
-    // sentences there) — a narrower, legitimately different number. Both
-    // counts are correct; the collision was that both used the word "gap."
-    // Renamed here to the same "fully evidenced" vocabulary the exec lead
-    // already uses, so the two surfaces can no longer read as one
-    // contradicted count.
     rows.push(["Domains not fully evidenced", `${withGap} of ${domains.length}`]);
   }
 

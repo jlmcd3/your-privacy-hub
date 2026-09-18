@@ -361,7 +361,7 @@ export function buildInterestLegitimacy(intake: unknown): InterestLegitimacyFind
   // path, per the Target/Old/New comparison in doc 105. This walk stays a
   // verbatim-trim of each sub-test's own reasoning; nothing re-judged here.
   const application =
-    // doc 263 run 2 (2026-09-17, batch fc0119e9 lia f6) — the Section II row sets the
+    // doc 263 run 3 (2026-09-17, batch 3edc00df lia f6) — the Section II row sets the
     // three cumulative conditions for Article 6(1)(f) (interest, necessity,
     // balancing); the Section II.A row sets the three requirements the interest
     // itself must meet. Each is named for what it is; the walk runs the II.A
@@ -568,6 +568,27 @@ function summaryListSegments(label: string): string[] | null {
   return segments;
 }
 
+// doc 263 run 3 (2026-09-17, batch 3edc00df lia f8/f16/f17/f18/f19/f20) — a
+// BARE semicolon-delimited list ("A; an aggregate-only log feed with no
+// per-account detail; sampling a subset of authentication events rather than
+// a full feed.") carries NO reason of its own — the reasons live in a
+// separate necessity_details.alternatives_rationale field, paired back onto
+// these labels below by the existing cross-field token-overlap dedup. The
+// line-splitter above only breaks after ".;" when followed by a CAPITAL
+// letter, so a plain lower-case-continuation semicolon list never split: the
+// whole string became ONE alternative with no rationale, its label long
+// enough to trip the leak-detector's table fallback ("Not recorded" / "we
+// could not verify this item"), and the record read as though only 2 of 3
+// alternatives carried a reason. Distinguishable from DOC 188's summary-list
+// case (a shared trailing reason after the LAST item, e.g. "A; B; C — each
+// rejected as insufficient") because that line matches the label/reason
+// separator regex below and never reaches this branch: this one only fires
+// once every separator match has already failed for the WHOLE line.
+function bareAlternativesListSegments(line: string): string[] | null {
+  const segments = line.split(/;\s*/).map((x) => x.trim().replace(/[.,;]$/, "")).filter(Boolean);
+  return segments.length >= 2 ? segments : null;
+}
+
 // BATCH a81e0240 (2026-09-07) — `merged` marks an entry whose why_inadequate
 // is an ACCUMULATION of a clean match plus one or more non-matching
 // continuation lines glued on (the branch below at "out.length > 0"), as
@@ -579,7 +600,7 @@ interface ParsedAlternative extends AlternativeConsidered {
   merged?: boolean;
 }
 
-function parseAlternatives(text: string): ParsedAlternative[] {
+function parseAlternatives(text: string, opts: { allowBareSemicolonSplit?: boolean } = {}): ParsedAlternative[] {
   if (!text) return [];
   if (/Alternative\s+considered\s*:/i.test(text)) {
     const pairs: ParsedAlternative[] = [];
@@ -611,6 +632,24 @@ function parseAlternatives(text: string): ParsedAlternative[] {
         for (const seg of segments) out.push({ alternative: seg, why_inadequate: why, rationale_recorded: true });
       } else {
         out.push({ alternative: label, why_inadequate: why, rationale_recorded: true });
+      }
+    } else if (opts.allowBareSemicolonSplit && bareAlternativesListSegments(line)) {
+      // doc 263 run 2 — a bare "A; B; C" list with no separator anywhere in
+      // the line (no dash/colon/because/but/however/which-would — every one
+      // of those would already have matched `m` above at its first
+      // occurrence): each semicolon-delimited item is its own alternative,
+      // not one alternative whose label swallows the whole field. Restricted
+      // to the structured necessity_details.alternatives source (see the
+      // call below): the free-text alternatives_considered summary is
+      // narrative, often ONE cross-reference sentence that happens to carry
+      // a semicolon (batch 3edc00df's own Vantpoint record: "Vantpoint
+      // considered … alone and … log feed; both are addressed with their
+      // rejection reasons in the necessity record") — splitting that on its
+      // semicolon manufactures two more bogus unexplained alternatives
+      // instead of the one bare summary line the existing cross-source
+      // dedup below already absorbs harmlessly.
+      for (const seg of bareAlternativesListSegments(line)!) {
+        out.push({ alternative: seg, why_inadequate: "", rationale_recorded: false });
       }
     } else if (out.length > 0) {
       const prev = out[out.length - 1];
@@ -666,7 +705,7 @@ export function buildAlternativesConsidered(intake: unknown): AlternativesConsid
   // paraphrase dedup, which is the mechanism already designed to pick
   // between differently-worded renditions of the same alternative.
   const alternatives: ParsedAlternative[] = [
-    ...parseAlternatives(necAlts),
+    ...parseAlternatives(necAlts, { allowBareSemicolonSplit: true }),
     ...parseAlternatives(flatAlts && !necAlts.includes(flatAlts) ? flatAlts : ""),
     ...parseAlternatives(rationaleText),
   ];

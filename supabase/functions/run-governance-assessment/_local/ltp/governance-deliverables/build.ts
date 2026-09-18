@@ -78,6 +78,36 @@ function unanswered(v: string): boolean {
   return !v || v === "n/a" || v.toLowerCase() === "unsure";
 }
 
+// doc 263 run 3 (2026-09-17, batch 3edc00df gov f1/f6 — Castleforth Capital
+// Partners Ltd) — the governance intake contract has no typed field for
+// "does a core activity operate as monitoring", the DPO's reporting line, or
+// other duties held (governance-assessment.ts intake contract, 28 keys); the
+// only place those facts CAN arrive is the free-text narrative fields
+// (processing_purposes, processing_context, additional_context, etc.). The
+// UNREQUESTED-FACT RULE below (see buildDpoDetermination) is right that an
+// unasked field's absence carries no adverse weight, but it does not license
+// treating the record as SILENT on a fact its own narrative states. These
+// two helpers find the clause that mentions a fact (never inferring anything
+// beyond the fact that it is mentioned) and hand back a short quote a
+// renderer can cite instead of asserting silence.
+function narrativeClauseQuote(text: string, re: RegExp, maxLen = 120): string {
+  if (!text || !re.test(text)) return "";
+  const clauses = text.split(/(?<=[.;])\s+/).map((c) => c.trim()).filter(Boolean);
+  const hit = clauses.find((c) => re.test(c)) || text;
+  const cleaned = hit.replace(/[.;]+$/, "").trim();
+  return cleaned.length > maxLen ? `${cleaned.slice(0, maxLen - 1).trim()}…` : cleaned;
+}
+function narrativeMentionQuote(intake: unknown, keys: readonly string[], re: RegExp): string {
+  for (const k of keys) {
+    const q = narrativeClauseQuote(str(get(intake, k)), re);
+    if (q) return q;
+  }
+  return "";
+}
+const MONITORING_MENTION_RE = /\bmonitor(?:ing)?\b/i;
+const DPO_OPERATING_DETAIL_RE =
+  /\breports?\s+(?:directly\s+)?to\b|\breporting\s+line\b|\bconflicting\s+(?:operational\s+)?role\b|\bother\s+(?:role|roles|duties)\b/i;
+
 // DOC 162 (2026-09-03, audits A.2/A.6) — A GATED-OFF QUESTION IS NOT AN
 // UNANSWERED ONE. The intake form hides the DPO, processor-contract and
 // transfer questions unless the company processes EU or UK personal data
@@ -760,8 +790,23 @@ export function buildDpoDetermination(intake: unknown): DpoDetermination {
     ].filter(Boolean).map((t, i, all) => `${i === 0 ? t.charAt(0).toUpperCase() + t.slice(1) : t}${i === all.length - 1 ? " — the Article 37(1)(c) limb turns on those, not on headcount." : "; "}`).join("")
     : "";
 
+  // doc 263 run 3 (2026-09-17, batch 3edc00df gov f1) — the governance
+  // contract has no typed field for "does a core activity operate as
+  // monitoring" (see UNREQUESTED-FACT RULE below), so this cannot be
+  // answered from a structured field either way. But a record whose
+  // processing_purposes or processing_context narrative already names
+  // monitoring is not a record the assessment may call SILENT on the
+  // question — it may only say the structured record does not capture it.
+  const monitoringMentions = [
+    narrativeClauseQuote(f.purposes, MONITORING_MENTION_RE),
+    narrativeClauseQuote(f.context, MONITORING_MENTION_RE),
+  ].filter(Boolean);
   const limbBOpenClause = limbBIndicated
-    ? `Whether limb (b) is engaged is not answered on the information provided: the limb asks whether the company's core activities consist of processing operations which, by their nature, scope or purposes, require regular and systematic monitoring of data subjects on a large scale, and the data categories the company reports include ${monitoringCategories.join(" and ")} at the ${f.size} scale — enough to make that question live, but holding ${monitoringCategories.length === 1 ? "that category" : "those categories"} is not itself the monitoring the limb describes, and the information provided does not state whether any core activity operates as such monitoring.`
+    ? `Whether limb (b) is engaged is not answered on the information provided: the limb asks whether the company's core activities consist of processing operations which, by their nature, scope or purposes, require regular and systematic monitoring of data subjects on a large scale, and the data categories the company reports include ${monitoringCategories.join(" and ")} at the ${f.size} scale — enough to make that question live, but holding ${monitoringCategories.length === 1 ? "that category" : "those categories"} is not itself the monitoring the limb describes${
+      monitoringMentions.length
+        ? `; the record's narrative mentions ${monitoringMentions.map((q) => `"${q}"`).join(" and, separately, ")}, which the structured record does not capture as an answer to whether a core activity operates as such monitoring — that point is carried under information needed rather than read as silence.`
+        : ", and the information provided does not state whether any core activity operates as such monitoring."
+    }`
     : "";
   const LIMB_B_INFO_NEEDED =
     "Whether any core activity involves the regular and systematic monitoring of data subjects (for example tracking, profiling, or sustained behavioural observation), and at what scale — the Article 37(1)(b) limb turns on that, not on the categories of data held.";
@@ -840,6 +885,13 @@ export function buildDpoDetermination(intake: unknown): DpoDetermination {
   // OUTCOME (no adverse weight for a fact never asked); this refines the
   // WORDING to match — "not independently assessed", not "evidenced" —
   // without reopening the panel-ratified verdict/status computation.
+  // doc 263 run 3 (2026-09-17, batch 3edc00df gov f6) — same gap as f1: no
+  // typed field asks for the DPO's reporting line or other duties held, but
+  // additional_context (and other narrative fields) can already state them.
+  // Claiming their "absence" over a record whose own narrative names them
+  // is false, not merely unrequested; the sentence below reads the record
+  // text instead of asserting silence when it does.
+  const operatingDetailMention = narrativeMentionQuote(intake, ["additional_context"], DPO_OPERATING_DETAIL_RE);
   const position_and_independence: Finding = hasFormal || hasInformal
     ? {
       key: "dpo_position_independence",
@@ -848,7 +900,11 @@ export function buildDpoDetermination(intake: unknown): DpoDetermination {
       standard: [anchor("dpo_involvement", "GDPR Art. 38(1)").verbatim, anchor("dpo_resources", "GDPR Art. 38(2)").verbatim, indep.verbatim, anchor("dpo_conflict", "GDPR Art. 38(6)").verbatim].filter(Boolean).join(" "),
       record_fact: `The designation state is as recorded above.`,
       application: hasFormal
-        ? "A formal designation carries the Article 38 duties with it: on designation the controller owes timely involvement in all data-protection issues, resources sufficient for the Article 39 tasks, freedom from instructions on their exercise, protection from dismissal or another penalty for performing the officer's tasks, a direct reporting line to the highest management level, and management of any conflicting duties. Those duties apply on designation; whether the specific operational safeguards behind them are being met in practice is not independently assessed here. The operating detail — reporting line, resourcing, freedom from instructions, dismissal protection, and other duties held — is a refinement this assessment records under information needed; it is not part of the information requested for this assessment, so its absence is not read as a shortfall, and it is equally not presumed satisfied."
+        ? `A formal designation carries the Article 38 duties with it: on designation the controller owes timely involvement in all data-protection issues, resources sufficient for the Article 39 tasks, freedom from instructions on their exercise, protection from dismissal or another penalty for performing the officer's tasks, a direct reporting line to the highest management level, and management of any conflicting duties. Those duties apply on designation; whether the specific operational safeguards behind them are being met in practice is not independently assessed here. ${
+          operatingDetailMention
+            ? `The record's narrative mentions the operating detail — "${operatingDetailMention}" — but no structured field captures reporting line, resourcing, freedom from instructions, dismissal protection or other duties held as an answered fact; that point is carried under information needed rather than read as absent, and it is not, on its own, presumed to satisfy Article 38.`
+            : "The operating detail — reporting line, resourcing, freedom from instructions, dismissal protection, and other duties held — is a refinement this assessment records under information needed; it is not part of the information requested for this assessment, so its absence is not read as a shortfall, and it is equally not presumed satisfied."
+        }`
         : "An informal privacy lead is not a formal designation for Article 37 purposes, so the Article 38 protections are evidenced only in part: the function exists and is owned, but the independence and conflict-of-interests protections Article 38(3) and 38(6) attach to a designated officer are not carried by an informal arrangement. That is a conclusion about the arrangement the record describes, not about anything the record omits.",
       verdict: hasFormal ? "satisfied" : "partially_satisfied",
       status: "analysed",
@@ -1362,6 +1418,13 @@ export function buildTransferAnalysis(intake: unknown): TransferAnalysis {
   const ukRail = () => {
     cite(ukPrinciple.citation);
     cite(ukOmitted.citation);
+    // doc 263 run 3 (2026-09-17, batch 3edc00df gov f20) — both limbs'
+    // verbatim text is quoted in the very sentence below, but neither
+    // citation was ever registered via `cite()`; the Table of Authorities
+    // (which is iff-cited) then had no way to know Article 44A(2)(a) and
+    // (b) were quoted in this document at all.
+    cite(ukAdequacyRoute.citation);
+    cite(ukSafeguardsRoute.citation);
     parts.push(
       // BATCH bcf0a706 (2026-09-11, Velorix fc9153eb): the omission row's
       // registry note ("… must not be cited to Art. 44") is drafting
@@ -1401,7 +1464,7 @@ export function buildTransferAnalysis(intake: unknown): TransferAnalysis {
       cite(ukCommissionerPower.citation);
       cite(ukCommissionerConsultation.citation);
       parts.push(
-        `The recorded mechanism is a safeguards route. Under Article 46(1A) a UK transfer "${ukSafeguards.verbatim}" where the listed safeguards are provided and the exporter itself judges the data protection test met. The UK clause sets are not Commission standard contractual clauses: they are those specified by the Secretary of State under Article 47A(1) — Article 46(2)(c): "${ukSosClauses.verbatim}" — and those issued by the Commissioner under section 119A of the Data Protection Act 2018 — Article 46(2)(d): "${ukIcoClauses.verbatim}" The Secretary of State's power reads: "${ukSosPower.verbatim}" Section 119A itself fixes what the Commissioner may issue — "${ukCommissionerPower.verbatim}" — and the process for issuing it: "${ukCommissionerConsultation.verbatim}", after which any document issued must be laid before Parliament and is treated as never issued if either House resolves against it within 40 days.`,
+        `The recorded mechanism is a safeguards route. Under Article 46(1A) a UK transfer "${ukSafeguards.verbatim}" where the listed safeguards are provided and either the Commissioner has approved them or the exporter itself judges the data protection test met (Art. 46(1A)(a)(i)–(ii), alternative limbs). The UK clause sets are not Commission standard contractual clauses: they are those specified by the Secretary of State under Article 47A(1) — Article 46(2)(c): "${ukSosClauses.verbatim}" — and those issued by the Commissioner under section 119A of the Data Protection Act 2018 — Article 46(2)(d): "${ukIcoClauses.verbatim}" The Secretary of State's power reads: "${ukSosPower.verbatim}" Section 119A itself fixes what the Commissioner may issue — "${ukCommissionerPower.verbatim}" — and the process for issuing it: "${ukCommissionerConsultation.verbatim}", after which any document issued must be laid before Parliament and is treated as never issued if either House resolves against it within 40 days.`,
       );
       // BATCH bcf0a706 (2026-09-11) — ledger F6: the recorded mechanism is
       // named against the clause set it is, so the passage is not generic.
@@ -1548,9 +1611,20 @@ export function buildTransferAnalysis(intake: unknown): TransferAnalysis {
       const openDoc = openLeg === "UK"
         ? "the IDTA or the Addendum as executed and the exporter's own Article 46(6) assessment"
         : "the Commission clause set and its transfer impact assessment";
+      // doc 263 run 3 (2026-09-17, batch 3edc00df gov f18/f27) — "adopt and
+      // execute … before that leg has any lawful route" overstated the law:
+      // adequacy needs no executed mechanism at all (UK Art. 44A(2)(a) with
+      // Art. 45A regulations). For a UK open leg the action now offers that
+      // route first, and states the executed-mechanism route as the
+      // alternative, rather than treating the mechanism as the only path to
+      // a lawful route. The EU-leg phrasing (EU Art. 45 adequacy has the
+      // same property) is left as it was — not part of this batch's fix.
+      const openLegAction = openLeg === "UK"
+        ? "either confirm the destination is covered by UK adequacy regulations, or adopt and execute the Commissioner's standard clauses (published as the IDTA or the Addendum) together with the exporter's own Article 46(6) assessment; until one of those is in place the leg has no lawful route"
+        : `adopt and execute ${openDoc} before that leg has any lawful route`;
       information_needed = recordedTools.length
-        ? `For the ${coveredLeg} leg — ${recordedTools.join(", ")} — the record names the mechanism type but not the executed document, so ${coveredDoc} is needed to close it. For the ${openLeg} leg, no mechanism is recorded at all: adopt and execute ${openDoc} before that leg has any lawful route.`
-        : `For the ${coveredLeg} leg, the record names the mechanism type but not the executed document, so ${coveredDoc} is needed to close it. For the ${openLeg} leg, no mechanism is recorded at all: adopt and execute ${openDoc} before that leg has any lawful route.`;
+        ? `For the ${coveredLeg} leg — ${recordedTools.join(", ")} — the record names the mechanism type but not the executed document, so ${coveredDoc} is needed to close it. For the ${openLeg} leg, no mechanism is recorded at all: ${openLegAction}.`
+        : `For the ${coveredLeg} leg, the record names the mechanism type but not the executed document, so ${coveredDoc} is needed to close it. For the ${openLeg} leg, no mechanism is recorded at all: ${openLegAction}.`;
     } else {
       information_needed = recordedTools.length
         ? `The executed instrument for each transfer leg — ${recordedTools.join(", ")} — for a UK leg, the IDTA or the Addendum as executed and the exporter's own Article 46(6) assessment; for an EU leg, the Commission clause set and its transfer impact assessment. The record names the mechanism type but not the executed document, so the leg cannot be closed as satisfied.`
@@ -1570,10 +1644,14 @@ export function buildTransferAnalysis(intake: unknown): TransferAnalysis {
     // since 2026-09-16) carries the per-route position in the company's own
     // words; the organisation-level sentence is stated only when it is empty.
     const routes = str(get(intake, "transfer_routes")).split(/\r?\n+/).map((x) => x.trim()).filter(Boolean);
+    // doc 263 run 3 (2026-09-17, batch 3edc00df gov f16) — "a leg without an
+    // executed mechanism has no lawful route" overstated the law: adequacy
+    // needs no executed mechanism (UK Art. 44A(2)(a) with Art. 45A
+    // regulations; EU Art. 45).
     parts.push(
       routes.length
-        ? `The tools the company has recorded in use are ${recordedTools.join(", ")}. The record describes the transfer routes as follows: ${routes.map((r) => `“${r.replace(/[.\s]+$/, "")}”`).join("; ")}. A leg without an executed mechanism has no lawful route under the chapter identified for it.`
-        : `The tools the company has recorded in use are ${recordedTools.join(", ")}. The record states the transfer position at organisation level, not per tool, so each of those tools' transfer legs stands or falls with the mechanism position assessed above; a leg without an executed mechanism has no lawful route under the chapter identified for it.`,
+        ? `The tools the company has recorded in use are ${recordedTools.join(", ")}. The record describes the transfer routes as follows: ${routes.map((r) => `“${r.replace(/[.\s]+$/, "")}”`).join("; ")}. A leg covered neither by adequacy regulations nor by an executed mechanism has no lawful route under the chapter identified for it.`
+        : `The tools the company has recorded in use are ${recordedTools.join(", ")}. The record states the transfer position at organisation level, not per tool, so each of those tools' transfer legs stands or falls with the mechanism position assessed above; a leg covered neither by adequacy regulations nor by an executed mechanism has no lawful route under the chapter identified for it.`,
     );
   }
 

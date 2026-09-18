@@ -746,12 +746,7 @@ export function buildDetermination(
     outcome = "undetermined_on_the_record";
     status = "record_insufficient";
     const names = [...new Set(open)].map(factorLabel);
-    // BATCH d573cc4f (2026-09-12, LIA6-04, ChatGPT + Claude joint review) —
-    // subject-verb agreement: "1 of the elements ... are not established"
-    // when exactly one element is open.
-    rawWhy =
-      `The determination is open rather than answered either way: ${names.length} of the elements the assessment turns on — ${names.join(", ")} — ${names.length === 1 ? "is" : "are"} not established on the information provided, and the mitigations below are the steps that would close each of them. ${conditions.verbatim}`;
-    information_needed = [
+    const openInfoNeeded = [
       ...new Set(
         [
           expectations.information_needed,
@@ -773,6 +768,23 @@ export function buildDetermination(
         ].filter(Boolean) as string[],
       ),
     ].join(" ");
+    // BATCH d573cc4f (2026-09-12, LIA6-04, ChatGPT + Claude joint review) —
+    // subject-verb agreement: "1 of the elements ... are not established"
+    // when exactly one element is open.
+    // doc 263 run 3 (2026-09-17, batch 3edc00df lia f10) — this outcome
+    // (undetermined_on_the_record) renders no mitigations block: a
+    // "mitigation" is what closes a FAILING factor (the available_only_
+    // with_mitigations branch below, which composeLiaRecommendation and the
+    // numbered conditions read from); an OPEN factor is missing information,
+    // not a measure to adopt, and nothing rendered later in the document
+    // supplies "steps" for it — the numbered condition set out from
+    // `openInfoNeeded` below states what is missing, never a remedial step.
+    // The old sentence promised "the mitigations below" regardless, pointing
+    // the reader at a block that this outcome never renders. It now names
+    // the missing information inline instead.
+    rawWhy =
+      `The determination is open rather than answered either way: ${names.length} of the elements the assessment turns on — ${names.join(", ")} — ${names.length === 1 ? "is" : "are"} not established on the information provided. What would establish ${names.length === 1 ? "it" : "them"}: ${openInfoNeeded} ${conditions.verbatim}`;
+    information_needed = openInfoNeeded;
   } else if (failing.length > 0) {
     outcome = "available_only_with_mitigations";
     rebalance = true;

@@ -195,6 +195,12 @@ export const RISK_REGISTRY_PACK: RegistryPack = {
       "verbatim_quote": "a business must update a risk assessment whenever there is a material change relating to the processing activity, as soon as feasibly possible, but no later than 45 calendar days from the date of the material change."
     },
     {
+      "proposition_key": "ra_timing_material_change_definition",
+      "citation": "11 CCR § 7155",
+      "subsection": "11 CCR § 7155(a)(3)",
+      "verbatim_quote": "A change relating to the processing activity is material if it creates new negative impacts or increases the magnitude or likelihood of previously identified negative impacts as set forth in section 7152, subsection (a)(5), or diminishes the effectiveness of the safeguards as set forth in section 7152, subsection (a)(6)."
+    },
+    {
       "proposition_key": "ra_timing_existing",
       "citation": "11 CCR § 7155",
       "subsection": "11 CCR § 7155(b)",

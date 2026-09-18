@@ -4,13 +4,22 @@
 // `exemption_claimed_on_the_record`, doc 189). Pinned byte-exact: the CEO's
 // own sentence, pinpointed to Art. 5(3) ePrivacy Directive / PECR reg 6, with
 // no subject-to clause. A change here is a new CEO ruling, never a re-wording.
+//
+// SUPERSEDED IN PART by doc 263 run 3 (2026-09-17, batch 3edc00df lia f22):
+// the ptest review confirmed the ratified sentence added a fact the intake
+// does not state ("a service the individual has requested" — the option is
+// "Yes — all of it is strictly necessary [for the purpose]", and the people
+// affected recorded elsewhere are often the client's own employees or
+// contractors, not a customer of the controller). The clause now tracks the
+// intake option's own terms; the rest of the ratified sentence (the Art.
+// 5(3)/PECR reg. 6 pinpoint, the no-subject-to-clause form) is unchanged.
 
 import { assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import { buildLiaEngagementMap } from "../../../supabase/functions/_shared/engagement-map.ts";
 import { eprivacyOverlayNote } from "../../../supabase/functions/run-li-assessment/_local/ltp/lia-skeleton-assemble.ts";
 
 const RATIFIED =
-  "The company states that the processing stores information on, or reads information from, individuals' devices only to the extent strictly necessary to provide a service the individual has requested. Under Article 5(3) of the ePrivacy Directive (Directive 2002/58/EC) (regulation 6 of the Privacy and Electronic Communications (EC Directive) Regulations 2003 in the United Kingdom), consent is not required in that context. This assessment records the statement but does not verify it.";
+  "The company states that the processing stores information on, or reads information from, individuals' devices only to the extent the company records as strictly necessary for the purpose. Under Article 5(3) of the ePrivacy Directive (Directive 2002/58/EC) (regulation 6 of the Privacy and Electronic Communications (EC Directive) Regulations 2003 in the United Kingdom), consent is not required in that context. This assessment records the statement but does not verify it.";
 
 function overlayEntry(determination: string) {
   const map = buildLiaEngagementMap({}, undefined, undefined, determination) as unknown as {

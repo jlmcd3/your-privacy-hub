@@ -339,8 +339,19 @@ export const LIA_SKELETON_PROVENANCE = LIA_PLAN_PROVENANCE;
 // WITHDRAWN; the hash basis is the 37 docx paragraphs again, byte-unchanged
 // since the a81e0240 follow-up pin (808a3017…), which this constant
 // therefore reproduces exactly.
+// RE-PIN doc 263 run 3 (2026-09-17, batch 3edc00df, paid ptest review lia
+// f23) — one fixed-prose paragraph changed, a confirmed misstatement of the
+// necessity test: ¶19 (necessity_test block 1) read "could reasonably be
+// achieved by less intrusive means" and now carries the effectiveness
+// comparison EDPB Guidelines 1/2024, Section II.B requires ("achieved just
+// as effectively by other means…", anchor
+// edpb_1_2024_necessity_less_restrictive_means). The ¶27 baseline-note
+// change proposed in the same run was held back by the CEO (doc 269).
+// Recomputed over the unchanged SHA-256 basis (LIA_SKELETON_PARAGRAPHS
+// joined with "\n"), the same algorithm the SO-11 battery uses. Prior pin:
+// 808a3017211ee702fb8839ba4658c9041ec4462e69c68e90490720e09ce95aa9.
 export const LIA_SKELETON_CONTENT_HASH =
-  "808a3017211ee702fb8839ba4658c9041ec4462e69c68e90490720e09ce95aa9";
+  "98c1f3c2e71ef8e1bdd9eb44ba5782878365cd31c65bc3e89d5cf9765ce6d0bb";
 
 export const LIA_SKELETON_PARAGRAPH_COUNT = 37;
 
@@ -514,7 +525,15 @@ export const LIA_SKELETON_SECTIONS: readonly LiaSkeletonSection[] = [
       { kind: "lead", paragraph: 18, text: "[DETERMINATION LEAD] One sentence stating whether the processing is necessary rather than merely useful." },
       // RE-PIN 2026-09-07 (CEO-directed): alternativesRationale and
       // whyConsentNotUsed now carry their own quote marks.
-      { kind: "skeleton", paragraph: 19, text: "Necessity under Article 6(1)(f) of {instrumentName - the GDPR; UK-only the UK GDPR} asks whether the identified interest could reasonably be achieved by less intrusive means. The company has indicated that it considered {alternatives - rendered as prose}, and its reasons for not adopting them are recorded as: {alternativesRationale - attributed, quoted}. As to consent, the company has explained why it does not rely on it: {whyConsentNotUsed - own clause, quoted}. Its account of data minimisation is addressed in the analysis below." },
+      // doc 263 run 3 (2026-09-17, batch 3edc00df lia f23) — the necessity
+      // test as stated dropped the EFFECTIVENESS comparison the registry row
+      // requires (EDPB Guidelines 1/2024, Section II.B: "achieved just as
+      // effectively by other means less restrictive…" — anchor
+      // edpb_1_2024_necessity_less_restrictive_means). As worded before, a
+      // reasonably available but LESS EFFECTIVE alternative could defeat
+      // necessity; the standard only asks about an alternative that is just
+      // as effective.
+      { kind: "skeleton", paragraph: 19, text: "Necessity under Article 6(1)(f) of {instrumentName - the GDPR; UK-only the UK GDPR} asks whether the identified interest could reasonably be achieved just as effectively by other means that are less intrusive. The company has indicated that it considered {alternatives - rendered as prose}, and its reasons for not adopting them are recorded as: {alternativesRationale - attributed, quoted}. As to consent, the company has explained why it does not rely on it: {whyConsentNotUsed - own clause, quoted}. Its account of data minimisation is addressed in the analysis below." },
       { kind: "conditional", paragraph: 20, conditional: "analytics", text: "[CONDITIONAL] ANALYTICS - trigger {pseudonymisationOptions} collected: fixed first words \"For the analytical processing described, the company has recorded its consideration of pseudonymisation.\" followed by the recorded position." },
       { kind: "generated", paragraph: 21, text: "[GENERATED] The necessity analysis: less-intrusive-means discipline applied to the company's stated alternatives and minimisation answers; record facts only." },
     ],

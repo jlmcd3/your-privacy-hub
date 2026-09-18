@@ -201,6 +201,18 @@ export const CYBER_REGISTRY_PACK: RegistryPack = {
       }
     },
     {
+      "proposition_key": "cyber_scope_assess_components_deemed_applicable",
+      "citation": "11 CCR § 7123",
+      "subsection": "11 CCR § 7123(b)(2)",
+      "verbatim_quote": null,
+      "locator": {
+        "provision_key": "cppa-7123",
+        "path": "b(2)",
+        "starts_with": "Each of the components of a ",
+        "ends_with": "siness's information system."
+      }
+    },
+    {
       "proposition_key": "cyber_components_chapeau",
       "citation": "11 CCR § 7123",
       "subsection": "11 CCR § 7123(c)",

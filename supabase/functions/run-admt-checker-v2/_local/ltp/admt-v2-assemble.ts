@@ -1629,7 +1629,17 @@ function buildFactRecordTable(
       factOr([decisionEffects && `Effects: ${decisionEffects}.`, decisionCadence && `Cadence: ${decisionCadence}.`, soleFactor && `Role of output: ${soleFactor}.`, feedsFuture && `Feeds future decisions: ${feedsFuture}.`].filter(Boolean).join(" "))],
     ["Human review", factOr(str((intake as any)?.human_review))],
     ...(otherFactors ? [["Other decision factors", factOr(otherFactors)]] : []),
-    ...(housingBasis ? [["Housing decision basis (§ 7001(ddd)(2))", factOr(housingBasis)]] : []),
+    // doc 263 run 3 (2026-09-17, batch 3edc00df admt f1) — the registry's
+    // sig_housing row (§ 7001(ddd)(2)) verifies only the DEFINITION of
+    // "housing" (a building/structure/portion used or occupied as a
+    // dwelling); it states no condition about the basis of the decision or
+    // about whether other factors are considered, so pinning this fact to
+    // that subsection misattributed a decision-basis test to a row that is
+    // solely a definition. No registry row states a decision-basis test, so
+    // the pinpoint is dropped — this row now carries no citation, matching
+    // every other bare-fact row in this table (e.g. "Other decision
+    // factors" immediately above, which never carried one either).
+    ...(housingBasis ? [["Housing decision basis", factOr(housingBasis)]] : []),
     ...(vendorAvailable ? [["Vendor makes the ADMT available to other businesses", factOr(vendorAvailable)]] : []),
     ["Training / profiling",
       factOr([training && `Training data use: ${training}.`, profiling && `Profiling use: ${profiling}.`].filter(Boolean).join(" "))],

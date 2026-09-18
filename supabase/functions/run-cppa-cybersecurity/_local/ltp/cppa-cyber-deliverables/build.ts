@@ -764,7 +764,15 @@ export function buildIndependenceDetermination(facts: CyberFacts): IndependenceD
     // independence (doc 159 keeps the engagement verdict satisfied on a written
     // confirmation); no intake question records the auditor's qualifications,
     // so the sentence claims only what the record carries.
-    ? `The engagement described on the record meets the § 7122 independence condition; the record does not separately identify the auditor's qualifications.`
+    // doc 263 run 3 (2026-09-17, batch 3edc00df cyber f26/f27) — this verdict
+    // is reachable only on the exact "External auditor engaged, independence
+    // confirmed in writing" status, so "meets the § 7122 independence
+    // condition" asserted the ultimate § 7122 conclusion from an engagement
+    // POSTURE alone — directly contradicting buildIndependenceReadinessConsequence's
+    // very next sentence, that "independence in fact ... remain[s a] matter[]
+    // the engagement itself must establish." The record supports only the
+    // posture, not the conclusion; both sentences now say so consistently.
+    ? `The engagement described on the record is consistent with the § 7122 independence condition (an external auditor with independence confirmed); independence in fact is a matter the engagement itself must establish. The record does not separately identify the auditor's qualifications.`
     : verdict === "not_satisfied"
     ? `The engagement described on the record does not meet ${unsatisfied.length} § 7122 condition` +
       `${unsatisfied.length === 1 ? "" : "s"}: ${unsatisfied.map((f) => f.label).join("; ")}.`
@@ -884,12 +892,19 @@ export function buildReadinessDetermination(
     ? ` The Company reports ${countWord(notApplicable.length)} component${notApplicable.length === 1 ? "" : "s"} as not applicable to its information system, subject to the auditor's determination under 11 CCR § 7123(b)(2).`
     : "";
   const applicableWord = notApplicable.length ? "applicable " : "";
+  // doc 263 run 3 (2026-09-17, batch 3edc00df cyber f19) — the § 7124
+  // certification certifies COMPLETION of the cybersecurity audit (11 CCR
+  // § 7124(a)); it is not established, let alone satisfied, by component
+  // implementation or audit readiness alone. The prior wording named both
+  // as reached together ("ready for the § 7123 cybersecurity audit and the
+  // § 7124 certification of its completion"); the dependency is now explicit
+  // — ready for the audit, with certification following once it completes.
   const headline = conclusion === "ready"
-    ? `On the information provided the business is ready for the § 7123 cybersecurity audit and the § 7124 certification of its completion: all ${countWord(total)} ${applicableWord}§ 7123(c) components are implemented and each is supported by testable evidence.${naNote}`
+    ? `On the information provided the business is ready for the § 7123 cybersecurity audit, with the § 7124 certification of its completion to follow once that audit is completed: all ${countWord(total)} ${applicableWord}§ 7123(c) components are recorded as implemented and each is supported by testable evidence.${naNote}`
     : conclusion === "ready_subject_to_named_remediation"
     // DOC 255 (2026-09-11, ledger L5 accepted by the CEO): the lead names at
     // most three items inline; the rest are counted and live in Section 6.
-    ? `On the information provided the business is ready for the § 7123 cybersecurity audit and the § 7124 certification of its completion subject to ${countWord(remediationItems.length)} named remediation item${remediationItems.length === 1 ? "" : "s"}: ${remediationItems.slice(0, 3).join("; ")}${remediationItems.length > 3 ? `; and ${countWord(remediationItems.length - 3)} further item${remediationItems.length - 3 === 1 ? "" : "s"} named in Section 6` : ""}. No component is unimplemented and no § 7122 condition is unmet.${naNote}`
+    ? `On the information provided the business is ready for the § 7123 cybersecurity audit subject to ${countWord(remediationItems.length)} named remediation item${remediationItems.length === 1 ? "" : "s"}: ${remediationItems.slice(0, 3).join("; ")}${remediationItems.length > 3 ? `; and ${countWord(remediationItems.length - 3)} further item${remediationItems.length - 3 === 1 ? "" : "s"} named in Section 6` : ""}. No component is unimplemented and no § 7122 condition is unmet; once the audit is completed, the § 7124 certification of its completion can follow.${naNote}`
     : conclusion === "not_ready"
     ? (() => {
         // QA round two (CY-A-01 / CY-B-02, 2026-09-06) — same root cause the
@@ -910,7 +925,7 @@ export function buildReadinessDetermination(
         if (enforcementBlocks && blocking.length === 0) {
           bits.push("§ 7123(b)(3) implementation-and-enforcement evidence is unmet on this record");
         }
-        return `On the information provided the business is not ready for the § 7123 cybersecurity audit and the § 7124 certification of its completion: ${bits.join(", and ")}.${naNote}`;
+        return `On the information provided the business is not ready for the § 7123 cybersecurity audit, and so not yet ready for the § 7124 certification that follows completion of that audit: ${bits.join(", and ")}.${naNote}`;
       })()
     : (() => {
         // 2026-08-25 — REAL BUG FOUND while investigating C1.1b (prose-gold's

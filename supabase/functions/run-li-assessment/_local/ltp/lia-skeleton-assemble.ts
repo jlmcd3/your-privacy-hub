@@ -344,19 +344,49 @@ export function buildLiaSlotValues(record: Bag): SlotValues {
     // ¶19 sentence ("…it considered Consent-based opt-in to security
     // monitoring\nStatic rule-only fraud filters…"). Lines are the items,
     // as the DOC 161 rationale split beside it already does.
-    alternatives: orNull(
-      asProse((strList(record.alternatives_considered).length
-        ? strList(record.alternatives_considered)
-        : strList(necessity.alternatives))
+    //
+    // doc 263 run 3 (2026-09-17, batch 3edc00df lia f17/f20) — the flat
+    // alternatives_considered field is either a genuine list (Velorix above:
+    // one short name per line) or, in every current panel fixture, ONE
+    // narrative recap sentence pointing at the necessity record ("Vantpoint
+    // considered relying on client-side alerting alone and a lower-fidelity
+    // aggregate-only log feed; both are addressed with their rejection
+    // reasons in the necessity record."). Always preferring the flat field
+    // (the old rule) quoted that recap sentence as if it named the
+    // alternatives itself. The two shapes are told apart by whether the flat
+    // field is actually broken into lines: a real line break means a list of
+    // names (Velorix's case, still preferred — unchanged from BATCH 7bd29982)
+    // and wins as before; a single unbroken sentence is narrative, and this
+    // sentence's own {alternatives} slot instead reads the structured
+    // necessity_details.alternatives when that field is answered, falling
+    // back to the flat sentence only when necessity_details.alternatives is
+    // empty. Semicolons split alongside newlines within whichever source is
+    // used: necessity_details.alternatives is typically one semicolon-
+    // delimited line ("A; B; C."), not one line per item — EXCEPT a line
+    // that already carries its own "label — reason" em dash (BATCH 7bd29982's
+    // Velorix fixture: "Static IP blocklists — too coarse-grained; attackers
+    // rotate IPs faster than lists can be updated"), where the semicolon
+    // is inside that ONE alternative's own reason clause; splitting on it
+    // regardless would fragment one alternative's reason into a second,
+    // bogus alternative.
+    alternatives: orNull((() => {
+      const splitLine = (line: string): string[] => /[—–]/.test(line) ? [line] : line.split(/;\s*/);
+      const flatRaw = s(record.alternatives_considered);
+      const necList = strList(necessity.alternatives);
+      const flatIsBrokenIntoLines = /\r?\n/.test(flatRaw);
+      const useFlat = !!flatRaw && (necList.length === 0 || flatIsBrokenIntoLines);
+      const source = useFlat ? strList(record.alternatives_considered) : necList;
+      return asProse(source
         .flatMap((a) => a.split(/\r?\n+/))
+        .flatMap(splitLine)
         .map((a) => noStop(a.trim()))
         .filter(Boolean)
         // DOC 254 (2026-09-11, ChatGPT review LEGITIMA-03) — each alternative
         // is quoted, so an item that carries its own reason ("Blanket CAPTCHA
         // on every login — degrades user experience …") does not run into
         // the next one as narrative.
-        .map((a) => `“${a}”`)),
-    ),
+        .map((a) => `“${a}”`));
+    })()),
     // DOC 161 — a multi-line rationale carried its line breaks into the ¶19
     // sentence; the lines now join as clauses. RE-PIN 2026-09-07: the joined
     // clause is quoted as one block, matching the other own-sentence slots.

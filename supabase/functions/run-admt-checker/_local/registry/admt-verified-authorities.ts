@@ -234,6 +234,42 @@ export const ADMT_VERIFIED_AUTHORITIES: VerifiedAuthorityRegistry = {
     verified_on: "2026-09-17", // § 7155(b) re-verified against the final OAL text (effective January 1, 2026)
     primary_source_url: CCR_URL,
   }),
+  // doc 263 run 3 (2026-09-17, batch 3edc00df, ADMT f6/f7/f8): the ADMT pack
+  // had no § 7155(a)(2)/(a)(3) rows although the applicability card states the
+  // review and update duties; copied verbatim from the Risk registry.
+  ra_timing_review_3yr: R({
+    proposition_key: "ra_timing_review_3yr",
+    citation: "11 CCR § 7155",
+    subsection: "11 CCR § 7155(a)(2)",
+    verbatim_quote:
+      "At least once every three years, a business must review, and update as necessary, its risk assessments to ensure that they remain accurate in accordance with the requirements of this Article.",
+    depth_class: "sub_subsection",
+    governing_anchor: ART10,
+    verified_on: "2026-09-17",
+    primary_source_url: CCR_URL,
+  }),
+  ra_timing_material_change: R({
+    proposition_key: "ra_timing_material_change",
+    citation: "11 CCR § 7155",
+    subsection: "11 CCR § 7155(a)(3)",
+    verbatim_quote:
+      "a business must update a risk assessment whenever there is a material change relating to the processing activity, as soon as feasibly possible, but no later than 45 calendar days from the date of the material change.",
+    depth_class: "sub_subsection",
+    governing_anchor: ART10,
+    verified_on: "2026-09-17",
+    primary_source_url: CCR_URL,
+  }),
+  ra_timing_material_change_definition: R({
+    proposition_key: "ra_timing_material_change_definition",
+    citation: "11 CCR § 7155",
+    subsection: "11 CCR § 7155(a)(3)",
+    verbatim_quote:
+      "A change relating to the processing activity is material if it creates new negative impacts or increases the magnitude or likelihood of previously identified negative impacts as set forth in section 7152, subsection (a)(5), or diminishes the effectiveness of the safeguards as set forth in section 7152, subsection (a)(6).",
+    depth_class: "sub_subsection",
+    governing_anchor: ART10,
+    verified_on: "2026-09-17",
+    primary_source_url: CCR_URL,
+  }),
   ra_submit: R({
     proposition_key: "ra_submit",
     citation: "11 CCR § 7157",

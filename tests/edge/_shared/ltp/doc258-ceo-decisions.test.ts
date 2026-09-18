@@ -159,7 +159,7 @@ Deno.test("doc258 — DPIA: a stale approval turns an approval into a conditiona
   const asOf = new Date("2026-09-11T00:00:00Z");
   const stale = applyApprovalCurrency({ dpia_approval_date: "2024-03-20", dpia_signoff_basis: "Condition: annual DPO re-review." }, approved, asOf);
   assertEquals(stale.determination, "conditionally_approved");
-  assertEquals(stale.conditions, ["completing and recording the current review of this assessment — the approval recorded on 2024-03-20 is more than twelve months old at the date of this report, and the sign-off basis itself calls for an annual re-review"]);
+  assertEquals(stale.conditions, ["completing and recording the current review of this assessment — this assessment treats an approval more than twelve months old, at the date of this report, as needing current confirmation (the approval recorded on 2024-03-20 is more than twelve months old); that twelve-month treatment is this assessment's own practice, not a term of GDPR Art. 35(11), and the sign-off basis itself separately calls for an annual re-review"]);
   assertStringIncludes(stale.why, "May proceed. The processing may proceed as described on one condition: completing and recording the current review");
   assertEquals(applyApprovalCurrency({ dpia_approval_date: "2026-07-30" }, approved, asOf), approved);
   assertEquals(applyApprovalCurrency({}, approved, asOf), approved);

@@ -55,6 +55,37 @@ const riskConsumerBand: FixtureRule = {
   },
 };
 
+// ── risk.consumer-scale-bands ─────────────────────────────────────────────
+// Catches i3_ca_consumer_band (this Activity's recorded CA-consumer scale)
+// and q2_consumers (the Company's CA-consumer/household applicability band)
+// naming ranges that cannot both be true of one number — e.g. i3
+// "Fewer than 10,000" paired with q2 "1,000,000 or more". DOC 263 run 1 (f2):
+// this pairing is exactly what left Harborstone's fixture internally
+// inconsistent (i3 "10,000–100,000" vs q2 "100,000 to under 250,000" — those
+// two share only the single number 100,000; the lead review made that
+// edge-only overlap a failure as well).
+const riskConsumerScaleBands: FixtureRule = {
+  id: "risk.consumer-scale-bands",
+  title: "i3_ca_consumer_band and q2_consumers can both be true of one number",
+  check(intake) {
+    const i3Label = str(intake.i3_ca_consumer_band);
+    const q2Label = str(intake.q2_consumers);
+    const i3 = bandRange(i3Label);
+    const q2 = bandRange(q2Label);
+    if (!i3 || !q2) return [];
+    // Lead review (run 3): an overlap of a single boundary number (i3
+    // "10,000–100,000" against q2 "100,000 to under 250,000") is the exact
+    // pairing the reviewers called a tension — a record does not sit on a
+    // band edge by design — so the overlap must have positive width.
+    const overlapWidth = Math.min(i3.max, q2.max) - Math.max(i3.min, q2.min);
+    if (overlapWidth > 0) return [];
+    const fmt = (r: { min: number; max: number }) => `${r.min}-${r.max === Infinity ? "∞" : r.max}`;
+    return [
+      `i3_ca_consumer_band "${i3Label}" (${fmt(i3)}) and q2_consumers "${q2Label}" (${fmt(q2)}) overlap only at a band edge or not at all — no ordinary number satisfies both`,
+    ];
+  },
+};
+
 // ── risk.right-to-know-channels ──────────────────────────────────────────
 // Catches a q6 free-text answer that omits a selected access channel, or
 // names a phone/in-person channel that was never selected.
@@ -379,6 +410,7 @@ const riskRevenueBand: FixtureRule = {
 
 export const CPPA_RISK_RULES: readonly FixtureRule[] = [
   riskConsumerBand,
+  riskConsumerScaleBands,
   riskRightToKnowChannels,
   riskImpactVsPathways,
   riskRetentionRows,

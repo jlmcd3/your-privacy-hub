@@ -408,6 +408,22 @@ export const RISK_VERIFIED_AUTHORITIES: VerifiedAuthorityRegistry = {
     verified_on: VOD,
     primary_source_url: CCR_URL,
   }),
+  // doc 263 run 3 (2026-09-17, batch 3edc00df, Risk f21): the materiality
+  // definition is the second sentence of § 7155(a)(3); without it the reviewers
+  // read the product's correct statement of the three conditions as an
+  // invented limitation. Verbatim from the final text (page-header artefact
+  // removed from the corpus row the same day).
+  ra_timing_material_change_definition: R({
+    proposition_key: "ra_timing_material_change_definition",
+    citation: "11 CCR § 7155",
+    subsection: "11 CCR § 7155(a)(3)",
+    verbatim_quote:
+      "A change relating to the processing activity is material if it creates new negative impacts or increases the magnitude or likelihood of previously identified negative impacts as set forth in section 7152, subsection (a)(5), or diminishes the effectiveness of the safeguards as set forth in section 7152, subsection (a)(6).",
+    depth_class: "sub_subsection",
+    governing_anchor: ART10,
+    verified_on: "2026-09-17",
+    primary_source_url: CCR_URL,
+  }),
   ra_timing_existing: R({
     proposition_key: "ra_timing_existing",
     citation: "11 CCR § 7155",

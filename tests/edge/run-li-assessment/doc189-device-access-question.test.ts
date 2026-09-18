@@ -325,7 +325,10 @@ Deno.test("doc189 — end to end: Yes/goes-further forecloses the outcome; Yes/s
   assertEquals((claimed.report.eprivacy_short_circuit as Bag).determination, "exemption_claimed_on_the_record");
   const sk = assembleLiaSkeletonDocument(claimed.report, claimedIntake, { deterministic: true });
   const text = skeletonDocumentToText(sk.document);
-  assertStringIncludes(text, "only to the extent strictly necessary to provide a service the individual has requested");
+  // doc 263 run 3 (2026-09-17, batch 3edc00df lia f22) — the clause now
+  // tracks the intake option's own terms rather than adding an unrecorded
+  // fact about the individual having requested a service.
+  assertStringIncludes(text, "only to the extent the company records as strictly necessary for the purpose");
   assertStringIncludes(text, "does not verify it");
   assert(!text.includes("Additional Information Required"), "the claim must not read as an open gate");
 

@@ -478,9 +478,7 @@ export const ADMT_BLOCK_CATALOGUE: BlockCatalogue = {
       "fixed_text_prefix": null,
       "factor_ids": [],
       "sources": [],
-      "authorities": [
-        "§ 7001(ddd)(2)"
-      ]
+      "authorities": []
     },
     {
       "block_key": "executive_summary#p6",

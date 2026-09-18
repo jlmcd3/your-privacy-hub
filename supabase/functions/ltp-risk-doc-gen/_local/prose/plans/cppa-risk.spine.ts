@@ -136,8 +136,15 @@ export const RISK_SKELETON_CONTENT_HASH_V57 =
 // Step 5 describes the comparator § 4.C actually applies. Computed by
 // running the digest, never hand-derived; old-hash reproduction verified
 // before re-pin (V57 above).
-export const RISK_SKELETON_CONTENT_HASH =
+export const RISK_SKELETON_CONTENT_HASH_V58 =
   "1cdfb4e1cbbc2ce51b8fd9d225eeb9d38d36caff256947bf4404471c242fe9c6";
+// DOC 263 run 3 (2026-09-17, batch 3edc00df, Risk f16): the § 7152(a)(8)
+// contributor sentence states the row's own exception — "other than legal
+// counsel who provided legal advice" — instead of "legal counsel excepted".
+// Computed by running the digest, never hand-derived; old-hash reproduction
+// verified before re-pin (V58 above).
+export const RISK_SKELETON_CONTENT_HASH =
+  "4fb9cfec80233b3d15dcb37a8af06552f0a30cd2e4bbca157aac9079153d3b22";
 
 // A-TEAM S3 RULING I.24 (doc 115, 2026-08-31) — cover titles follow the fleet
 // Title Case convention (Batch 21a); ADMT's cover set the precedent. Cover
@@ -524,7 +531,7 @@ export const SKELETON_SECTIONS: readonly SkeletonSection[] = [
       { kind: "generated", text: "[GENERATED prior_assessments] RISK52_FIXED.prior_head + reported/absent branches. Engine key ii_information:16." },
       // 24 — providers (law; carried unchanged — a compound identification
       // requirement serving as a bridge, not a bare recitation opener).
-      { kind: "skeleton", text: "Sections 7151 and 7152(a)(8) require the assessment to identify the individuals who provided information for it (legal counsel excepted) and to include employees whose job duties involve the covered processing." },
+      { kind: "skeleton", text: "Sections 7151 and 7152(a)(8) require the assessment to identify the individuals who provided information for it (other than legal counsel who provided legal advice) and to include employees whose job duties involve the covered processing." },
       // 25 — record_providers (engine ii_information:18).
       { kind: "generated", text: "[GENERATED record_providers] RISK52_FIXED.providers_lead + consolidated list + external participants + RISK52_FIXED.providers_close. Engine key ii_information:18." },
     ],

@@ -43,6 +43,9 @@ import { ADVISORY_APPENDIX_PREAMBLE, advisoryMatchesTable, matchAdvisoryRows } f
 // DOC 175 (2026-09-04) — Syllabus & Record (doc 151); Cyber v4 is the sixth
 // product migrated onto the fleet presentation system, opening Tier 2.
 import { dispositionTone, type SyllabusProjection } from "../../../_shared/prose/syllabus.ts";
+// doc 263 run 3 (2026-09-17, batch 3edc00df cyber f1/f8) — the forward-cue
+// date detector already built for stale-commitment detection (DOC 259A).
+import { datedCommitments } from "../../../_shared/prose/temporal.ts";
 
 export const CYBER_V4_ASSEMBLER_STAMP = "cyber-skeleton-assembler@c2-spine-v1.1-2026-08-26";
 
@@ -74,6 +77,46 @@ function controlRec(intake: Bag, slug: string): { maturity: string; notes: strin
     }
   }
   return { maturity: "", notes: "", evidence: [] };
+}
+
+// doc 263 run 3 (2026-09-17, batch 3edc00df cyber f1/f8) — a date recorded in
+// a component's notes is a Company REMEDIATION TARGET only when the sentence
+// carrying it uses a forward-looking cue ("by", "target", "due", "planned",
+// "scheduled", "to be", "will" — datedCommitments' own SCHEDULING_CUE_RE/
+// DIRECT_CUE_RE), and never when that same sentence reports something already
+// done (completed/tested/succeeded/as of). The prior regexp
+// (/\b(20\d{2}-\d{2}-\d{2})\b/) took the first ISO date in the notes
+// unconditionally, so a completed penetration test (2026-05-01), a training
+// completion as-of date (2026-05-15) and a successful restore test
+// (2026-05-25) all rendered as "a Company target date stated in its notes."
+const COMPLETED_EVENT_RE = /\b(completed?|tested|succeeded|success(?:ful(?:ly)?)?|as of|achieved|finished|passed)\b/i;
+
+/** The sentence (bounded by `. `/`! `/`? `/newline`) containing the character at `at`. */
+function sentenceAround(text: string, at: number): string {
+  const before = text.slice(0, at);
+  const start = Math.max(before.lastIndexOf(". "), before.lastIndexOf("! "), before.lastIndexOf("? "), before.lastIndexOf("\n"));
+  const startAt = start < 0 ? 0 : start + 2;
+  const after = text.slice(at);
+  const endMatch = /[.!?](?=\s|$)/.exec(after);
+  const endAt = at + (endMatch ? endMatch.index + 1 : after.length);
+  return text.slice(startAt, endAt);
+}
+
+/** The ISO date (YYYY-MM-DD) in `notes` that the note text itself presents as
+ * a remediation target, or "" when none does. Reuses datedCommitments' own
+ * forward-cue detector; a sentence reporting a completed/tested/succeeded/
+ * as-of event never qualifies even when some other cue word appears nearby. */
+export function noteTargetDate(notes: string): string {
+  const text = s(notes);
+  if (!text) return "";
+  for (const c of datedCommitments(text)) {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(c.raw)) continue;
+    const at = text.indexOf(c.raw);
+    if (at < 0) continue;
+    if (COMPLETED_EVENT_RE.test(sentenceAround(text, at))) continue;
+    return c.raw;
+  }
+  return "";
 }
 
 // ── Tables ──────────────────────────────────────────────────────────────────
@@ -273,10 +316,12 @@ function deriveActionRegister(
             r.slot.template.replace("{fact}", recommendationFact(rec.notes, rec.maturity)),
             ACTION_TYPE_BY_GAP_CLASS[r.key.gapClass] ?? "Readiness",
             PRIORITY_TIER_LABEL[r.priority] ?? r.priority,
-            // doc 263 run 2 (2026-09-17, batch fc0119e9 cyber f3) — a Company target
-            // date stated in the control's notes is carried beside the EUP tier.
+            // doc 263 run 2 (2026-09-17, batch fc0119e9 cyber f3), corrected
+            // run 3 (batch 3edc00df cyber f1/f8) — a bare ISO date in the
+            // notes is not necessarily a target; noteTargetDate only returns
+            // one the note text itself presents as forward-looking.
             (() => {
-              const d = /\b(20\d{2}-\d{2}-\d{2})\b/.exec(rec.notes)?.[1];
+              const d = noteTargetDate(rec.notes);
               return d ? `${r.priority}; Company target ${d} (per the record's notes)` : r.priority;
             })(),
             owner || "Not recorded",
@@ -326,6 +371,21 @@ function deriveAssessmentProfileRecord(intake: Bag, reportDate: string): Rendere
       // doc 263 run 1 (2026-09-17, batch eac083a5 f5) — the A2 applicability
       // determination rests on the revenue band; the provenance table keeps it.
       field("Annual revenue", "q1_revenue"),
+      // doc 263 run 3 (2026-09-17, batch 3edc00df cyber f10) — Appendix D is
+      // described as preserving "the profile and control facts this report
+      // rests on," but the § 7120 applicability table (cyber-applicability.ts:
+      // resolveA1/resolveA2/resolveRevenueGate/resolveVolumeProng) reads seven
+      // more profile facts than the single revenue band above, and component
+      // 1's password/MFA finding (cyber-factors.ts buildComponentAnalyses)
+      // reads an eighth. Every one of those keys gets its own row here.
+      field("Revenue reference year", "q1_revenue_reference_year"),
+      field("Gross revenue above the CCPA threshold (straddling band only)", "q1_revenue_threshold_check"),
+      field("Consumers' personal information processed annually", "q2_consumers"),
+      field("Sells or shares personal information", "q5_sell_share"),
+      field("50%+ of revenue from selling/sharing personal information", "q5c_share_revenue_50pct"),
+      field("Processes sensitive personal information", "q15_sensitive_pi"),
+      field("Consumers' sensitive personal information processed annually", "q15c_spi_volume"),
+      field("Password/passphrase authentication used (component 1)", "password_auth_used"),
       field("Primary framework", "framework"),
       field("Most recent audit", "last_audit"),
       field("Incidents (12 months)", "incidents_12mo"),
@@ -363,14 +423,17 @@ function deriveAssessmentControlRecord(intake: Bag): RenderedTable {
   };
 }
 
-/** doc 263 run 2 (2026-09-17, batch fc0119e9 cyber f10, f2) — the two fixed
- *  sentences that read the record: the signature's basis clause (§ 7120
- *  applicability) and the readiness plan note (a Company target date stated
- *  in a control's notes). Both are slots on the byte-pinned spine. */
+/** doc 263 run 2 (2026-09-17, batch fc0119e9 cyber f10, f2), corrected run 3
+ *  (batch 3edc00df cyber f1/f8) — the two fixed sentences that read the
+ *  record: the signature's basis clause (§ 7120 applicability) and the
+ *  readiness plan note (a Company target date stated in a control's notes —
+ *  noteTargetDate only returns a date the note text itself presents as a
+ *  forward-looking target, never a completed/tested/succeeded/as-of date).
+ *  Both are slots on the byte-pinned spine. */
 function skeletonValuesFor(intake: Bag, entity: string): Record<string, string> {
   const auditRequired = resolveCyberApplicability((intake.profile ?? {}) as Bag).auditRequired.value;
   const dated = CYBER_7123_COMPONENTS
-    .map((c) => ({ label: c.label, date: /\b(20\d{2}-\d{2}-\d{2})\b/.exec(controlRec(intake, c.slug).notes)?.[1] ?? "" }))
+    .map((c) => ({ label: c.label, date: noteTargetDate(controlRec(intake, c.slug).notes) }))
     .filter((x) => x.date);
   return {
     "profile.entity_name": entity,

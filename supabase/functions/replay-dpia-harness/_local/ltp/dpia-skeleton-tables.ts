@@ -16,7 +16,7 @@
 
 import type { RenderedTable, SkeletonTables } from "../../../_shared/prose/skeleton-render.ts";
 import { DPIA_SKELETON_SECTIONS } from "../prose/plans/dpia.spine.ts";
-import { readDpiaRegime } from "../../../_shared/ltp/dpia-deliverables/build.ts";
+import { parseCompanyStatedResidualRisk, readDpiaRegime } from "../../../_shared/ltp/dpia-deliverables/build.ts";
 
 type Bag = Record<string, unknown>;
 
@@ -601,7 +601,7 @@ function riskExposureTable(
   ], rows);
 }
 
-function riskRegisterTable(rowsIn: Bag[]): RenderedTable | null {
+function riskRegisterTable(rowsIn: Bag[], companyStated?: { risk: string; basis: string }): RenderedTable | null {
   const rows = rowsIn.map((r) => [
     cell(r.risk_label),
     label(r.likelihood),
@@ -615,6 +615,34 @@ function riskRegisterTable(rowsIn: Bag[]): RenderedTable | null {
         : "No measure is recorded against this risk."),
     label(r.residual_band),
   ]);
+  // doc 263 run 3 (2026-09-17, batch 3edc00df, DPIA D3) — a company-identified residual risk
+  // (`residual_risks`), in the company's own words together with its
+  // recorded acceptance basis, is a genuine register entry the four
+  // EDPB-triggered risks above never capture. Appended here as a DISPLAY-ONLY
+  // row, never through `report.risk_register` (see build.ts's
+  // buildRiskRegister comment): the four cells this pipeline's shared
+  // band/likelihood vocabulary would otherwise force it through ("Likelihood
+  // is Unlikely/Possible/Likely", "Remaining risk level is
+  // low/moderate/high/undetermined") do not fit a risk the company has
+  // already accepted outside this assessment's own scoring, so this row
+  // states plainly that it was not put through that scoring, and carries the
+  // company's own basis verbatim in the Measures cell.
+  if (companyStated) {
+    rows.push([
+      companyStated.risk,
+      "Not scored by this assessment",
+      "Not scored by this assessment",
+      "Not scored by this assessment",
+      // doc 263 run 3 (2026-09-17, batch 3edc00df, DPIA F3) — a plain-sentence
+      // residual_risks narrative (no "; accepted because …" clause) now
+      // reaches this row via parseCompanyStatedResidualRisk's fallback, with
+      // an empty basis; the cell states that plainly instead of printing a
+      // blank.
+      companyStated.basis || "No acceptance basis recorded",
+      "Accepted by the company on the basis recorded",
+    ]);
+  }
+  if (rows.length === 0) return null;
   return table("risk_register", "Risk register", [
     "Risk",
     "Likelihood",
@@ -776,7 +804,7 @@ export function buildDpiaTablesBySurface(report: Bag, intake: Bag): Record<strin
       "Risks arising from deviation, malfunction or attack",
       register.filter((r) => riskClassOf(r) === "incident"),
     ),
-    "risk_register": riskRegisterTable(register),
+    "risk_register": riskRegisterTable(register, parseCompanyStatedResidualRisk(intake.residual_risks) ?? undefined),
     "decision": decisionTable(report, intake),
     "gap_ledger": gapLedgerTable(report),
   };

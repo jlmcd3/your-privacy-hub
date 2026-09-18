@@ -423,6 +423,26 @@ export function applyDpiaHooks(
         continue;
       }
     }
+    // doc 263 run 3 (2026-09-17, batch 3edc00df, DPIA D1) — the CAM carries no `advisory_terms` row
+    // for the MediaLab.AI hook (source_row_id 0675e6a0-66ba-4173-8bce-
+    // be113e70604e), so the doc-263 CAM-based gate immediately above is a
+    // silent no-op for it: `terms.length` is 0, so its `if` never fires.
+    // The hook's `required_atoms`/`fact_atoms` are `["flag:children"]` alone,
+    // so without a further guard it fires on ANY record naming children's
+    // data — including a physical, offline process (a fingerprint till) with
+    // only a PARENT-facing consent mechanism, not a child-facing online
+    // service. Its override paragraph opens "The record describes an online
+    // platform or service that children under 18 can access", a fact
+    // `flag:children` does not establish. Require the record's own text
+    // (`opts.recordText`) to name an online service/platform/app/website —
+    // a "portal" mention alone does not (Thornfield's only online component
+    // is a PARENT consent portal, never used by the pupils themselves).
+    if (hook.source_row_id === "0675e6a0-66ba-4173-8bce-be113e70604e" && opts.recordText !== undefined) {
+      if (!/\b(online service|online platform|platform|app|website|web site)\b/i.test(opts.recordText)) {
+        flags.push({ hook_id: hook.hook_id, reason: "override_scenario_not_on_record" });
+        continue;
+      }
+    }
 
     // Same priority rule as LIA's join: a distinguishing atom or PAIR whose
     // record atom holds with its authored polarity takes priority over the

@@ -70,6 +70,10 @@ export const CYBER_AUTHORITY_LOCATORS: readonly CyberAuthorityLocator[] = [
   { proposition_key: "cyber_retention_5yr", citation: "11 CCR § 7122", subsection: "11 CCR § 7122(g)", provision_key: "cppa-7122", path: "g", starts_with: "The business and the auditor", ends_with: " of the cybersecurity audit." },
   { proposition_key: "cyber_scope_protects_pi", citation: "11 CCR § 7123", subsection: "11 CCR § 7123(a)", provision_key: "cppa-7123", path: "a", starts_with: "The cybersecurity audit must", ends_with: "ity of personal information." },
   { proposition_key: "cyber_scope_assess_program", citation: "11 CCR § 7123", subsection: "11 CCR § 7123(b)", provision_key: "cppa-7123", path: "b", starts_with: "The cybersecurity audit must", ends_with: "rsecurity audit must assess:" },
+  // doc 263 run 3 (2026-09-17, batch 3edc00df, Cyber f23/f33/f39): § 7123(b)(2) is the
+  // limb that makes the (c) components subject to the auditor's applicability
+  // judgment; the FSOR digest for c14 quotes its words, which had no row.
+  { proposition_key: "cyber_scope_assess_components_deemed_applicable", citation: "11 CCR § 7123", subsection: "11 CCR § 7123(b)(2)", provision_key: "cppa-7123", path: "b(2)", starts_with: "Each of the components of a ", ends_with: "siness's information system." },
   { proposition_key: "cyber_components_chapeau", citation: "11 CCR § 7123", subsection: "11 CCR § 7123(c)", provision_key: "cppa-7123", path: "c", starts_with: "The cybersecurity audit must", ends_with: "g components, if applicable:" },
   { proposition_key: "cyber_c1_authentication", citation: "11 CCR § 7123", subsection: "11 CCR § 7123(c)(1)", provision_key: "cppa-7123", path: "c(1)", starts_with: "Authentication, including:", ends_with: "Authentication, including:" },
   { proposition_key: "cyber_c2_encryption", citation: "11 CCR § 7123", subsection: "11 CCR § 7123(c)(2)", provision_key: "cppa-7123", path: "c(2)", starts_with: "Encryption of personal infor", ends_with: "ion, at rest and in transit." },

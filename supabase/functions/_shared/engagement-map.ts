@@ -276,11 +276,23 @@ export function buildLiaEngagementMap(
       : eprivacyExemptionClaimed
         // DOC 250 B1 (CEO-ratified bytes, 2026-09-10): pinpointed to Art. 5(3)
         // / PECR reg 6; the subject-to clause retired with the ratification.
-        ? "The company states that the processing stores information on, or reads information from, individuals' devices only to the extent strictly necessary to provide a service the individual has requested. Under Article 5(3) of the ePrivacy Directive (Directive 2002/58/EC) (regulation 6 of the Privacy and Electronic Communications (EC Directive) Regulations 2003 in the United Kingdom), consent is not required in that context. This assessment records the statement but does not verify it."
+        // doc 263 run 2 (2026-09-17, batch fc0119e9 lia f22) — the intake's
+        // device_access_strictly_necessary option is "Yes — all of it is
+        // strictly necessary for the purpose"; it says nothing about the
+        // individual having requested a service, and the people affected
+        // recorded elsewhere in this assessment are often the client's own
+        // employees or contractors, not a customer of the controller. The
+        // clause now tracks the option's own terms instead of adding a fact
+        // ("a service the individual has requested") the record does not
+        // state.
+        ? "The company states that the processing stores information on, or reads information from, individuals' devices only to the extent the company records as strictly necessary for the purpose. Under Article 5(3) of the ePrivacy Directive (Directive 2002/58/EC) (regulation 6 of the Privacy and Electronic Communications (EC Directive) Regulations 2003 in the United Kingdom), consent is not required in that context. This assessment records the statement but does not verify it."
         : eprivacyGateDetermination === "not_engaged_on_the_record"
           ? "The record's description of the processing does not indicate storage of or access to information on a user's device; the ePrivacy Directive / PECR 2003 overlay is not engaged by the processing as described."
           : messagesLimbOpen
-            ? "PECR/ePrivacy applicability — Additional Information Required. The company states that the processing stores information on, or reads information from, individuals' devices only to the extent strictly necessary to provide a service the individual has requested (Article 5(3) of the ePrivacy Directive; PECR regulation 6), recorded as the company's statement and not verified here. Whether the processing also involves sending electronic marketing messages to individuals (PECR regulation 22) is not established by the record; confirm the channels and recipients of any such messages before drawing that conclusion."
+            // doc 263 run 2 (2026-09-17, batch fc0119e9 lia f22) — same fix
+            // as the exemption_claimed branch above: the intake's own terms,
+            // not an added fact about who requested what.
+            ? "PECR/ePrivacy applicability — Additional Information Required. The company states that the processing stores information on, or reads information from, individuals' devices only to the extent the company records as strictly necessary for the purpose (Article 5(3) of the ePrivacy Directive; PECR regulation 6), recorded as the company's statement and not verified here. Whether the processing also involves sending electronic marketing messages to individuals (PECR regulation 22) is not established by the record; confirm the channels and recipients of any such messages before drawing that conclusion."
           : "The record does not establish whether the processing involves storage of or access to information on a user's device in a manner that engages the ePrivacy Directive / PECR 2003; this is an open determination, not a finding either way.",
     intake_signals: [
       "processing_description",
@@ -514,10 +526,15 @@ export function buildDpiaEngagementMap(
     const detailNote = imageryDetail ? ` The Company adds: "${imageryDetail}".` : "";
     const publicSpaces = imagerySpaces === "Publicly accessible spaces" || imagerySpaces === "Both";
     if (imageryCapture === CAP_NONE) {
+      // doc 263 run 3 (2026-09-17, batch 3edc00df, DPIA D12) — imagery/video capture is not the
+      // Art. 35(3)(c) test; the provision is systematic monitoring of a
+      // publicly accessible area on a large scale. The absence of imagery is
+      // kept as useful context, but the operative reason now states the
+      // row's actual elements.
       return {
         ...base,
         status: "not_engaged" as const,
-        rationale: `${lead} No imagery or video of identifiable individuals is captured, so Article 35(3)(c) is not engaged on the record as described.${detailNote}`,
+        rationale: `${lead} No imagery or video of identifiable individuals is captured; the record describes no systematic monitoring of a publicly accessible area on a large scale, so Article 35(3)(c) is not engaged on the record as described.${detailNote}`,
       };
     }
     if (imageryCapture === CAP_INCIDENTAL) {

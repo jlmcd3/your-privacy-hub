@@ -46,7 +46,7 @@ import { buildDpiaSkeletonTables, buildDpiaTablesBySurface } from "./dpia-skelet
 // product migrated onto the fleet presentation system.
 import { dispositionTone, type SyllabusProjection } from "../../../_shared/prose/syllabus.ts";
 // PROMPT 9H item 3 — the record's regime drives the ToA prefix and the header.
-import { DPIA_NECESSITY_TEST_SENTENCE, dpoFromPreparedBy, namesGdprJurisdiction, readDpiaRegime, readDpiaRegimeScope } from "../../../_shared/ltp/dpia-deliverables/build.ts";
+import { DPIA_NECESSITY_TEST_SENTENCE, dpoFromPreparedBy, namesGdprJurisdiction, parseCompanyStatedResidualRisk, readDpiaRegime, readDpiaRegimeScope } from "../../../_shared/ltp/dpia-deliverables/build.ts";
 import { repairRegister } from "../../../_shared/ltp/register-repair.ts";
 import { dataSubjectsViewsSlot, dpoSentence } from "../../../_shared/ltp/dpia-deliverables/consultation-sentences.ts";
 export { dataSubjectsViewsSlot, dpoSentence };
@@ -861,21 +861,42 @@ function topRisk(report: Bag): Bag | null {
   return [...rows].sort((a, b) => rank(a) - rank(b))[0];
 }
 
-function composeRiskLead(report: Bag): string {
+function composeRiskLead(report: Bag, intake: Bag = {}): string {
   const top = topRisk(report);
+  // doc 263 run 3 (2026-09-17, batch 3edc00df, DPIA D3) — a company-identified residual risk
+  // (`residual_risks`) is read directly from the intake, never via
+  // `report.risk_register` (build.ts's buildRiskRegister deliberately keeps
+  // it out of that array — see its own comment — because every band that
+  // array can carry feeds Art. 36(1)/sign-off gating and band-counted
+  // sentences this company-accepted risk was never meant to disturb).
+  // Appended here as its own sentence, alongside whichever engine-scored
+  // risk this closing lead already names.
+  const companyStated = parseCompanyStatedResidualRisk(intake.residual_risks);
+  // doc 263 run 3 (2026-09-17, batch 3edc00df, DPIA F3) — a plain-sentence
+  // residual_risks narrative carries no acceptance basis (companyStated.basis
+  // is "" via parseCompanyStatedResidualRisk's fallback); the sentence omits
+  // the "on the following basis" clause rather than printing an empty quote,
+  // and does not claim an "accepted" basis the record does not state.
+  const companyTail = companyStated
+    ? companyStated.basis
+      ? ` The company has also separately recorded and accepted a residual risk of its own — ${noStop(companyStated.risk)} — on the following basis: "${companyStated.basis}".`
+      : ` The company has also separately recorded a residual risk of its own — ${noStop(companyStated.risk)}.`
+    : "";
   if (!top) {
-    return "No risk register has been assembled based on the information the company provided, so no remaining risk level can be stated.";
+    return companyStated
+      ? `No risk register has been assembled from this assessment's own triggers based on the information the company provided, so no engine-assessed remaining risk level can be stated.${companyTail}`
+      : "No risk register has been assembled based on the information the company provided, so no remaining risk level can be stated.";
   }
   const label = noStop(s(top.risk_label)) || "the risk identified below";
   const band = (s(top.residual_band) || s(top.inherent_band)).toLowerCase();
   if (band === "undetermined") {
-    return `After the mitigating measures the company has recorded, the remaining risk level for ${label} is undetermined, and that is the most significant open point in this assessment.`;
+    return `After the mitigating measures the company has recorded, the remaining risk level for ${label} is undetermined, and that is the most significant open point in this assessment.${companyTail}`;
   }
   // PROMPT 9I item 3(b) (CEO-ratified 2026-08-15) — Section 4's CLOSING
   // summary sentence, byte-fixed.
-  return band
+  return (band
     ? `After the mitigating measures the company has identified, the most significant remaining risk is: ${label}, assessed at a residual risk level of ${band}.`
-    : `After the mitigating measures the company has identified, the most significant remaining risk is: ${label}.`;
+    : `After the mitigating measures the company has identified, the most significant remaining risk is: ${label}.`) + companyTail;
 
 }
 
@@ -1025,20 +1046,31 @@ function composeSignoffBody(report: Bag, intake: Bag, values: SlotValues): strin
   // only where the record carries the approval FACT — dpia_approval_date, the
   // same field the validation-and-approval particulars already read.
   const approvalDate = s(intake.dpia_approval_date);
+  // doc 263 run 3 (2026-09-17, batch 3edc00df, DPIA D7) — `buildDpiaValidationApproval`
+  // (dpia-deliverables/attestation.ts), the single writer of what an
+  // approver/date/basis record MEANS on this record, states plainly that the
+  // attestation "records the assessment the controller carried out before
+  // the processing described in it was carried out" — approval OF THE
+  // ASSESSMENT/PROCESSING, not a separate, independent act of accepting each
+  // risk in the register. The sentence below previously asserted that
+  // separate acceptance from the approver+date fact alone, contradicting the
+  // attestation's own scope. Reconciled: the recorded approval is the
+  // decision on the processing, and the register's remaining risk levels are
+  // that decision's consequence, not an independently recorded acceptance.
   if (approver && approvalDate) {
     parts.push(
-      `${approver}${title ? `, ${title},` : ""} is recorded as the person accepting the remaining risk levels${total ? ` across the ${total === 1 ? "single risk" : `${total} risks`} this assessment reviews` : ""}.`,
+      `${approver}${title ? `, ${title},` : ""} is recorded as having approved the processing described in this assessment${total ? `, which carries the ${total === 1 ? "one risk" : `${total} risks`} set out above` : ""}; the remaining risk levels stated in this assessment follow from that approval of the processing, and no separate act of accepting each risk individually is recorded.`,
     );
   } else if (approver) {
     parts.push(
-      `${approver}${title ? `, ${title},` : ""} is named as the approver, but the record carries no approval date, so the remaining risk levels set out above are not recorded as accepted.`,
+      `${approver}${title ? `, ${title},` : ""} is named as the approver, but the record carries no approval date, so the processing described in this assessment is not recorded as approved.`,
     );
   } else {
-    parts.push("No approver has been recorded, so the remaining risk levels set out above have not yet been accepted by anyone on the company's behalf.");
+    parts.push("No approver has been recorded, so the processing described in this assessment has not yet been approved by anyone on the company's behalf.");
   }
 
   if (basis) {
-    parts.push(stop(`The basis recorded for that acceptance is as follows: ${spliceVerbatim(basis)}`));
+    parts.push(stop(`The basis recorded for that approval is as follows: ${spliceVerbatim(basis)}`));
     // DOC 130 DPIA-SIGNOFF (Batch 3 A-Team recommendation, CEO-approved
     // 2026-09-01) — sign-off traceability guard: where the Company's own
     // acceptance basis speaks of accepted risks, the reader is pointed to
@@ -1194,7 +1226,6 @@ function dpiaAlreadyCitedIds(): ReadonlySet<string> {
  *  only where the record carries that fact. The bytes are unchanged; the gate
  *  is on the record. Rows whose bearing is record-neutral always render. */
 export function dpiaPrecedentApplies(rowId: string, intake: Bag): boolean {
-  const text = [intake.data_subjects, intake.description, intake.processing_activity_name, intake.purpose, intake.nature_scope_context].map((v) => s(v)).join(" ");
   switch (rowId) {
     case "dpia/dpia-requirement-high-risk-trigger/ap-02": {
       // "assess BEFORE deploying" — processing already underway is reviewed, not assessed before deployment.
@@ -1208,7 +1239,17 @@ export function dpiaPrecedentApplies(rowId: string, intake: Bag): boolean {
         asArray(intake.data_categories).some((c) => /\b(biometric|health|medical|genetic|special|racial|ethnic|political|religious|philosophical|sexual|trade union)\b/i.test(s(c)));
     case "dpia/data-subject-rights/ap-01":
       // "Workplace monitoring is among the processing contexts this assessment evaluates".
-      return /\b(employee|employees|staff|worker|workers|workforce|personnel|workplace)\b/i.test(text);
+      // doc 264 (2026-09-17, R2 D2a) — the prior word-scan over `text` (which
+      // includes `description`/`nature_scope_context`) fired on any incidental
+      // mention of "staff" — e.g. Thornfield's "till staff are trained to
+      // honour a pupil's own objection", canteen staff supervising PUPILS, not
+      // the Company's own employees. Gate instead on an actual employee/
+      // workplace fact: the recorded data categories naming employee records,
+      // or the record's own statement of WHO the data subjects are (never the
+      // wider free-text description, which can mention "staff" for reasons
+      // unconnected to workplace monitoring).
+      return asArray(intake.data_categories).some((c) => /employee records/i.test(s(c))) ||
+        /\b(employee|employees|workforce|personnel)\b/i.test(s(intake.data_subjects));
     default:
       return true;
   }
@@ -2210,7 +2251,7 @@ export function assembleDpiaSkeletonDocument(report: Bag, intakeInput: Bag, v3Ap
     "section_3_necessity_proportionality:2": composeNecessityDetermination(report),
 
     "section_4_risk_management:5": composeRiskBody(report, values, intake),
-    "section_4_risk_management:6": composeRiskLead(report),
+    "section_4_risk_management:6": composeRiskLead(report, intake),
 
 
     "section_6_conclusion:2": composeSignoffLead(report, intake),

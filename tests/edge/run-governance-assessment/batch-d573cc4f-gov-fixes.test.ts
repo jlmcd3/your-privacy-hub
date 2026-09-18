@@ -81,7 +81,7 @@ Deno.test("GOV6-02 — a dual-regime record with an EU-only mechanism asks per-l
   const ask = String(out.information_needed);
   assertStringIncludes(ask, "For the EU leg, the record names the mechanism type but not the executed document");
   assertStringIncludes(ask, "For the UK leg, no mechanism is recorded at all");
-  assertStringIncludes(ask, "adopt and execute the IDTA or the Addendum as executed and the exporter's own Article 46(6) assessment");
+  assertStringIncludes(ask, "adopt and execute the Commissioner's standard clauses (published as the IDTA or the Addendum) together with the exporter's own Article 46(6) assessment");
 });
 
 Deno.test("GOV6-02 — a single-regime record (EU only) keeps the prior generic per-leg phrasing, unchanged", () => {

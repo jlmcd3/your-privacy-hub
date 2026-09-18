@@ -603,7 +603,7 @@ export const RISK_BLOCK_CATALOGUE: BlockCatalogue = {
       "section_id": "ii_information",
       "section_title": "2. The Information Provided",
       "kind": "skeleton",
-      "fixed_text_prefix": "Sections 7151 and 7152(a)(8) require the assessment to identify the individuals who provided information for it (legal counsel excepted) and to include employee",
+      "fixed_text_prefix": "Sections 7151 and 7152(a)(8) require the assessment to identify the individuals who provided information for it (other than legal counsel who provided legal adv",
       "factor_ids": [],
       "sources": [],
       "authorities": []

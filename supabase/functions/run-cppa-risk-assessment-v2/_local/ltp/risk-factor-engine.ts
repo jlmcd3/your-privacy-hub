@@ -1857,7 +1857,15 @@ export function runRiskFactorEngine(
   }
   if (b6TrainedDecisionContradicted) {
     followUps.push(
-      `Reconcile the § 7150(b)(6) answer that personal information trains ADMT for significant decisions with the decision category recorded (“${admtDecisionRecorded}”), which names no significant-decision category; § 7150(b)(6) turns on the decision the trained technology is intended to make or support`,
+      // DOC 263 run 3, batch 3edc00df (f43) — § 7150(b)(6) has two decision-independent
+      // limbs (registry row ra_trigger_train): training an ADMT for a
+      // significant decision, OR training a facial-recognition, emotion-
+      // recognition, or other identity-verification/physical-or-biological-
+      // identification-or-profiling technology. Framing the reconciliation
+      // only against the recorded decision category risked the trigger
+      // being dismissed where the second, decision-independent limb
+      // applies; the record does not say whether it does.
+      `Reconcile the § 7150(b)(6) answer that personal information trains ADMT for significant decisions with the decision category recorded (“${admtDecisionRecorded}”), which names no significant-decision category; § 7150(b)(6) is engaged by training an ADMT for a significant decision concerning a consumer, or by training a facial-recognition, emotion-recognition, or other technology that verifies a consumer’s identity, or conducts physical or biological identification or profiling of a consumer, and the information provided does not state whether that second, decision-independent limb applies`,
     );
   }
   if (b6TrainedDecisionUnidentified) {
@@ -2840,7 +2848,9 @@ export function runRiskFactorEngine(
     const method = clause(intake.consumer_interaction_method) || sourcesFallback;
     const usingSourcesFallback = !clause(intake.consumer_interaction_method) && !!sourcesFallback;
     const ipurpose = clause(intake.consumer_interaction_purpose);
-    const n = clause(intake.approximate_ca_consumers) || clause(intake.i3_ca_consumer_band);
+    const approxCaText = clause(intake.approximate_ca_consumers);
+    const caConsumerBand = clause(intake.i3_ca_consumer_band);
+    const n = approxCaText || caConsumerBand;
     const dependency = relationshipContext === "Employees or job applicants" ||
       relationshipContext === "Students" ||
       relationshipContext === "Patients or health-service recipients";
@@ -2861,7 +2871,16 @@ export function runRiskFactorEngine(
         bits.push(`${clauses.join(", ")}.`);
       }
       if (n) {
-        bits.push(`The approximate California scale, as the Company states it, is: “${n}”.`);
+        // DOC 263 run 3, batch 3edc00df (f2) — the composed sources for this block name
+        // INTAKE:i3_ca_consumer_band, but the sentence stated only the
+        // free-text approximate figure and never surfaced the recorded band.
+        // Where both are on the record, the band is stated alongside the
+        // Company's own figure rather than in place of it.
+        bits.push(
+          approxCaText && caConsumerBand
+            ? `The Company records its California consumer scale in the band ${caConsumerBand}; as the Company states it: “${approxCaText}”.`
+            : `The approximate California scale, as the Company states it, is: “${n}”.`,
+        );
       }
       if (relationshipContext) {
         // DOC 148 (A-Team Batch-8 P2) — the bare enum echo "The affected
@@ -3993,7 +4012,18 @@ export function runRiskFactorEngine(
       "E. Automated Decisionmaking Technology.\n\nAn automated system that decides, or helps decide, something significant for a consumer is assessed on what it actually does, not on the label applied to it, so this sub-part evaluates the system's role, the human review around it, and the testing behind it; the full technical record appears in Appendix E.\n\n" +
         (b3Class === "significant"
           ? "Governing requirement. Section 7152(a)(3)(G) requires the report to describe the technology’s role, logic, and output, and §§ 7001(e), 7150(b)(3), 7152(a)(5)(B) and 7152(a)(6)(A)(iv) make human review and accuracy-fairness-bias testing relevant to both the risk analysis and the safeguards."
-          : "Governing requirement. Section 7152(a)(3)(G) requires that description where automated decisionmaking technology is used to make a significant decision concerning a consumer (§ 7150(b)(3)); that use is not established on the information provided, and this sub-part is carried as a supplemental record — §§ 7001(e), 7152(a)(5)(B) and 7152(a)(6)(A)(iv) still make human review and accuracy-fairness-bias testing relevant to the risk analysis and the safeguards it weighs.") +
+          // DOC 263 run 3, batch 3edc00df (f42) — tightened to what each row actually says:
+          // § 7001(e) is cited only as the definition (it does not itself
+          // make human review "relevant to the risk analysis"); § 7152(a)
+          // (6)(A)(iv) is an illustrative safeguard for policies, procedures,
+          // and training that ensure the ADMT works as intended and does not
+          // unlawfully discriminate — it does not mention testing, so
+          // "accuracy-fairness-bias testing" is no longer stated as a
+          // requirement of these rows; where the record has testing, it is
+          // described as the Company's own recorded testing instead.
+          : `Governing requirement. Section 7152(a)(3)(G) requires that description where automated decisionmaking technology is used to make a significant decision concerning a consumer (§ 7150(b)(3)); that use is not established on the information provided, and this sub-part is carried as a supplemental record — § 7001(e) defines the automated decisionmaking technology and its human-review test, and § 7152(a)(6)(A)(iv) still makes policies, procedures, and training that ensure the ADMT works as intended and does not unlawfully discriminate relevant to the safeguards it weighs${
+            admtTestingFacts.length ? ", alongside the Company’s recorded testing" : ""
+          }.`) +
         (admtEvaluationActive
           ? "\n\nThe Company records the technology as under evaluation rather than deployed for decisions. The description is assessed on that posture: the § 7150(b)(3) trigger applies only when the technology is used to make a significant decision concerning a consumer, and the record preserved here supports that analysis if the evaluation proceeds to deployment."
           : ""),
@@ -4161,6 +4191,15 @@ export function runRiskFactorEngine(
         // a safeguard to the testing record from its own text is withdrawn;
         // a structured link on the safeguard row would restore the
         // cross-reference exactly.
+        // DOC 263 run 3, batch 3edc00df (f7) — a partial record (e.g. bias testing confirmed,
+        // accuracy testing not) rendered ONLY the negative "does not confirm"
+        // clause and never surfaced the testing the Company actually
+        // recorded; the positive facts otherwise surfaced only in Appendix E.
+        // The confirmed tests, and their recency where confirmed, are now
+        // stated before the gap is named.
+        const confirmedTests: string[] = [];
+        if (accuracy) confirmedTests.push("accuracy or validity testing");
+        if (bias) confirmedTests.push("discriminatory-impact testing");
         const testingText = noneTyped
           ? "No testing has been performed or confirmed for the system, and accuracy and fairness claims carry no evidentiary support — which weighs against the processing until testing is obtained."
           : accuracy && bias && recent
@@ -4169,6 +4208,12 @@ export function runRiskFactorEngine(
           }; this record is noted but produces no separate credit in the § 4.A ledger${
             providerOnly ? ", and the provider dependency is noted" : ""
           }.`
+          : confirmedTests.length
+          ? `The Company confirms ${asProse(confirmedTests)}${recent ? ", performed or reviewed within the last 12 months" : ""}${
+            providerOnly ? ", performed by the provider rather than the Company" : ""
+          }; it does not confirm ${asProse(testGaps)}. No safeguard in the § 4.A ledger is keyed to this testing record${
+            admtTestingRecommended ? ", and completing the identified testing appears among the Recommendations in § 4.D." : "."
+          }`
           : `The testing described does not confirm ${asProse(testGaps)}${
             providerOnly ? ", and the testing that exists was performed by the provider rather than the Company" : ""
           }. No safeguard in the § 4.A ledger is keyed to this testing record${

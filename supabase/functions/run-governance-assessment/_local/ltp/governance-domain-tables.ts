@@ -288,7 +288,13 @@ function incidentResponse(intake: Bag): TypedDomainFinding {
       severity: "Compliant",
       current_state: "An incident response plan exists and was tested within the last 12 months.",
       gap_description: null,
-      recommended_action: "Keep the test cadence, and confirm the plan treats data exposure through external tools as a notifiable-breach scenario.",
+      // doc 263 run 3 (2026-09-17, batch 3edc00df gov f22) — "a notifiable-
+      // breach scenario" overstated Art. 33(1): notification to the
+      // supervisory authority is not automatic on every breach, and
+      // notification to data subjects is a separate, higher threshold
+      // (Art. 34(1)). Restated as an assessment duty, with both thresholds
+      // named.
+      recommended_action: "Keep the test cadence, and confirm the plan treats data exposure through external tools as a personal data breach to be assessed for notification under Art. 33(1) (notifiable to the supervisory authority unless the breach is unlikely to result in a risk to individuals, and to the data subjects where a high risk is likely, Art. 34(1)).",
     },
     "Yes, but not tested": {
       severity: "Medium",
