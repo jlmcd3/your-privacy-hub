@@ -75,6 +75,11 @@ export const RISK_LINT_PROFILE: LintProfile = {
     /^Safeguards supported by evidence that they operate earn the assessment’s full credit/,
     /^Safeguards (?:planned|in progress|reported)\b.*credit/,
     /^The Company assesses the likelihood as \w+ and the severity as \w+, and the risk is rated/,
+    // § 4 per-risk determination prose on a THIN record (Product Test run
+    // 6a7e6c84, thin-all variant): every risk with no safeguard directed at
+    // it carries the same sentence — the same clause-library template class
+    // as the ledger sentences above. Style ruling to vary it belongs to the CEO.
+    /^No safeguard in the information provided is directed at this risk, so it enters the balance at its full level\./,
   ],
   labelPairs: [
     {
@@ -160,6 +165,17 @@ export const CYBER_LINT_PROFILE: LintProfile = {
   // golden). Remove this entry the day item 13 is decided the other way.
   byDesignDuplicates: [
     /^General § 7123 agency response; no subsection-specific discussion was identified/,
+    // Per-component template sentences on a THIN record (Product Test run
+    // 6a7e6c84, thin-all variant: notes, evidence and status removed from
+    // all eighteen components): each component with no status, no evidence
+    // and no record entry carries the same four sentences — 68 repeats on
+    // one document. The same clause-library template class as the Risk
+    // ledger; honest per component; a style ruling to vary or consolidate
+    // them belongs to the CEO (doc 275 §13).
+    /^The record does not state an implementation status for this component, so its coverage cannot be concluded either way\./,
+    /^None recorded, so an auditor would test the assertion rather than accept it\./,
+    /^No testable material is identified; a finding would rest primarily on management assertion/,
+    /^Next action: Supply a record entry for this component; the record names the recorded entry for related components but not this one\./,
   ],
   labelPairs: [],
   emptyCellExemptTables: [/^signature:/, /^cover:/],

@@ -240,3 +240,27 @@ Deno.test("batch e74fdbfd — collectLiaConditions dedupes the rule trail agains
   );
   assertEquals(composeLiaConditionsBlock([]), "");
 });
+
+// Doc 275 §13 (2026-09-18, Product Test run 6a7e6c84, thin-all): the
+// field-path rule strips a path LIST ("a.b and c.d — ") and a path prefix at
+// the start of a later sentence, not only a single path at the very start.
+Deno.test("doc 275 §13 — collectLiaConditions strips a field-path list and a second-sentence path prefix", () => {
+  const conditions = collectLiaConditions(
+    {
+      information_needed: [
+        {
+          dimensions: "purpose_details.interest_statement and purpose_details.interest_type — the interest relied on, in the controller's own words, and the category it falls into. purpose_details.interest_statement — the interest itself, stated specifically enough that a reader can tell what is being pursued.",
+          provision: "GDPR Art. 6(1)(f)",
+          enables: "the purpose test",
+        },
+        { dimensions: "balancing_details.scale_approx, balancing_details.frequency — the scale and frequency of the processing", provision: "GDPR Art. 6(1)(f)", enables: "the balancing test" },
+      ],
+    },
+    [],
+  );
+  assertEquals(conditions.map((c) => c.text), [
+    "the interest relied on, in the controller's own words, and the category it falls into. the interest itself, stated specifically enough that a reader can tell what is being pursued.",
+    "the scale and frequency of the processing.",
+  ]);
+  for (const c of conditions) assert(!/[a-z_]+\.[a-z_]+/.test(c.text), `raw key survived: ${c.text}`);
+});

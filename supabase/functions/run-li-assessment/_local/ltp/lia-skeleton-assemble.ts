@@ -639,9 +639,22 @@ interface LiaCondition {
 
 /** DOC 138's own rule for a typed ask: an internal field-path prefix
  *  ("purpose_details.controller_is_public_authority — …") never reaches
- *  the customer. */
+ *  the customer.
+ *
+ *  Doc 275 §13 (2026-09-18, Product Test run 6a7e6c84, thin-all variant):
+ *  the rule only stripped ONE path at the very start of the text. The
+ *  lawfulness ask on a record with neither interest nor type reads
+ *  "purpose_details.interest_statement and purpose_details.interest_type —
+ *  the interest relied on …", two paths joined by "and", and a composed ask
+ *  can carry a second "path — …" sentence after the first. Both reached the
+ *  customer as raw keys (the one critical failure of that run). The rule now
+ *  strips a path LIST ("a.b and c.d — ", "a.b, c.d — ") and applies at the
+ *  start of every sentence, not only the first. */
 function stripFieldPathPrefix(text: string): string {
-  return text.replace(/^[a-z_]+(?:\.[a-z_]+)+\s+—\s+/u, "").trim();
+  const path = "[a-z_]+(?:\\.[a-z_]+)+";
+  const list = `${path}(?:\\s*(?:,|and)\\s*${path})*`;
+  const re = new RegExp(`(^|(?<=[.!?]\\s))${list}\\s+—\\s+`, "gu");
+  return text.replace(re, "$1").trim();
 }
 
 export function collectLiaConditions(report: Bag, applications: readonly Bag[]): LiaCondition[] {
