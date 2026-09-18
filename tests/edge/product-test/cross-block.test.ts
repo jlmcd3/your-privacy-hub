@@ -47,3 +47,30 @@ Deno.test("cross-block: a section cited in the body and absent from the matrix s
   assertEquals(c!.passed, false);
   assert(String(c!.actual).includes("11 CCR § 7155"), `missing section named: ${c!.actual}`);
 });
+
+// CEO ruling 2026-09-18 (option 2, doc 275 §3): § 7157 is an administrative
+// duty, not an assessed factor, so its absence from the Risk matrix is not a
+// failure; the allow-list is per product and per entry.
+Deno.test("cross-block: § 7157 absent from the Risk matrix is allowed by the CEO ruling; other sections still fail", () => {
+  const ok = doc(
+    "Submission under 11 CCR § 7157(a) is due April 1, 2028. Engaged under 11 CCR § 7150(b)(1).",
+    [["Trigger", "engaged", "11 CCR § 7150(a)–(b)"]],
+  );
+  const c1 = checkCrossBlock("cppa-risk", { skeleton_document: ok }).find((x) => x.check_id === "cross-block.table_of_authorities_complete");
+  assert(c1);
+  assertEquals(c1!.passed, true, `expected allowed; got ${c1!.actual}`);
+
+  const stillFails = doc(
+    "Submission under 11 CCR § 7157(a). Retention under 11 CCR § 7155(c).",
+    [["Trigger", "engaged", "11 CCR § 7150(a)–(b)"]],
+  );
+  const c2 = checkCrossBlock("cppa-risk", { skeleton_document: stillFails }).find((x) => x.check_id === "cross-block.table_of_authorities_complete");
+  assert(c2);
+  assertEquals(c2!.passed, false);
+  assert(String(c2!.actual).includes("11 CCR § 7155"));
+
+  // The allow-list is per product: the same § 7157 is not allowed for cyber.
+  const c3 = checkCrossBlock("cppa-cyber", { skeleton_document: ok }).find((x) => x.check_id === "cross-block.table_of_authorities_complete");
+  assert(c3);
+  assertEquals(c3!.passed, false);
+});

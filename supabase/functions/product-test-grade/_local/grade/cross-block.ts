@@ -194,6 +194,22 @@ export function citationSectionKey(c: string): string {
  *  authorities table would list; only the § forms are citations there. */
 const CPPA_CITATION_TOOLS: ReadonlySet<ProductTestTool> = new Set(["cppa-risk", "cppa-cyber", "cppa-admt"]);
 
+/**
+ * CEO ruling 2026-09-18 (doc 275 §3, option 2): a product's authority
+ * matrix lists the factors the assessment ANALYSES; a provision the body
+ * cites for an administrative duty need not appear in it. Each entry is a
+ * section key (`citationSectionKey` form) the check ignores for that
+ * product, with the ruling that put it there. Anything not listed here is
+ * still a failure — the allow-list grows only by a CEO ruling per entry.
+ */
+export const TOA_ALLOWLIST: Readonly<Partial<Record<ProductTestTool, readonly string[]>>> = {
+  // Risk Appendix A is the factor/determination/authority matrix (§§ 7150–7155);
+  // § 7157 governs submission to the Agency, carried by the body's governance
+  // sub-part E and the Agency Submission Checklist, not an assessed factor.
+  // Ruled after run ae174db5 (ten fixtures, the only failure on each).
+  "cppa-risk": ["11 CCR § 7157"],
+};
+
 function tableOfAuthoritiesCheck(tool: ProductTestTool, doc: RenderedSkeletonDocument): Check[] {
   const toa = doc.sections.find((s) => /table.of.authorities|authority.exhibit/i.test(s.id) || /table of authorities|authorities cited|authority matrix/i.test(s.title));
   if (!toa) return []; // no ToA section in this document — nothing to check.
@@ -204,8 +220,9 @@ function tableOfAuthoritiesCheck(tool: ProductTestTool, doc: RenderedSkeletonDoc
   const bodySections = doc.sections.filter((s) => s.id !== toa.id);
   const bodyText = bodySections.map((s) => s.paragraphs.map((p) => (p.table ? p.table.rows.map((r) => r.join(" ")).join(" ") : p.text)).join("\n")).join("\n");
 
+  const allowed = new Set(TOA_ALLOWLIST[tool] ?? []);
   const cited = new Set([...bodyText.matchAll(CITATION_RE)].map(keyOf).filter(isCitationForTool));
-  const missing = [...cited].filter((c) => !toaKeys.has(c));
+  const missing = [...cited].filter((c) => !toaKeys.has(c) && !allowed.has(c));
   return [{
     check_id: "cross-block.table_of_authorities_complete",
     family: "cross-block",
