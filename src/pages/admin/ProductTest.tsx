@@ -25,6 +25,8 @@ import {
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
+import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
+import { ChevronDown } from "lucide-react";
 
 import {
   fetchRecentRuns, fetchRun, fetchRunChecks, fetchRunDocuments, startRun, updateCheck, updateRunLeadNote,
