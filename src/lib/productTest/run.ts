@@ -308,6 +308,71 @@ export async function startRun(rawSettings: ProductTestSettings, opts: StartRunO
     }
   };
 
+  // ── Answered key never surfaces (doc 272 §6.2; lead 2026-09-18) ─────────
+  // A thin-one variant removes one ANSWERED optional/conditional key. If its
+  // document hashes identical to the fixture's golden document, the product
+  // never read that key: the answer had no effect anywhere. Reported once
+  // per (fixture, key) when every document of the fixture has settled.
+  const fixtureMembers = new Map<string, string[]>(); // `${tool}#${fixture.id}` -> document ids
+  for (const w of workItems) {
+    const k = `${w.tool}#${w.fixture.id}`;
+    fixtureMembers.set(k, [...(fixtureMembers.get(k) ?? []), w.doc.id]);
+  }
+  const fixtureSettled = new Map<string, Set<string>>();
+  const workByDocId = new Map(workItems.map((w) => [w.doc.id, w]));
+  const surfaceChecks: CheckRow[] = [];
+
+  const maybeRunSurfaceChecks = async (w: WorkItem) => {
+    const k = `${w.tool}#${w.fixture.id}`;
+    const members = fixtureMembers.get(k) ?? [];
+    const settled = fixtureSettled.get(k) ?? new Set<string>();
+    settled.add(w.doc.id);
+    fixtureSettled.set(k, settled);
+    if (settled.size < members.length) return;
+
+    const goldenDoc = members.map((id) => localDocs.get(id)).find((d) => d && d.variant_id === "golden" && d.status === "graded" && d.document_hash);
+    if (!goldenDoc) return;
+    for (const id of members) {
+      const d = localDocs.get(id);
+      const item = workByDocId.get(id);
+      if (!d || !item || item.variant.kind !== "thin-one" || d.status !== "graded" || !d.document_hash) continue;
+      if (!item.variant.removed_keys.length) continue;
+      // Only a key the form ASKED counts (the variants function lists the
+      // removed key under must_report_not_recorded exactly when it was asked
+      // of this record); a conditional key whose trigger is off may be
+      // answered in a fixture and legitimately have no effect.
+      if (!item.variant.expectations.must_report_not_recorded.length) continue;
+      const identical = d.document_hash === goldenDoc.document_hash;
+      const row = {
+        run_id: runId,
+        document_id: d.id,
+        tool: w.tool,
+        fixture_id: w.fixture.id,
+        variant_id: d.variant_id,
+        check_id: "fidelity.answered_key_never_surfaces",
+        family: "fidelity",
+        severity: "high",
+        passed: !identical,
+        block_key: item.variant.removed_keys.join(","),
+        quote: null,
+        expected: `removing the answered key "${item.variant.removed_keys.join(",")}" changes the document`,
+        actual: identical ? "document identical to golden — the key had no effect" : "document differs from golden",
+        rule_ref: "doc272-6.2",
+        status: "open",
+        class: null,
+        note: null,
+      };
+      try {
+        const { data, error } = await (supabase as any).from(CHECKS_TABLE).insert(row).select("*").single();
+        if (error) throw error;
+        surfaceChecks.push(data as CheckRow);
+        if (identical) say(`✖ answered key never surfaces — ${w.tool} · ${w.fixture.id} · ${item.variant.removed_keys.join(",")}`);
+      } catch (e) {
+        say(`⚠ surface check row failed to write for ${k} — ${(e as Error).message}`);
+      }
+    }
+  };
+
   // ── Worker pool ──────────────────────────────────────────────────────────
   const panelCompaniesByTool = new Map<PanelTool, string[]>();
   for (const t of settings.tools) panelCompaniesByTool.set(t, PANEL_BY_TOOL[t].map((f) => f.company));
@@ -379,6 +444,7 @@ export async function startRun(rawSettings: ProductTestSettings, opts: StartRunO
         say(`✖ ${label} — FAILED: ${msg}`);
       } finally {
         await maybeRunStability(item);
+        await maybeRunSurfaceChecks(item);
       }
     }
   };
@@ -396,7 +462,7 @@ export async function startRun(rawSettings: ProductTestSettings, opts: StartRunO
     }
     const checksByTool = new Map<PanelTool, Array<{ passed: boolean; severity: "critical" | "high" | "editorial" }>>();
     for (const g of gradeResponses) checksByTool.set(g.tool, [...(checksByTool.get(g.tool) ?? []), ...g.checks]);
-    for (const c of stabilityChecks) {
+    for (const c of [...stabilityChecks, ...surfaceChecks]) {
       const t = c.tool as PanelTool;
       checksByTool.set(t, [...(checksByTool.get(t) ?? []), { passed: c.passed, severity: c.severity }]);
     }
@@ -445,23 +511,45 @@ export async function fetchRun(runId: string): Promise<RunRow | null> {
 }
 
 export async function fetchRunDocuments(runId: string): Promise<DocumentRow[]> {
-  const { data, error } = await (supabase as any)
-    .from(DOCS_TABLE)
-    .select("*")
-    .eq("run_id", runId)
-    .order("created_at", { ascending: true });
-  if (error) throw new Error(`product_test_documents read: ${error.message}`);
-  return (data ?? []) as DocumentRow[];
+  const out: DocumentRow[] = [];
+  for (let from = 0; ; from += PAGE) {
+    const { data, error } = await (supabase as any)
+      .from(DOCS_TABLE)
+      .select("*")
+      .eq("run_id", runId)
+      .order("created_at", { ascending: true })
+      .range(from, from + PAGE - 1);
+    if (error) throw new Error(`product_test_documents read: ${error.message}`);
+    const rows = (data ?? []) as DocumentRow[];
+    out.push(...rows);
+    if (rows.length < PAGE) break;
+  }
+  return out;
 }
 
+const PAGE = 1000;
+
+/**
+ * Every check row of a run. Paged (lead fix 2026-09-18): the client's
+ * default cap is 1,000 rows, and a 200-document messy run carries ~10,000
+ * checks, so the first messy run's five failures sat beyond the cap and the
+ * page and export showed "0 of 1000".
+ */
 export async function fetchRunChecks(runId: string): Promise<CheckRow[]> {
-  const { data, error } = await (supabase as any)
-    .from(CHECKS_TABLE)
-    .select("*")
-    .eq("run_id", runId)
-    .order("created_at", { ascending: true });
-  if (error) throw new Error(`product_test_checks read: ${error.message}`);
-  return (data ?? []) as CheckRow[];
+  const out: CheckRow[] = [];
+  for (let from = 0; ; from += PAGE) {
+    const { data, error } = await (supabase as any)
+      .from(CHECKS_TABLE)
+      .select("*")
+      .eq("run_id", runId)
+      .order("id", { ascending: true })
+      .range(from, from + PAGE - 1);
+    if (error) throw new Error(`product_test_checks read: ${error.message}`);
+    const rows = (data ?? []) as CheckRow[];
+    out.push(...rows);
+    if (rows.length < PAGE) break;
+  }
+  return out;
 }
 
 /** The CEO's free-text report on a run: what a check did not catch (doc 275). */

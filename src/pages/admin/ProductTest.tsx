@@ -113,13 +113,21 @@ export default function ProductTest() {
 
   const busy = !!runHandle && (activeRun?.status ?? "running") === "running";
 
+  // The run this tab is generating right now; documents from any other run
+  // are ignored by mergeDocument (lead fix 2026-09-18: the poll for the
+  // previous run overlapped a new run's start and five of its documents
+  // rode into the new run's export).
+  const liveRunIdRef = useRef<string | null>(null);
   const mergeDocument = useCallback((doc: DocumentRow) => {
+    if (liveRunIdRef.current && doc.run_id !== liveRunIdRef.current) return;
     documentsRef.current.set(doc.id, doc);
     setDocuments(Array.from(documentsRef.current.values()));
   }, []);
 
   const runNow = useCallback(async () => {
     if (!user?.id || !tools.length) return;
+    setActiveRunId(null); // stop the poll of the previous run before the new one starts
+    liveRunIdRef.current = null;
     documentsRef.current = new Map();
     setDocuments([]);
     setChecks([]);
@@ -136,6 +144,9 @@ export default function ProductTest() {
           onRunUpdate: (r) => setActiveRun((prev) => (prev ? { ...prev, ...r } as RunRow : (r as RunRow))),
         },
       );
+      liveRunIdRef.current = handle.runId;
+      documentsRef.current = new Map(Array.from(documentsRef.current.values()).filter((d) => d.run_id === handle.runId).map((d) => [d.id, d]));
+      setDocuments(Array.from(documentsRef.current.values()));
       setRunHandle(handle);
       setActiveRunId(handle.runId);
       handle.done.then(async (finalRun) => {

@@ -117,3 +117,25 @@ Deno.test("legal: GDPR in the BODY of a CCPA product still fails even when the a
   assert(c);
   assertEquals(c!.passed, false);
 });
+
+// 2026-09-18 — first messy Risk run: the wrong-regime probe reappears in the
+// document as a verbatim quotation of the intake (by design) and must not
+// fail contamination; the same words in the product's own voice still do.
+Deno.test("legal: the Company's own words quoted verbatim do not fail contamination; the product's own adoption does", () => {
+  const probe = "[wrong-regime probe] The lawful basis under Article 6 GDPR relied on for this processing is legitimate interests.";
+  const quoted = checkLegal(
+    "cppa-risk",
+    { q1_revenue: "Over $100M", i3_processing_description: `We rank offers. ${probe}` },
+    { skeleton_document: skeletonDoc(`The Company describes the Activity as follows: “We rank offers. ${probe}”. The Activity is assessed under 11 CCR § 7150(b)(1).`) },
+  ).find((c) => c.check_id === "legal.cross_regime_contamination");
+  assert(quoted);
+  assertEquals(quoted!.passed, true, `quoted intake must pass; got ${quoted!.quote}`);
+
+  const adopted = checkLegal(
+    "cppa-risk",
+    { q1_revenue: "Over $100M", i3_processing_description: `We rank offers. ${probe}` },
+    { skeleton_document: skeletonDoc(`The Company describes the Activity as follows: “We rank offers. ${probe}”. This assessment finds that the lawful basis for the Activity is legitimate interests.`) },
+  ).find((c) => c.check_id === "legal.cross_regime_contamination");
+  assert(adopted);
+  assertEquals(adopted!.passed, false);
+});

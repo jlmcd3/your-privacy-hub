@@ -49,6 +49,29 @@ function bodyTextExcludingPersuasive(doc: RenderedSkeletonDocument | undefined, 
   return parts.join("\n\n");
 }
 
+/**
+ * The Company's own words are the Company's (lead correction 2026-09-18,
+ * after the first messy Risk run): every product quotes intake free text
+ * verbatim by ratified design (the verbatim-traceability law), so a
+ * wrong-regime probe planted in a free-text field reappears in the document
+ * as a quotation. That is not the product adopting the other regime. Every
+ * intake string of 15+ characters is removed from the scanned text before
+ * the contamination check; a paraphrase or an adopted conclusion in the
+ * product's own voice is not an intake string and still fails.
+ */
+function intakeStrings(v: unknown, out: string[] = []): string[] {
+  if (typeof v === "string") { if (v.trim().length >= 15) out.push(v.trim()); }
+  else if (Array.isArray(v)) for (const x of v) intakeStrings(x, out);
+  else if (v && typeof v === "object") for (const x of Object.values(v as Record<string, unknown>)) intakeStrings(x, out);
+  return out;
+}
+
+function withoutIntakeQuotations(text: string, intake: Bag): string {
+  let t = text;
+  for (const s of intakeStrings(intake).sort((a, b) => b.length - a.length)) t = t.split(s).join(" ");
+  return t;
+}
+
 function contaminationCheck(tool: ProductTestTool, text: string): Check[] {
   if (CPPA_TOOLS.has(tool)) {
     const m = GDPR_MARKERS_RE.exec(text);
@@ -220,7 +243,7 @@ export function checkLegal(
   const { text } = customerTextOf(tool, output);
   const doc = SKELETON_TOOLS.has(tool) ? (output?.skeleton_document as RenderedSkeletonDocument | undefined) : undefined;
 
-  checks.push(...contaminationCheck(tool, bodyTextExcludingPersuasive(doc, text)));
+  checks.push(...contaminationCheck(tool, withoutIntakeQuotations(bodyTextExcludingPersuasive(doc, text), intake)));
   checks.push(...citationRegistryCheck(tool, doc));
 
   if (tool === "cppa-risk" || tool === "cppa-cyber" || tool === "cppa-admt") {

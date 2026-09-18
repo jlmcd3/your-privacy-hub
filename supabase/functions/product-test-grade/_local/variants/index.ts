@@ -81,6 +81,15 @@ function setPath(root: Rec, path: string, value: unknown): void {
   node[parts[parts.length - 1]] = value;
 }
 
+/** "", null, undefined, [], {} and whitespace are not answers. */
+function isEmptyAnswer(v: unknown): boolean {
+  if (v === null || v === undefined) return true;
+  if (typeof v === "string") return v.trim().length === 0;
+  if (Array.isArray(v)) return v.length === 0;
+  if (typeof v === "object") return Object.keys(v as Rec).length === 0;
+  return false;
+}
+
 function readPathSimple(root: Rec, path: string): unknown {
   const parts = path.split(".");
   let node: unknown = root;
@@ -261,20 +270,29 @@ export function buildVariants(
     });
   }
 
-  // thin-one — one variant per optional/conditional field, contract order, cap 25.
+  // thin-one — one variant per optional/conditional field the fixture ANSWERS
+  // (non-empty), contract order, cap 25. Lead correction 2026-09-18 after the
+  // first messy Risk run: a field absent or empty in the fixture yielded a
+  // variant identical to golden (32 of 125 thin-one documents on five
+  // fixtures), a wasted generation and a meaningless "pass". A thin-one
+  // variant now exists only where something was really taken away, so a
+  // document identical to golden means the answered key never surfaced —
+  // which the page reports as `fidelity.answered_key_never_surfaces`.
   let thinOneCount = 0;
   for (const f of optionalOrConditional) {
     if (thinOneCount >= THIN_ONE_CAP) break;
-    thinOneCount++;
+    if (isEmptyAnswer(readPathSimple(golden, f.key.replace(/\[\]\..*$/, "")))) continue;
     const thin = clone(golden);
     const removedOk = dropPath(thin, f.key);
+    if (!removedOk) continue;
+    thinOneCount++;
     variants.push({
       variant_id: `${fixtureId}__thin-one-${slug(f.key)}`,
       kind: "thin-one",
       description: `Removes the single ${f.required} field "${f.key}".`,
       intake: thin,
-      removed_keys: removedOk ? [f.key] : [],
-      expectations: buildRemovedExpectations(contract, thin, removedOk ? [f.key] : []),
+      removed_keys: [f.key],
+      expectations: buildRemovedExpectations(contract, thin, [f.key]),
     });
   }
 
