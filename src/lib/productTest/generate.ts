@@ -90,6 +90,35 @@ export interface GenerateDocumentOptions {
  * alternate RoPA intake therefore has no effect on what gets generated for
  * that tool. Every other tool consumes `intake` directly.
  */
+/**
+ * li_assessments is a COLUMN table, not an intake_data jsonb: the LIA arm
+ * spreads the intake into the insert, so any key that is not a column fails
+ * the whole insert ("Could not find the 'use_case_code_confirmed' column").
+ * The panel fixtures carry form keys beyond the columns. This is the same
+ * whitelist run-stress-job applies (supabase/functions/run-stress-job/
+ * index.ts LIA_COLUMNS); keep the two in step. Lead fix 2026-09-18 after run
+ * 72e9a63c, where all 28 LIA inserts failed.
+ */
+const LIA_COLUMNS = new Set([
+  "alternatives_considered", "attestation", "balancing_details", "client_id",
+  "data_categories", "is_subscriber_credit", "jurisdictions", "necessity_details",
+  "organization_name", "preview_signal", "processing_description",
+  "purchase_price_cents", "purchased_as_standalone", "purpose_details",
+  "relationship_type", "report_version", "sector", "stage", "stated_purpose",
+  "status", "subject_anchor", "supplemental_context", "supplemental_responses",
+]);
+
+function intakeForInsert(tool: PanelTool, intake: Record<string, unknown>, log: (l: string) => void): Record<string, unknown> {
+  if (tool !== "lia") return intake;
+  const kept: Record<string, unknown> = {};
+  const dropped: string[] = [];
+  for (const [k, v] of Object.entries(intake)) {
+    if (LIA_COLUMNS.has(k)) kept[k] = v; else dropped.push(k);
+  }
+  if (dropped.length) log(`lia: ${dropped.length} non-column key(s) not inserted (${dropped.slice(0, 6).join(", ")}${dropped.length > 6 ? ", …" : ""})`);
+  return kept;
+}
+
 export async function generateDocument(
   tool: PanelTool,
   intake: Record<string, unknown>,
@@ -97,6 +126,7 @@ export async function generateDocument(
 ): Promise<GenerateDocumentResult> {
   const template = TOOL_TEMPLATE[tool];
   if (!template) throw new Error(`generateDocument: no generation template for tool "${tool}"`);
+  intake = intakeForInsert(tool, intake, opts.log);
 
   const signal = opts.signal ?? new AbortController().signal;
   const test: Pick<AssertionTest, "toolId" | "edgeFunction" | "testInput" | "pollConfig"> = {

@@ -150,8 +150,17 @@ export const CYBER_LINT_PROFILE: LintProfile = {
   registrySections: CYBER_REGISTRY_SECTIONS,
   citeAllowlist: [7001, 7002, 7150, 7152],
   // CEO 2026-09-16 (doc 262 §2.4): the per-component "auditor can examine
-  // and test" sentence is no longer emitted, so no by-design repeat remains.
-  byDesignDuplicates: [],
+  // and test" sentence is no longer emitted.
+  // Doc 269 §5 item 13 (held back 2026-09-17, still open): the ratified
+  // attach rule (cyber-corpus-attach.test.ts) renders the general-FSOR
+  // sentence once for EVERY component without a subsection-specific FSOR
+  // row, so it repeats on every document with several such components. Until
+  // the CEO rules on a one-sentence-per-document form, the repeat is the
+  // ratified state and lint must not count it (run 72e9a63c: 88 hits, 8 on
+  // golden). Remove this entry the day item 13 is decided the other way.
+  byDesignDuplicates: [
+    /^General § 7123 agency response; no subsection-specific discussion was identified/,
+  ],
   labelPairs: [],
   emptyCellExemptTables: [/^signature:/, /^cover:/],
   customChecks: [cyberEvidencePostureCheck],

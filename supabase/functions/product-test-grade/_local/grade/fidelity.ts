@@ -6,8 +6,11 @@ import type { Check, ProductTestTool, VariantExpectations, VariantKind } from ".
 import { COMPANY_KEY_BY_TOOL } from "../variants/contracts-registry.ts";
 import { customerTextOf, paragraphsOf } from "./text-extract.ts";
 
+// The forms the products use to say a fact was not supplied. Extended
+// 2026-09-18 after run 72e9a63c: the DPIA lists a blank as "still open" in
+// its gap lead and the Governance product writes "the unstated sector".
 const NOT_RECORDED_RE =
-  /\b(not\s+recorded|not\s+provided|record\s+does\s+not\s+state|record\s+is\s+silent|record_insufficient|information_needed|does\s+not\s+(?:state|record)|insufficient\s+(?:basis|information|evidence)|no\s+basis\s+to\s+(?:confirm|assess|determine))\b/i;
+  /\b(not\s+recorded|not\s+provided|not\s+stated|not\s+specified|not\s+indicated|not\s+answered|not\s+identified|not\s+supplied|unstated|left\s+blank|still\s+open|open\s+point|information\s+needed|record\s+does\s+not\s+state|record\s+is\s+silent|record_insufficient|information_needed|does\s+not\s+(?:state|record|name|identify)|insufficient\s+(?:basis|information|evidence)|no\s+basis\s+to\s+(?:confirm|assess|determine)|not\s+put\s+to\s+the\s+company)\b/i;
 
 type Rec = Record<string, unknown>;
 
@@ -136,7 +139,27 @@ export function checkFidelity(
   }
 
   // 3. must_report_not_recorded — the removed keys' labels.
-  for (const label of expectations?.must_report_not_recorded ?? []) {
+  // A single ordinary word as a key ("purpose", "description", "sector")
+  // matches prose and headings that merely contain the word (run 72e9a63c:
+  // "Section 2 — Systematic Description of the Processing" was read as the
+  // label "description" unreported), so only keys that could appear in
+  // prose as a rendered key are checked; the rest pass as unchecked and say
+  // so, until the contracts carry display labels.
+  for (const rawLabel of expectations?.must_report_not_recorded ?? []) {
+    const label = rawLabel.replace(/\[\]/g, "");
+    if (!/[_.]/.test(label)) {
+      checks.push({
+        check_id: "fidelity.not_recorded_reported",
+        family: "fidelity",
+        severity: "high",
+        passed: true,
+        block_key: label,
+        expected: `"${label}" reported not-recorded, or absent entirely`,
+        actual: "unchecked: single-word key has no display label",
+        rule_ref: "label-unavailable",
+      });
+      continue;
+    }
     const { found, withNotRecorded, quote } = sameParagraphAsLabel(paragraphs, label);
     const passed = !found || withNotRecorded;
     checks.push({

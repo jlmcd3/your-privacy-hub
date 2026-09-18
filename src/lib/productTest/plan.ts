@@ -192,6 +192,10 @@ function rate(numerator: number, denominator: number): number {
 
 export interface DocLike {
   document_pass: boolean | null;
+  /** A document that failed to GENERATE is a failed document (lead fix
+   *  2026-09-18: run 72e9a63c reported LIA at 100 percent with zero checks
+   *  after all 28 of its inserts failed). */
+  status?: string;
 }
 
 export interface CheckLike {
@@ -200,8 +204,8 @@ export interface CheckLike {
 }
 
 export function toolSummary(docs: readonly DocLike[], checks: readonly CheckLike[]): ToolSummary {
-  const scored = docs.filter((d) => d.document_pass !== null);
-  const passedDocs = scored.filter((d) => d.document_pass === true).length;
+  const scored = docs.filter((d) => d.document_pass !== null || d.status === "failed");
+  const passedDocs = scored.filter((d) => d.document_pass === true && d.status !== "failed").length;
   const checksPassed = checks.filter((c) => c.passed).length;
   const critical = checks.filter((c) => c.severity === "critical" && !c.passed).length;
   const high = checks.filter((c) => c.severity === "high" && !c.passed).length;

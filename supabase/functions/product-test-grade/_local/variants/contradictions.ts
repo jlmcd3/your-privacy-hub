@@ -26,6 +26,18 @@ export interface ContradictionRow {
   readonly must_not_contain: readonly string[];
 }
 
+// LEAD REVIEW 2026-09-18 (after run 72e9a63c). The products read the
+// STRUCTURED answer and never read free text for a fact (doc 269 §4 item 5:
+// "silent record" claims are gated on the record text, never inferred from
+// it). A "yes/no flipped against its narrative" row therefore produces a
+// document that correctly states the flipped structured answer; expecting
+// the document NOT to say so assumed a narrative-versus-structured conflict
+// detector no product has. Those `must_not_contain` expectations were
+// removed (eight critical false failures on four rows). The rows stay: they
+// still exercise stability, cross-block consistency and the record-fidelity
+// checks on an inconsistent record. Whether the products SHOULD detect such
+// conflicts is a product-model question for the CEO (doc 275 §9); if ruled
+// yes, the expectations return here with the rule.
 export const CONTRADICTIONS_BY_TOOL: Partial<Record<ProductTestTool, readonly ContradictionRow[]>> = {
   "cppa-risk": [
     {
@@ -38,7 +50,7 @@ export const CONTRADICTIONS_BY_TOOL: Partial<Record<ProductTestTool, readonly Co
         i9_existing_dpia_summary:
           "A Data Protection Impact Assessment for this processing activity was completed on 2026-03-01 and is on file with the Company's privacy team.",
       },
-      must_not_contain: ["no existing dpia", "no prior dpia", "has not conducted a dpia"],
+      must_not_contain: [], // structured answer governs (lead review 2026-09-18)
     },
     {
       id: "risk-consumer-volume-vs-operand",
@@ -82,7 +94,7 @@ export const CONTRADICTIONS_BY_TOOL: Partial<Record<ProductTestTool, readonly Co
       changes: {
         "profile.password_auth_used": "No",
       },
-      must_not_contain: ["does not use password", "password authentication is not used"],
+      must_not_contain: [], // structured answer governs (lead review 2026-09-18)
     },
     {
       id: "cyber-audit-before-assessment",
@@ -92,7 +104,7 @@ export const CONTRADICTIONS_BY_TOOL: Partial<Record<ProductTestTool, readonly Co
       changes: {
         "profile.last_audit": "Never",
       },
-      must_not_contain: ["last audited", "most recent audit"],
+      must_not_contain: [], // structured answer governs (lead review 2026-09-18)
     },
   ],
   "cppa-admt": [
@@ -104,7 +116,7 @@ export const CONTRADICTIONS_BY_TOOL: Partial<Record<ProductTestTool, readonly Co
       changes: {
         human_review: "No — fully automated, no human review",
       },
-      must_not_contain: ["human reviewer", "reviewed by a person before"],
+      must_not_contain: [], // structured answer governs (lead review 2026-09-18)
     },
     {
       id: "admt-system-count-vs-vendor",
@@ -140,7 +152,7 @@ export const CONTRADICTIONS_BY_TOOL: Partial<Record<ProductTestTool, readonly Co
         dpia_team:
           "Every automated decision is reviewed and may be overturned by the DPO before it takes effect.",
       },
-      must_not_contain: ["no person reviews", "without human review"],
+      must_not_contain: [], // structured answer governs (lead review 2026-09-18)
     },
     {
       id: "dpia-end-status-vs-date",
@@ -173,7 +185,7 @@ export const CONTRADICTIONS_BY_TOOL: Partial<Record<ProductTestTool, readonly Co
       changes: {
         "balancing_details.reasonable_expectation": "Unlikely — this would surprise most data subjects",
       },
-      must_not_contain: ["would not surprise", "fully expected by data subjects"],
+      must_not_contain: [], // structured answer governs (lead review 2026-09-18)
     },
     {
       id: "lia-scale-vs-relationship",
@@ -206,7 +218,7 @@ export const CONTRADICTIONS_BY_TOOL: Partial<Record<ProductTestTool, readonly Co
         training_status: "No formal training",
         additional_context: "All staff complete mandatory annual privacy training with a documented refresh cycle.",
       },
-      must_not_contain: ["no formal training", "training is not provided"],
+      must_not_contain: [], // structured answer governs (lead review 2026-09-18)
     },
     {
       id: "gov-dpia-status-vs-count",

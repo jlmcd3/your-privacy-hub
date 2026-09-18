@@ -473,6 +473,7 @@ export default function ProductTest() {
                 <TableRow>
                   <TableHead>Product</TableHead>
                   <TableHead>Documents</TableHead>
+                  <TableHead title="Documents the product failed to generate (insert, invoke or poll error); counted as failed documents">Gen. failed</TableHead>
                   <TableHead>Doc pass rate</TableHead>
                   <TableHead>Checks</TableHead>
                   <TableHead>Check pass rate</TableHead>
@@ -486,6 +487,9 @@ export default function ProductTest() {
                   <TableRow key={tool}>
                     <TableCell className="font-medium">{TOOL_LABELS[tool]}</TableCell>
                     <TableCell>{ts.documents}</TableCell>
+                    <TableCell className={documents.some((d) => d.tool === tool && d.status === "failed") ? "text-destructive" : ""}>
+                      {documents.filter((d) => d.tool === tool && d.status === "failed").length}
+                    </TableCell>
                     <TableCell className={bars.documentBarMet ? "text-emerald-600" : "text-destructive"}>
                       {pct(ts.document_pass_rate)}
                     </TableCell>

@@ -231,7 +231,7 @@ function tableOfAuthoritiesCheck(tool: ProductTestTool, doc: RenderedSkeletonDoc
     block_key: toa.id,
     quote: missing[0],
     expected: "every citation rendered in the body appears in the Table of Authorities",
-    actual: missing.length ? `${missing.length} missing, e.g. "${missing[0]}"` : "complete",
+    actual: missing.length ? `${missing.length} missing: ${missing.slice(0, 12).map((m) => `"${m}"`).join(", ")}${missing.length > 12 ? ", …" : ""}` : "complete",
     rule_ref: "doc269-3.5-row3",
   }];
 }

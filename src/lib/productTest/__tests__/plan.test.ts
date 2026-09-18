@@ -235,3 +235,18 @@ describe("evaluateLaunchBars (doc 272 §6 table)", () => {
     expect(evaluateLaunchBars(atCheckBar, false).checkBarMet).toBe(true);
   });
 });
+
+describe("toolSummary — failed generation (lead fix 2026-09-18, run 72e9a63c)", () => {
+  it("a document that failed to generate counts as a failed document, never as unscored", () => {
+    const ts = toolSummary(
+      [{ document_pass: null, status: "failed" }, { document_pass: true, status: "graded" }],
+      [{ passed: true, severity: "editorial" }],
+    );
+    expect(ts.documents).toBe(2);
+    expect(ts.document_pass_rate).toBeCloseTo(0.5);
+  });
+  it("all documents failed to generate gives 0%, not a vacuous 100%", () => {
+    const ts = toolSummary([{ document_pass: null, status: "failed" }], []);
+    expect(ts.document_pass_rate).toBe(0);
+  });
+});
