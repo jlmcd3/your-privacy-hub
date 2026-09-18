@@ -5220,6 +5220,191 @@ export type Database = {
         }
         Relationships: []
       }
+      product_test_checks: {
+        Row: {
+          actual: string | null
+          block_key: string | null
+          check_id: string
+          class: string | null
+          created_at: string
+          document_id: string
+          expected: string | null
+          family: string
+          fixture_id: string
+          id: number
+          note: string | null
+          passed: boolean
+          quote: string | null
+          rule_ref: string | null
+          run_id: string
+          severity: string
+          status: string
+          tool: string
+          variant_id: string
+        }
+        Insert: {
+          actual?: string | null
+          block_key?: string | null
+          check_id: string
+          class?: string | null
+          created_at?: string
+          document_id: string
+          expected?: string | null
+          family: string
+          fixture_id: string
+          id?: number
+          note?: string | null
+          passed: boolean
+          quote?: string | null
+          rule_ref?: string | null
+          run_id: string
+          severity: string
+          status?: string
+          tool: string
+          variant_id: string
+        }
+        Update: {
+          actual?: string | null
+          block_key?: string | null
+          check_id?: string
+          class?: string | null
+          created_at?: string
+          document_id?: string
+          expected?: string | null
+          family?: string
+          fixture_id?: string
+          id?: number
+          note?: string | null
+          passed?: boolean
+          quote?: string | null
+          rule_ref?: string | null
+          run_id?: string
+          severity?: string
+          status?: string
+          tool?: string
+          variant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_test_checks_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "product_test_documents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "product_test_checks_run_id_fkey"
+            columns: ["run_id"]
+            isOneToOne: false
+            referencedRelation: "product_test_runs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      product_test_documents: {
+        Row: {
+          checks_failed: number | null
+          checks_total: number | null
+          completed_at: string | null
+          copy_index: number
+          created_at: string
+          critical: number | null
+          document_hash: string | null
+          document_pass: boolean | null
+          editorial: number | null
+          error: string | null
+          fixture_id: string
+          high: number | null
+          id: string
+          run_id: string
+          source_row_id: string | null
+          source_table: string | null
+          status: string
+          tool: string
+          variant_id: string
+        }
+        Insert: {
+          checks_failed?: number | null
+          checks_total?: number | null
+          completed_at?: string | null
+          copy_index?: number
+          created_at?: string
+          critical?: number | null
+          document_hash?: string | null
+          document_pass?: boolean | null
+          editorial?: number | null
+          error?: string | null
+          fixture_id: string
+          high?: number | null
+          id?: string
+          run_id: string
+          source_row_id?: string | null
+          source_table?: string | null
+          status?: string
+          tool: string
+          variant_id: string
+        }
+        Update: {
+          checks_failed?: number | null
+          checks_total?: number | null
+          completed_at?: string | null
+          copy_index?: number
+          created_at?: string
+          critical?: number | null
+          document_hash?: string | null
+          document_pass?: boolean | null
+          editorial?: number | null
+          error?: string | null
+          fixture_id?: string
+          high?: number | null
+          id?: string
+          run_id?: string
+          source_row_id?: string | null
+          source_table?: string | null
+          status?: string
+          tool?: string
+          variant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_test_documents_run_id_fkey"
+            columns: ["run_id"]
+            isOneToOne: false
+            referencedRelation: "product_test_runs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      product_test_runs: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          id: string
+          log: Json
+          settings: Json
+          status: string
+          summary: Json | null
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          log?: Json
+          settings?: Json
+          status?: string
+          summary?: Json | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          log?: Json
+          settings?: Json
+          status?: string
+          summary?: Json | null
+        }
+        Relationships: []
+      }
       professional_clients: {
         Row: {
           client_matter: string | null

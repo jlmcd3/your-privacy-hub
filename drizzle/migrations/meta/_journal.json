@@ -330,6 +330,13 @@
       "when": 1789659848553,
       "tag": "0047_rpc_dismiss_reminder_and_renewal_toggle",
       "breakpoints": true
+    },
+    {
+      "idx": 48,
+      "version": "7",
+      "when": 1789721263325,
+      "tag": "0048_product_test",
+      "breakpoints": true
     }
   ]
 }
