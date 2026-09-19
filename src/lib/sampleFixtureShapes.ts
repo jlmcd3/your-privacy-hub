@@ -155,8 +155,6 @@ export const SAMPLE_FIXTURE_SHAPES: Record<ToolSlug, FixtureShape> = {
       "consumer_request",
     ],
     requiredImpactKeys: [
-      "likelihood",
-      "severity",
       "harmTypes",
       "vulnerable",
       "benefitsOutweigh",

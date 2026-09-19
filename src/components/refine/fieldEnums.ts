@@ -78,8 +78,6 @@ const REGISTRY: EnumRegistry = {
   //   - Persisted/generator shape (impact.*): produced by the WS6 intake
   //     generator + normalisation layer.
   cppa_risk_assessment: {
-    "impact_intake.likelihood": IMPACT_LIKELIHOOD_OPTS,
-    "impact_intake.severity": IMPACT_SEVERITY_OPTS,
     "impact_intake.benefitsOutweigh": IMPACT_BENEFITS_OUTWEIGH_OPTS,
     "impact_intake.cyberGaps": IMPACT_CYBER_GAPS_OPTS,
     "impact_intake.harmTypes": HARM_TYPES,

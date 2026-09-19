@@ -933,6 +933,16 @@ export const ADMT_BLOCK_CATALOGUE: BlockCatalogue = {
       "authorities": []
     },
     {
+      "block_key": "notice#p6",
+      "section_id": "notice",
+      "section_title": "3. Pre-use Notice Audit",
+      "kind": "generated",
+      "fixed_text_prefix": null,
+      "factor_ids": [],
+      "sources": [],
+      "authorities": []
+    },
+    {
       "block_key": "optout:4.2",
       "section_id": "optout",
       "section_title": "4. Opt-Out and Exception Audit",

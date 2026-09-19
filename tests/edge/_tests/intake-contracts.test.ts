@@ -227,8 +227,6 @@ Deno.test("intake-contracts / risk MIRROR — FIELD_ENUM_MIRROR entries match co
     ["cppa_risk_assessment:q5c_share_revenue_50pct", RISK_SHARE_50_OPTS],
     ["cppa_risk_assessment:q15_sensitive_pi", RISK_Q15_OPTS],
     ["cppa_risk_assessment:q15c_spi_volume", RISK_SPI_VOLUME_OPTS],
-    ["cppa_risk_assessment:impact_intake.likelihood", RISK_IMPACT_LIKELIHOOD],
-    ["cppa_risk_assessment:impact_intake.severity", RISK_IMPACT_SEVERITY],
     ["cppa_risk_assessment:impact_intake.benefitsOutweigh", RISK_IMPACT_BENEFITS],
     ["cppa_risk_assessment:impact_intake.cyberGaps", RISK_IMPACT_CYBER],
     ["cppa_risk_assessment:impact_intake.harmTypes", RISK_HARM_TYPES],

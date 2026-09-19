@@ -119,33 +119,13 @@ const riskRightToKnowChannels: FixtureRule = {
 };
 
 // ── risk.impact-vs-pathways ──────────────────────────────────────────────
-// Catches impact_intake.likelihood/severity disagreeing with the worst-case
-// pathway, and impact_intake.harmTypes disagreeing with the pathway harm set.
+// Catches impact_intake.harmTypes disagreeing with the pathway harm set.
 const riskImpactVsPathways: FixtureRule = {
   id: "risk.impact-vs-pathways",
-  title: "impact_intake.likelihood/severity/harmTypes agree with a5_harm_pathways",
-  check(intake, ctx) {
+  title: "impact_intake.harmTypes agrees with a5_harm_pathways",
+  check(intake) {
     const out: string[] = [];
     const pathways = rows(get(intake, "a5_harm_pathways"));
-    const likelihoodOptions = ctx.contract?.fields.find((f) => f.key === "a5_harm_pathways[].likelihood")?.options ?? [];
-    const severityOptions = ctx.contract?.fields.find((f) => f.key === "a5_harm_pathways[].severity")?.options ?? [];
-
-    if (pathways.length && likelihoodOptions.length) {
-      const idx = Math.max(...pathways.map((p) => likelihoodOptions.indexOf(str(p.likelihood))));
-      const worst = idx >= 0 ? likelihoodOptions[idx] : "";
-      const impactVal = str(get(intake, "impact_intake.likelihood"));
-      if (impactVal && worst && impactVal !== worst) {
-        out.push(`impact_intake.likelihood is "${impactVal}" but the highest likelihood across a5_harm_pathways is "${worst}"`);
-      }
-    }
-    if (pathways.length && severityOptions.length) {
-      const idx = Math.max(...pathways.map((p) => severityOptions.indexOf(str(p.severity))));
-      const worst = idx >= 0 ? severityOptions[idx] : "";
-      const impactVal = str(get(intake, "impact_intake.severity"));
-      if (impactVal && worst && impactVal !== worst) {
-        out.push(`impact_intake.severity is "${impactVal}" but the highest severity across a5_harm_pathways is "${worst}"`);
-      }
-    }
 
     // The two fields carry two option vocabularies for the same harms; compare a
     // normalised key (spelling, plural, and the pathway list's longer tails).

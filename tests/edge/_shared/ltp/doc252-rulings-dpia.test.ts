@@ -94,7 +94,7 @@ Deno.test("doc252 item 2 — every other register row still reads coverage off t
 });
 
 Deno.test("doc252 item 5 — Appendix B renders the six release-1 precedents in their ratified prose on a record that carries every gated fact, and the spine is v4.13", () => {
-  assertEquals(DPIA_SKELETON_VERSION, "dpia-v4.13-2026-09-17");
+  assertEquals(DPIA_SKELETON_VERSION, "dpia-v4.14-2026-09-19") // RE-PIN 2026-09-19 (doc 275 §15 items 1, 2, 4): v4.14;
   const last = DPIA_SKELETON_SECTIONS[DPIA_SKELETON_SECTIONS.length - 1];
   assertEquals(last.id, "enforcement_precedents");
   assertEquals(last.title, "Appendix B — Enforcement Precedents");

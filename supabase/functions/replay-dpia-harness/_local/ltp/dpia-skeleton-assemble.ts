@@ -201,6 +201,10 @@ export function buildDpiaSlotValues(intake: Bag): SlotValues {
     QUALITY_CLAUSE: quality ? `; on accuracy, ${noStop(quality)}` : "",
 
     safeguards: safeguards.length ? asProse(safeguards) : null,
+    // v4.14 (doc 275 §15 item 4, CEO-approved 2026-09-19) — the company's
+    // own free-text description of its safeguards; quoted verbatim in the
+    // new Section 5 skeleton sentence, never scored.
+    safeguardsOther: noStop(s(intake.safeguards_other)) || null,
 
     dpiaPreparedBy: s(intake.dpia_prepared_by) || null,
     dpiaTeam: noStop(team) || null,
@@ -1843,7 +1847,9 @@ const DPIA_MATRIX_ROWS: readonly DpiaMatrixRowSpec[] = [
     label: "Overall risk, safeguards, and residual position",
     authority: "GDPR Art. 35(7)(c)–(d); Recitals 75–76",
     reportDetermination: ({ composed }) =>
-      typeof composed["section_4_risk_management:6"] === "string" ? composed["section_4_risk_management:6"] : null,
+      // v4.14 — the lead moved from block index 6 to 7 (the new
+      // {safeguardsOther} skeleton block took index 6).
+      typeof composed["section_4_risk_management:7"] === "string" ? composed["section_4_risk_management:7"] : null,
   },
   {
     // DESCRIPTIVE — quoting the DPO's own recorded advice, not a legal determination this tool reaches itself.
@@ -2251,7 +2257,10 @@ export function assembleDpiaSkeletonDocument(report: Bag, intakeInput: Bag, v3Ap
     "section_3_necessity_proportionality:2": composeNecessityDetermination(report),
 
     "section_4_risk_management:5": composeRiskBody(report, values, intake),
-    "section_4_risk_management:6": composeRiskLead(report, intake),
+    // v4.14 — the new {safeguardsOther} skeleton block took index 6, so the
+    // [DETERMINATION LEAD] block (still the section's closing paragraph)
+    // moved from index 6 to index 7.
+    "section_4_risk_management:7": composeRiskLead(report, intake),
 
 
     "section_6_conclusion:2": composeSignoffLead(report, intake),

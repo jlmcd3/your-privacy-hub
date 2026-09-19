@@ -84,5 +84,5 @@ Deno.test("9L.2 — version string re-pins to the current encode", () => {
   // RE-PIN DOC 188 P6 (2026-09-05, batch e38460): v4.10 — the exec opener's
   // instrument became the {gdprInstrument} slot.
   // RE-PIN 2026-09-10 (CEO edit): v4.11 — Section titles renumbered 1–7.
-  assertEquals(DPIA_SKELETON_VERSION, "dpia-v4.13-2026-09-17");
+  assertEquals(DPIA_SKELETON_VERSION, "dpia-v4.14-2026-09-19") // RE-PIN 2026-09-19 (doc 275 §15 items 1, 2, 4): v4.14;
 });

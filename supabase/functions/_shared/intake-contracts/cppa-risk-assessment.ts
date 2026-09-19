@@ -603,8 +603,6 @@ export const cppaRiskContract: IntakeContract = {
 
     // Impact_intake enum leaves — advisory (impact_intake itself is
     // optional; only enum-parity is enforced when present).
-    { key: "impact_intake.likelihood",      kind: "enum", required: "optional", options: IMPACT_LIKELIHOOD_OPTS },
-    { key: "impact_intake.severity",        kind: "enum", required: "optional", options: IMPACT_SEVERITY_OPTS },
     { key: "impact_intake.benefitsOutweigh", kind: "enum", required: "optional", options: IMPACT_BENEFITS_OUTWEIGH_OPTS },
     { key: "impact_intake.cyberGaps",       kind: "enum", required: "optional", options: IMPACT_CYBER_GAPS_OPTS },
     { key: "impact_intake.harmTypes",       kind: "multi-enum", required: "optional", options: HARM_TYPES },

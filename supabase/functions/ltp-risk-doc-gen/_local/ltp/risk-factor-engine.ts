@@ -2882,6 +2882,21 @@ export function runRiskFactorEngine(
             : `The approximate California scale, as the Company states it, is: “${n}”.`,
         );
       }
+      // DOC 275 §15 item 11 — 11 CCR § 7152(a)(3)(C)-(D) require the
+      // assessment to state the scale of the processing. bought_sold_shared_count
+      // is the § 1798.140(d)(1)(B) operand: the approximate number of
+      // California consumers or households whose personal information is
+      // sold or shared. It is a separate operand from the general
+      // population bands above (n) and is stated only when it is answered
+      // and the record's own sell/share answer (q5_sell_share) engages it —
+      // an unanswered or "No" sell/share answer means the field, even if
+      // present on a legacy record, does not describe current processing.
+      const bssCount = clause(intake.bought_sold_shared_count);
+      if (bssCount && q5SellShareAffirmed(s(intake.q5_sell_share))) {
+        bits.push(
+          `The Company reports that it sells or shares the personal information of ${bssCount} California consumers.`,
+        );
+      }
       if (relationshipContext) {
         // DOC 148 (A-Team Batch-8 P2) — the bare enum echo "The affected
         // consumers are mixed" read as a finding about the people; the
@@ -2907,7 +2922,7 @@ export function runRiskFactorEngine(
         "consumer_context",
         "A",
         bits.join(" "),
-        ["INTAKE:consumer_interaction_method", "INTAKE:consumer_interaction_purpose", "INTAKE:approximate_ca_consumers", "INTAKE:consumer_relationship_context", "INTAKE:i3_ca_consumer_band", "INTAKE:i4b_sources"],
+        ["INTAKE:consumer_interaction_method", "INTAKE:consumer_interaction_purpose", "INTAKE:approximate_ca_consumers", "INTAKE:consumer_relationship_context", "INTAKE:i3_ca_consumer_band", "INTAKE:i4b_sources", "INTAKE:bought_sold_shared_count"],
         ["11 CCR § 7152(a)(3)(C)", "11 CCR § 7152(a)(3)(D)"],
       );
     } else {

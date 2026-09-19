@@ -89,8 +89,6 @@ export const PANEL_CPPA_RISK: PanelFixture[] = [
       material_change_since_prior: "No",
 
       impact_intake: {
-        likelihood: "Possible",
-        severity: "Moderate",
         benefitsOutweigh: "Yes",
         cyberGaps: "No",
         harmTypes: ["Impairment of consumer control over personal information", "Unauthorised access, destruction, use, modification, or disclosure"],
@@ -367,8 +365,6 @@ export const PANEL_CPPA_RISK: PanelFixture[] = [
       material_change_since_prior: "Yes",
 
       impact_intake: {
-        likelihood: "Possible",
-        severity: "Significant",
         benefitsOutweigh: "Yes",
         cyberGaps: "No",
         harmTypes: ["Economic harm", "Unlawful discrimination", "Unauthorised access, destruction, use, modification, or disclosure"],
@@ -674,8 +670,6 @@ export const PANEL_CPPA_RISK: PanelFixture[] = [
       material_change_since_prior: "No",
 
       impact_intake: {
-        likelihood: "Possible",
-        severity: "Moderate",
         benefitsOutweigh: "Yes",
         cyberGaps: "No",
         harmTypes: ["Impairment of consumer control over personal information", "Reputational harm"],
@@ -925,8 +919,6 @@ export const PANEL_CPPA_RISK: PanelFixture[] = [
       material_change_since_prior: "No",
 
       impact_intake: {
-        likelihood: "Possible",
-        severity: "Significant",
         benefitsOutweigh: "Yes",
         cyberGaps: "No",
         harmTypes: ["Unauthorised access, destruction, use, modification, or disclosure", "Impairment of consumer control over personal information", "Reputational harm"],
@@ -1205,8 +1197,6 @@ export const PANEL_CPPA_RISK: PanelFixture[] = [
       material_change_since_prior: "No",
 
       impact_intake: {
-        likelihood: "Unlikely",
-        severity: "Moderate",
         benefitsOutweigh: "Yes",
         cyberGaps: "No",
         harmTypes: ["Unauthorised access, destruction, use, modification, or disclosure"],
@@ -1432,8 +1422,6 @@ export const PANEL_CPPA_RISK: PanelFixture[] = [
       material_change_since_prior: "No",
 
       impact_intake: {
-        likelihood: "Possible",
-        severity: "Significant",
         benefitsOutweigh: "Yes",
         cyberGaps: "No",
         harmTypes: ["Unlawful discrimination", "Psychological harm"],
@@ -1694,8 +1682,6 @@ export const PANEL_CPPA_RISK: PanelFixture[] = [
       },
 
       impact_intake: {
-        likelihood: "Possible",
-        severity: "Severe",
         benefitsOutweigh: "Yes",
         cyberGaps: "No",
         harmTypes: ["Economic harm", "Reputational harm", "Unauthorised access, destruction, use, modification, or disclosure"],
@@ -1972,8 +1958,6 @@ export const PANEL_CPPA_RISK: PanelFixture[] = [
       material_change_since_prior: "No",
 
       impact_intake: {
-        likelihood: "Possible",
-        severity: "Moderate",
         benefitsOutweigh: "Yes",
         cyberGaps: "No",
         harmTypes: ["Impairment of consumer control over personal information", "Unauthorised access, destruction, use, modification, or disclosure"],
@@ -2214,8 +2198,6 @@ export const PANEL_CPPA_RISK: PanelFixture[] = [
       material_change_since_prior: "No",
 
       impact_intake: {
-        likelihood: "Unlikely",
-        severity: "Moderate",
         benefitsOutweigh: "Yes",
         cyberGaps: "No",
         harmTypes: ["Unauthorised access, destruction, use, modification, or disclosure", "Impairment of consumer control over personal information"],
@@ -2425,8 +2407,6 @@ export const PANEL_CPPA_RISK: PanelFixture[] = [
       material_change_since_prior: "No",
 
       impact_intake: {
-        likelihood: "Possible",
-        severity: "Minimal",
         benefitsOutweigh: "Yes",
         cyberGaps: "No",
         harmTypes: ["Impairment of consumer control over personal information"],
@@ -2632,8 +2612,6 @@ export const PANEL_CPPA_RISK: PanelFixture[] = [
       material_change_since_prior: "No",
 
       impact_intake: {
-        likelihood: "Possible",
-        severity: "Significant",
         benefitsOutweigh: "Yes",
         cyberGaps: "No",
         harmTypes: ["Unlawful discrimination", "Economic harm"],
@@ -2880,8 +2858,6 @@ export const PANEL_CPPA_RISK: PanelFixture[] = [
       material_change_since_prior: "No",
 
       impact_intake: {
-        likelihood: "Possible",
-        severity: "Minimal",
         benefitsOutweigh: "Yes",
         cyberGaps: "No",
         harmTypes: ["Impairment of consumer control over personal information"],
@@ -3083,8 +3059,6 @@ export const PANEL_CPPA_RISK: PanelFixture[] = [
       material_change_since_prior: "No",
 
       impact_intake: {
-        likelihood: "Possible",
-        severity: "Significant",
         benefitsOutweigh: "Yes",
         cyberGaps: "No",
         harmTypes: ["Unlawful discrimination", "Economic harm"],
@@ -3348,8 +3322,6 @@ export const PANEL_CPPA_RISK: PanelFixture[] = [
       material_change_since_prior: "Yes",
 
       impact_intake: {
-        likelihood: "Possible",
-        severity: "Significant",
         benefitsOutweigh: "Yes",
         cyberGaps: "No",
         harmTypes: ["Unlawful discrimination", "Economic harm"],
@@ -3608,8 +3580,6 @@ export const PANEL_CPPA_RISK: PanelFixture[] = [
       material_change_since_prior: "Yes",
 
       impact_intake: {
-        likelihood: "Possible",
-        severity: "Significant",
         benefitsOutweigh: "Yes",
         cyberGaps: "No",
         harmTypes: ["Unlawful discrimination", "Economic harm"],

@@ -317,8 +317,6 @@ export {
 } from "./CPPARiskAssessment.enums";
 import {
   HARM_TYPES,
-  IMPACT_LIKELIHOOD_OPTS,
-  IMPACT_SEVERITY_OPTS,
   IMPACT_BENEFITS_OUTWEIGH_OPTS,
   IMPACT_CYBER_GAPS_OPTS,
 } from "./CPPARiskAssessment.enums";
@@ -524,7 +522,7 @@ export default function CPPARiskAssessment() {
   // Absent keys are legal in old drafts (see applyRestore).
   type ExceptionClaim = { claimed: boolean; scope: string; safeguards: string; authority_basis?: string; retention_period?: string };
   const [exceptionClaims, setExceptionClaims] = useState<Record<string, ExceptionClaim>>({});
-  const [impactData, setImpactData] = useState<{ likelihood: string; severity: string; harmTypes: string[]; vulnerable: string; benefitsOutweigh: string; benefitsRationale: string; cyberGaps: string; businessBenefits: string; consumerBenefits: string; stakeholderBenefits: string; safeguards: string; harmCauses: string }>({ likelihood: "", severity: "", harmTypes: [], vulnerable: "", benefitsOutweigh: "", benefitsRationale: "", cyberGaps: "", businessBenefits: "", consumerBenefits: "", stakeholderBenefits: "", safeguards: "", harmCauses: "" });
+  const [impactData, setImpactData] = useState<{ harmTypes: string[]; vulnerable: string; benefitsOutweigh: string; benefitsRationale: string; cyberGaps: string; businessBenefits: string; consumerBenefits: string; stakeholderBenefits: string; safeguards: string; harmCauses: string }>({ harmTypes: [], vulnerable: "", benefitsOutweigh: "", benefitsRationale: "", cyberGaps: "", businessBenefits: "", consumerBenefits: "", stakeholderBenefits: "", safeguards: "", harmCauses: "" });
 
   // New § 7152 data elements (see EUP gap analysis). Each persists via draft (Prompt 2/3).
   const [q5bProfiling, setQ5bProfiling] = useState("");      // § 7150(b)(4) systematic-observation / sensitive-location profiling trigger
@@ -1491,7 +1489,7 @@ export default function CPPARiskAssessment() {
     secondaryActivities: [] as SecondaryActivity[],
 
     exceptionClaims: {} as Record<string, ExceptionClaim>,
-    impactData: { likelihood: "", severity: "", harmTypes: [] as string[], vulnerable: "", benefitsOutweigh: "", benefitsRationale: "", cyberGaps: "", businessBenefits: "", consumerBenefits: "", stakeholderBenefits: "", safeguards: "", harmCauses: "" },
+    impactData: { harmTypes: [] as string[], vulnerable: "", benefitsOutweigh: "", benefitsRationale: "", cyberGaps: "", businessBenefits: "", consumerBenefits: "", stakeholderBenefits: "", safeguards: "", harmCauses: "" },
     harmCategoryReviewStatus: {} as Record<string, string>,
     finalProcessingDecision: "",
     finalProcessingDecisionNotes: "",
@@ -3416,14 +3414,6 @@ export default function CPPARiskAssessment() {
               <p className="text-xs font-mono text-muted-foreground -mt-3">11 CCR § 7152(a)(5)–(6) — negative impacts, their sources and causes, and the safeguards addressing them</p>
               <RequiredLegend />
               <p className="text-sm text-muted-foreground">These answers build the impacts analysis: each impact with its source and cause, the safeguard mapped to it, and the risk that remains once the safeguard is in place. An impact with no safeguard is reported as unaddressed.</p>
-                  <div>
-                    <Label>Likelihood of harm to consumers</Label>
-                    <div className="mt-2"><Radio name="impact_likelihood" options={IMPACT_LIKELIHOOD_OPTS} value={impactData.likelihood} onChange={(v) => setImpactData((d) => ({ ...d, likelihood: v }))} /></div>
-                  </div>
-                  <div>
-                    <Label>Severity of harm if it occurs</Label>
-                    <div className="mt-2"><Radio name="impact_severity" options={IMPACT_SEVERITY_OPTS} value={impactData.severity} onChange={(v) => setImpactData((d) => ({ ...d, severity: v }))} /></div>
-                  </div>
                   <div data-rail-key="impact_harm_causes" onFocus={() => focusRail('impact_harm_causes')}>
                     <Label>Types of harm that could result <span className="text-xs text-muted-foreground font-mono">(§ 7152(a)(5))</span></Label>
                     <div className="mt-2"><Pills options={HARM_TYPES} value={impactData.harmTypes} onChange={(v) => {

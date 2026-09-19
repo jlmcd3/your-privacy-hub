@@ -895,6 +895,13 @@ export function assembleAdmtV2Document(args: AssembleArgs): RenderedSkeletonDocu
   const deliveryPhrase = str((intake as any)?.notice_delivery) || reader(Array.isArray((intake as any)?.notice_delivery) ? (intake as any).notice_delivery : []);
   const noticeNotYetProvided = (Array.isArray((intake as any)?.notice_delivery) ? (intake as any).notice_delivery as unknown[] : [(intake as any)?.notice_delivery])
     .some((v) => String(v ?? "") === "We have not yet provided a Pre-use Notice");
+  // DOC 275 §15 item 7 (CEO-approved 2026-09-19) — 11 CCR § 7220(c)(1)
+  // requires the notice to state the specific purpose, and the FSOR rejects
+  // a generic one; the "Specific purpose" factor row above shows only the
+  // Yes/No/Partial determination, never the Company's own words. Quoted
+  // verbatim beside that determination when the Company supplied one.
+  // NO-PADDING LAW: no text on the record, nothing renders — no placeholder.
+  const noticePurposeText = str((intake as any)?.notice_purpose_text);
   if (outOfScope) {
     push("notice", "3. Pre-use Notice Audit", [NOT_REACHED_STUB("the Pre-use Notice requirements are not assessed")]);
     push("optout", "4. Opt-Out and Exception Audit", [NOT_REACHED_STUB("the opt-out and exception requirements are not assessed")]);
@@ -922,6 +929,10 @@ export function assembleAdmtV2Document(args: AssembleArgs): RenderedSkeletonDocu
         factorRow("Alternative process", notice.altProcess),
       ],
     }},
+    // DOC 275 §15 item 7 — see the noticePurposeText note above.
+    ...(noticePurposeText
+      ? [{ kind: "skeleton", text: `The notice states the purpose as: “${noticePurposeText}”.` } as RenderedParagraph]
+      : []),
     { kind: "generated", text: composeNoticeAnalysis(notice) },
   ]);
 

@@ -83,8 +83,6 @@ export const GOLDEN_PANEL_PACK: GoldenPanelPack = {
         "i9_has_existing_dpia": "No",
         "material_change_since_prior": "No",
         "impact_intake": {
-          "likelihood": "Possible",
-          "severity": "Moderate",
           "benefitsOutweigh": "Yes",
           "cyberGaps": "No",
           "harmTypes": [
@@ -436,8 +434,6 @@ export const GOLDEN_PANEL_PACK: GoldenPanelPack = {
         "i9_has_existing_dpia": "No",
         "material_change_since_prior": "No",
         "impact_intake": {
-          "likelihood": "Possible",
-          "severity": "Moderate",
           "benefitsOutweigh": "Yes",
           "cyberGaps": "No",
           "harmTypes": [

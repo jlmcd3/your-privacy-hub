@@ -145,8 +145,6 @@ export const FIELD_LABELS: Record<string, string> = Object.freeze({
   finalization_required_follow_up_resolved: "required follow-up items resolved",
   exceptions_intake: "regulatory exceptions",
   impact_intake: "impact assessment inputs",
-  "impact_intake.likelihood": "likelihood of impact",
-  "impact_intake.severity": "severity of impact",
   "impact_intake.benefitsOutweigh": "whether benefits outweigh risks",
   "impact_intake.cyberGaps": "known cybersecurity gaps",
   "impact_intake.harmTypes": "types of potential harm",

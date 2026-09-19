@@ -410,6 +410,7 @@ export const RISK_BLOCK_CATALOGUE: BlockCatalogue = {
       ],
       "sources": [
         "INTAKE:approximate_ca_consumers",
+        "INTAKE:bought_sold_shared_count",
         "INTAKE:consumer_interaction_method",
         "INTAKE:consumer_interaction_purpose",
         "INTAKE:consumer_relationship_context",

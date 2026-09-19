@@ -989,8 +989,6 @@ const F_CPPA_RISK_US: SampleFixture = {
           consumer_request: { claimed: false, scope: "", safeguards: "" },
         },
         impact_intake: {
-          likelihood: "Possible",
-          severity: "Moderate",
           harmTypes: [
             "Impairment of consumer control over personal information",
             "Unauthorised access, destruction, use, modification, or disclosure",

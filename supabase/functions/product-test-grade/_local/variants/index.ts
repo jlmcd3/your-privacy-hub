@@ -183,7 +183,18 @@ function buildRemovedExpectations(
   // never "asked" of this record, so it must not be expected as
   // "not recorded" (doc 271 §4 defect 1 / this brief's record-complete rule).
   const asked = new Set(emptyAskedKeys(contract, thinnedIntake));
-  const reportable = removedKeys.filter((k) => asked.has(k));
+  // A conditional field whose show/hide rule is prose only (no machine
+  // `trigger`, no array-row parent) is "left unchecked" by the gate, which
+  // counts it as asked. The Risk ADMT-evaluation fields (i5_*) are such
+  // fields: on a fixture without ADMT they are answered by the panel author
+  // but never shown by the form, so their removal cannot change the document
+  // and the page's never-surfaces check reported them (run 8e0f2e5c). They
+  // are not reportable here (lead, 2026-09-19).
+  const machineGated = (k: string) => {
+    const f = contract.fields.find((x) => x.key === k);
+    return !f || f.required !== "conditional" || !!f.trigger || k.includes("[]");
+  };
+  const reportable = removedKeys.filter((k) => asked.has(k) && machineGated(k));
   return {
     must_report_not_recorded: reportable.map((k) => labelFor(contract, k)),
     must_not_contain: [],

@@ -167,26 +167,25 @@ export const PANEL_CPPA_ADMT: PanelFixture[] = [
     },
   },
 
-  // ── p02 — Cascadia Home Rentals LLC: housing, reviewer with authority,
-  // full opt-out, vendor-supplied tenant-screening input. ─────────────────
+  // ── p02 — Cascadia Home Rentals LLC: housing, fully automated with a
+  // human-appeal exception, vendor-supplied tenant-screening input. ───────
   {
     id: "cppa-admt-p02-housing-reviewer-authority",
     tool: "cppa-admt",
-    label: "Regional landlord tenant-screening score — housing domain, reviewer with override authority",
+    label: "Regional landlord tenant-screening score — housing domain, fully automated, § 7221(b)(1) human-appeal exception",
     company: "Cascadia Home Rentals LLC",
     sector: "Residential property management",
     geo: "us",
     summary:
-      "Cascadia scores rental applications with an in-house model that folds in a vendor eviction-search feed; a leasing supervisor reviews every score and can override it before a lease decision issues, and the company offers a full opt-out. Exercises: Housing domain with the § 7001(ddd)(2) basis question answered 'other factors are considered', reviewer-with-authority human review, and a named third-party data vendor distinct from the ADMT system itself.",
+      "Cascadia scores rental applications with an in-house model that folds in a vendor eviction-search feed; the model's tier decision issues automatically with no leasing-staff review before the applicant is notified, and an applicant may ask a regional director who did not run the score to reconsider it. Exercises: Housing domain with the § 7001(ddd)(2) basis question answered 'other factors are considered', fully-automated primary review, the § 7221(b)(1) human-appeal exception, and a named third-party data vendor distinct from the ADMT system itself.",
     intake: {
       organization_name: "Cascadia Home Rentals LLC",
       system_name: "Tenant Placement Score (TPS 3.1)",
       system_type: "In-house statistical scoring model",
       system_description:
-        "Every completed rental application submitted through the Cascadia resident portal is scored by the Tenant Placement Score model before a leasing supervisor issues a decision. The model reads verified monthly income against posted rent, eighteen months of rental-payment history supplied by prior landlords, an eviction-record search returned by vendor Northgate Screening Services, and application-packet completeness. It returns a three-tier placement recommendation (Standard, Elevated Deposit, Refer to Manual Review) and the two inputs that moved the tier furthest. A leasing supervisor reviews the tier, the applicant packet, and any written explanation supplied, and issues the leasing decision; the model never issues a decision on its own.",
+        "Every completed rental application submitted through the Cascadia resident portal is scored by the Tenant Placement Score model, which reads verified monthly income against posted rent, eighteen months of rental-payment history supplied by prior landlords, an eviction-record search returned by vendor Northgate Screening Services, and application-packet completeness. It returns a three-tier placement decision (Standard, Elevated Deposit, Application Declined) and the two inputs that moved the tier furthest; the tier is generated and communicated to the applicant automatically, with no leasing-office review before it issues. An applicant who wants a person to reconsider the outcome may ask for reconsideration; a regional leasing director who did not run the original score then reviews the full packet, the payment history, and the eviction search directly and has authority to reverse the tier or approve the application on different terms.",
       decision_domains: ["Housing (rental or purchase eligibility)"],
-      human_review:
-        "Yes — reviewer knows how to interpret output, reviews it plus other info, and has authority to change the decision",
+      human_review: "No — fully automated, no human review",
       training_data_use: "Yes",
       profiling_use: "Yes",
 
@@ -197,32 +196,18 @@ export const PANEL_CPPA_ADMT: PanelFixture[] = [
       notice_has_specific_purpose: "Yes",
       notice_purpose_text:
         "We use the Tenant Placement Score to decide whether to approve your rental application, whether to require a higher security deposit, or whether to send your application to manual review. We do not use it to set the advertised rent.",
-      notice_has_opt_out_desc: "Yes — with specific opt-out instructions",
+      notice_has_opt_out_desc: "We rely on an exception and describe appeal rights instead",
       notice_has_access_desc: "Yes",
       notice_has_anti_retaliation: "Yes",
       notice_has_how_it_works: "Yes — included inline in the notice",
-      notice_has_alternative_process: "Yes",
+      notice_has_alternative_process: "Not applicable — we rely on an opt-out exception",
       notice_timing: "At or before the point where we collect the personal information the ADMT processes",
 
-      opt_out_exception: "No exception — we provide a full opt-out right",
-      opt_out_handling_confirmations: [
-        "No identity verification is required to submit an opt-out request (§ 7221(f))",
-        "One option opts the consumer out of every use of ADMT we make for significant decisions (§ 7221(i))",
-        "An opt-out received before processing begins prevents that processing (§ 7221(m))",
-      ],
-      opt_out_methods: [
-        "Interactive online form linked from the Pre-use Notice",
-        "Designated email address",
-        "In-person form",
-      ],
-      opt_out_link_title: "Review My Application Without Automated Scoring",
-      opt_out_no_cookie_banner: "Confirmed — we provide at least one ADMT-specific opt-out method in addition",
-      opt_out_no_account_required: "Confirmed — no account required",
-      opt_out_confirmation_mechanism:
-        "An automated confirmation email is sent from leasing@cascadiahomerentals.com within four business hours of the request, and the same confirmation is logged against the application record in the resident portal.",
+      opt_out_exception:
+        "Human appeal exception (§ 7221(b)(1)) — we provide a human reviewer with authority to overturn the decision",
+      opt_out_appeal_process:
+        "An applicant may ask for reconsideration within thirty days of the tier decision by emailing leasing@cascadiahomerentals.com or asking at any leasing office. A regional leasing director who did not run the original score reviews the full application packet, the payment-history report, and the eviction-record search directly, and has authority to reverse the tier, approve the application on different terms, or affirm the original result. The director's decision issues in writing within ten business days of the request.",
       opt_out_fairness_doc: "",
-      opt_out_15_day_process:
-        "Opt-out requests route to the manual-review queue on receipt; the queue must complete a non-automated assessment and issue the leasing decision within fifteen business days, escalating to the Director of Leasing at day ten if still open.",
 
       access_submission_methods:
         "Requests are accepted through the privacy request form at cascadiahomerentals.com/privacy-request, at any leasing office, and by email to privacy@cascadiahomerentals.com; every route opens a ticket in the resident-request register.",
@@ -268,20 +253,18 @@ export const PANEL_CPPA_ADMT: PanelFixture[] = [
         solely_advertising: "No",
         housing_decision_basis: "No — other factors are considered",
         decision_domains_other: "",
-        hi_reviewer_present: "Yes — on every decision",
-        hi_reviewer_role: "Leasing Supervisor",
-        hi_stage: "Before the decision is issued",
-        hi_trained: "Yes",
-        hi_reviews_other_info: "Yes",
-        hi_authority_override: "Yes",
-        hi_override_rate: "About one scored application in twenty over the trailing twelve months",
-        other_factors: "Income-to-rent ratio verified by the leasing supervisor and the applicant's own written explanation",
+        hi_reviewer_present: "No — fully automated",
+        other_factors: "The applicant's written explanation of any adverse item, submitted with the application, is held on file and read by the regional director only if reconsideration is requested",
         vendor_product: "Northgate Screening Services — Eviction Record Search API",
         vendor_training_rights: "No — the addendum prohibits Northgate from using Cascadia applicant data for model training",
-        appeal_reviewer_role: "",
-        appeal_trained: "",
-        appeal_authority_overturn: "",
-        appeal_step_count: "",
+        appeal_reviewer_role: "Regional Director of Leasing, independent of the automated tier decision",
+        appeal_trained: "Yes",
+        appeal_authority_overturn: "Yes",
+        appeal_step_count: "1",
+        appeal_consumer_submit: ["Free-text statement", "Supporting documents"],
+        appeal_timeline: "10 business days",
+        appeal_reversal_rate: "About one reconsideration request in six results in a reversed or adjusted tier, based on 2026 year-to-date data",
+        appeal_outcomes: ["Uphold", "Reverse", "Modify"],
         sole_use_attestation: "",
         nondiscrimination_testing: "",
         access_secure_transmission: "Encrypted self-service portal",
@@ -294,33 +277,32 @@ export const PANEL_CPPA_ADMT: PanelFixture[] = [
         b2_logic_ready: "Yes — we can produce this today",
         b2_logic_process: "The handler runs the TPS explanation report, which lists the four inputs and the two that moved the tier furthest.",
         b3_output_use_ready: "Yes — we can produce this today",
-        b3_output_use_process: "The application audit trail records the tier returned and the supervisor's decision.",
+        b3_output_use_process: "The application audit trail records the tier the model returned and, where reconsideration was requested, the director's decision.",
         b3_outcome_ready: "Partially — we can produce some of it",
         b3_outcome_process: "The leasing decision is on the application record, but deposit-tier history is stored in a separate finance system requiring manual retrieval.",
         b3_human_role_ready: "Yes — we can produce this today",
-        b3_human_role_process: "The portal names the leasing supervisor who reviewed the tier and the action taken.",
+        b3_human_role_process: "The portal confirms no leasing-office review occurred before the tier issued, and names the regional director where reconsideration was requested.",
         b4_rights_ready: "Yes — we can produce this today",
         b4_rights_process: "The response template includes the anti-retaliation statement and a link to the rights section of the resident handbook.",
       },
 
       notice_element_text: {
         purpose:
-          "We use the Tenant Placement Score to decide whether to approve your rental application, whether to require a higher security deposit, or whether to send your application to manual review.",
+          "We use the Tenant Placement Score to decide whether to approve your rental application, whether to require a higher security deposit, or whether to decline it.",
         optout:
-          "You can ask us to review your application without the Tenant Placement Score. Use the link 'Review My Application Without Automated Scoring' in the resident portal, or email leasing@cascadiahomerentals.com. We confirm within four business hours and issue a manual-review decision within fifteen business days.",
+          "Because this decision is tested for unlawful discrimination and we provide a human reviewer with authority to overturn it, we rely on the § 7221(b)(1) human-appeal exception rather than offering a separate opt-out. You may ask for reconsideration as described below.",
         access:
           "You can ask us for an explanation of how the Score reached your result. Submit the request at cascadiahomerentals.com/privacy-request, at any leasing office, or by email; we respond within 45 calendar days.",
         antiretaliation:
-          "We will not deny your application, charge a higher deposit, or provide a lower level of service because you asked us to review your application without the Score or because you asked for an explanation.",
+          "We will not deny your application, charge a higher deposit, or provide a lower level of service because you asked for reconsideration or because you asked for an explanation.",
         howworks_inputs:
           "The Score uses four things: your income compared with the rent, eighteen months of rental-payment history, an eviction-record search from Northgate Screening Services, and whether your application packet is complete.",
         howworks_output:
-          "It returns one of three tiers — Standard, Elevated Deposit, or Refer to Manual Review — together with the two inputs that moved your tier the most; a leasing supervisor reviews the tier with your packet before issuing the decision.",
-        altprocess:
-          "If you opt out, a leasing supervisor assesses your application manually from your packet and payment history, without the Score, and issues the leasing decision within fifteen business days.",
+          "It returns one of three tiers — Standard, Elevated Deposit, or Application Declined — together with the two inputs that moved your tier the most, communicated to you automatically with no leasing-office review before it issues.",
+        altprocess: "",
       },
       notice_full_text:
-        "PRE-USE NOTICE — AUTOMATED TENANT SCREENING (Cascadia Home Rentals LLC, published 2026-01-20, cascadiahomerentals.com/admt-notice)\n\nWhat we use it for. We use the Tenant Placement Score to decide whether to approve your rental application, whether to require a higher security deposit, or whether to send your application to manual review.\n\nHow it works. The Score uses four things: your income compared with the rent, eighteen months of rental-payment history, an eviction-record search from Northgate Screening Services, and whether your application packet is complete. It returns one of three tiers — Standard, Elevated Deposit, or Refer to Manual Review — together with the two inputs that moved your tier the most; a leasing supervisor reviews the tier with your packet before issuing the decision.\n\nYour right to opt out. You can ask us to review your application without the Score. Use the link 'Review My Application Without Automated Scoring' in the resident portal, or email leasing@cascadiahomerentals.com. You do not need an account to opt out. We confirm within four business hours and issue a decision within fifteen business days.\n\nWhat happens instead. A leasing supervisor assesses your application manually from your packet and payment history, without the Score, and issues the leasing decision within fifteen business days.\n\nYour right to an explanation. You can ask us for an explanation of how the Score reached your result. Submit the request at cascadiahomerentals.com/privacy-request, at any leasing office, or by email. We respond within 45 calendar days.\n\nNo retaliation. We will not deny your application, charge a higher deposit, or provide a lower level of service because you opted out or asked for an explanation.\n\nQuestions. Privacy Officer, Cascadia Home Rentals LLC, 480 Harborview Drive, Suite 210, Tacoma, WA 98402 — privacy@cascadiahomerentals.com.",
+        "PRE-USE NOTICE — AUTOMATED TENANT SCREENING (Cascadia Home Rentals LLC, published 2026-01-20, cascadiahomerentals.com/admt-notice)\n\nWhat we use it for. We use the Tenant Placement Score to decide whether to approve your rental application, whether to require a higher security deposit, or whether to decline it.\n\nHow it works. The Score uses four things: your income compared with the rent, eighteen months of rental-payment history, an eviction-record search from Northgate Screening Services, and whether your application packet is complete. It returns one of three tiers — Standard, Elevated Deposit, or Application Declined — together with the two inputs that moved your tier the most, communicated to you automatically with no leasing-office review before it issues.\n\nYour right to ask for reconsideration. Because this decision is tested for unlawful discrimination and we provide a human reviewer with authority to overturn it, we rely on the § 7221(b)(1) human-appeal exception rather than offering a separate opt-out. You may ask for reconsideration within thirty days by emailing leasing@cascadiahomerentals.com or asking at any leasing office. A regional leasing director who did not run your original score reviews your full packet, payment history, and eviction-record search directly, and has authority to reverse the tier, approve your application on different terms, or affirm the original result, in writing within ten business days.\n\nYour right to an explanation. You can ask us for an explanation of how the Score reached your result. Submit the request at cascadiahomerentals.com/privacy-request, at any leasing office, or by email. We respond within 45 calendar days.\n\nNo retaliation. We will not deny your application, charge a higher deposit, or provide a lower level of service because you asked for reconsideration or asked for an explanation.\n\nQuestions. Privacy Officer, Cascadia Home Rentals LLC, 480 Harborview Drive, Suite 210, Tacoma, WA 98402 — privacy@cascadiahomerentals.com.",
     },
   },
 
@@ -463,26 +445,25 @@ export const PANEL_CPPA_ADMT: PanelFixture[] = [
     },
   },
 
-  // ── p04 — Summit Ridge University: education admission, reviewer with
-  // authority, notice not yet published. ──────────────────────────────────
+  // ── p04 — Summit Ridge University: education admission, advisory human
+  // review, notice not yet published. ──────────────────────────────────────
   {
     id: "cppa-admt-p04-education-notice-not-yet-provided",
     tool: "cppa-admt",
-    label: "University admissions triage score — education domain, notice not yet published, compliance program mid-build",
+    label: "University admissions triage score — education domain, advisory-only review, notice not yet published",
     company: "Summit Ridge University",
     sector: "Higher education",
     geo: "us",
     summary:
-      "Summit Ridge built an in-house admissions triage model this year; an admissions officer reviews and can override every recommendation, but the university has not yet published a Pre-use Notice, so the record exercises the 'We have not yet provided a Pre-use Notice' branch and the corresponding gaps in the notice-element and access-readiness answers, alongside a still-offered full opt-out and a fully-answered § 7221 handling checklist.",
+      "Summit Ridge built an in-house admissions triage model this year; an admissions officer reads every Priority and Standard Review file but cannot override the model's automatic hold-and-exclude outcome for a file the model places in the Additional-Information-Requested tier, and the university has not yet published a Pre-use Notice, so the record exercises the 'We have not yet provided a Pre-use Notice' branch and the corresponding gaps in the notice-element and access-readiness answers, alongside a still-offered full opt-out and a fully-answered § 7221 handling checklist.",
     intake: {
       organization_name: "Summit Ridge University",
       system_name: "Admissions Triage Model (ATM)",
       system_type: "In-house statistical scoring model",
       system_description:
-        "Every completed undergraduate application submitted through the Summit Ridge applicant portal is scored by the Admissions Triage Model, which reads self-reported GPA, standardized test scores where submitted, the number and type of advanced coursework completed, and extracurricular-activity categories selected by the applicant. It returns a triage tier (Priority Review, Standard Review, Additional-Information Requested) used only to sequence which applications an admissions officer reviews first; every application, regardless of tier, receives a full manual review before any admission decision is made.",
+        "Every completed undergraduate application submitted through the Summit Ridge applicant portal is scored by the Admissions Triage Model, which reads self-reported GPA, standardized test scores where submitted, the number and type of advanced coursework completed, and extracurricular-activity categories selected by the applicant. It returns a triage tier (Priority Review, Standard Review, Additional-Information Requested) that sets how the application is processed. An admissions officer reads every Priority Review and Standard Review file in full and decides the admission outcome. An application the Model places in Additional-Information Requested is held automatically: the applicant receives a system-generated request for the missing item, and a file not completed by the stated deadline is automatically marked incomplete and excluded from committee review without an officer looking at it. The officer may flag a data-entry error in the underlying GPA or coursework record for correction, but has no authority to move a file out of the Additional-Information-Requested tier or to override the automatic incomplete-exclusion once the deadline has passed.",
       decision_domains: ["Education enrollment or opportunities (admission, credentials, suspension)"],
-      human_review:
-        "Yes — reviewer knows how to interpret output, reviews it plus other info, and has authority to change the decision",
+      human_review: "Partial — reviewer sees the output but cannot override it",
       training_data_use: "No",
       profiling_use: "No",
 
@@ -547,9 +528,9 @@ export const PANEL_CPPA_ADMT: PanelFixture[] = [
         hi_stage: "Before the decision is issued",
         hi_trained: "Yes",
         hi_reviews_other_info: "Yes",
-        hi_authority_override: "Yes",
-        hi_override_rate: "Every application receives full manual review; the triage tier only affects reading order",
-        other_factors: "Personal statement, letters of recommendation, and the full application file read by the admissions officer",
+        hi_authority_override: "No",
+        hi_override_rate: "Not applicable — the officer may correct a data-entry error but has no authority to move a file out of the Additional-Information-Requested tier or override its automatic exclusion after the response deadline passes",
+        other_factors: "Personal statement, letters of recommendation, and the full application file read by the admissions officer for every Priority Review and Standard Review file",
         appeal_reviewer_role: "",
         appeal_trained: "",
         appeal_authority_overturn: "",
@@ -1244,33 +1225,32 @@ export const PANEL_CPPA_ADMT: PanelFixture[] = [
     },
   },
 
-  // ── p10 — Fairmont Community Credit Union: lending, reviewer with
-  // authority, in-house scoring, immature access-readiness program. ──────
+  // ── p10 — Fairmont Community Credit Union: lending, advisory human
+  // review, in-house scoring, immature access-readiness program. ──────────
   {
     id: "cppa-admt-p10-lending-authority-inhouse",
     tool: "cppa-admt",
-    label: "Credit union member-loan scoring — lending domain, reviewer with override authority, in-house model",
+    label: "Credit union member-loan scoring — lending domain, advisory-only review, in-house model",
     company: "Fairmont Community Credit Union",
     sector: "Credit union lending",
     geo: "us",
     summary:
-      "Fairmont built an in-house loan-scoring model; a loan officer reviews every score and has authority to override it, so the record is out of scope on the reviewer's qualifying involvement, but Fairmont's access-explanation readiness program is still maturing. Exercises: the lending domain with reviewer-with-authority human review (a second, in-house-model instance of the out-of-scope determination), no third-party vendor, and readiness answers spanning 'Partially' and 'No' rather than a uniformly complete program.",
+      "Fairmont built an in-house loan-scoring model; a loan officer reviews every recommended band alongside the member's full file and can flag a data error for correction, but has no authority to move a member out of the band the tool assigns, so the ADMT is in scope, and Fairmont's access-explanation readiness program is still maturing. Exercises: the lending domain with advisory-only (non-overriding) human review, no third-party vendor, and readiness answers spanning 'Partially' and 'No' rather than a uniformly complete program.",
     intake: {
       organization_name: "Fairmont Community Credit Union",
       system_name: "Member Loan Scoring Tool (MLST)",
       system_type: "In-house statistical scoring model",
       system_description:
-        "Every consumer loan application submitted by a Fairmont member is scored by the Member Loan Scoring Tool, which reads share-account history, verified income, existing Fairmont loan performance, and a bureau tradeline summary. It returns a recommended approval band and rate tier. A loan officer reviews the recommendation together with the member's full file and relationship history and has authority to approve, adjust the rate, or decline regardless of the tool's recommendation.",
+        "Every consumer loan application submitted by a Fairmont member is scored by the Member Loan Scoring Tool, which reads share-account history, verified income, existing Fairmont loan performance, and a bureau tradeline summary. It returns an approval band and rate tier. A loan officer reviews the band together with the member's full file and relationship history before it is communicated, and can flag a data error in the underlying account or bureau record for correction, but has no authority to move the member into a different band or rate tier once the underlying data is confirmed accurate.",
       decision_domains: ["Financial or lending services (credit decisions, loans, accounts)"],
-      human_review:
-        "Yes — reviewer knows how to interpret output, reviews it plus other info, and has authority to change the decision",
+      human_review: "Partial — reviewer sees the output but cannot override it",
       training_data_use: "Yes",
       profiling_use: "Yes",
 
       notice_delivery: ["Account-creation or onboarding flow"],
       notice_has_specific_purpose: "Yes",
       notice_purpose_text:
-        "We use the Member Loan Scoring Tool to recommend an approval band and rate tier for your loan application based on your account history, income, and credit profile.",
+        "We use the Member Loan Scoring Tool to set an approval band and rate tier for your loan application based on your account history, income, and credit profile.",
       notice_has_opt_out_desc: "Mentions opt-out but without clear instructions",
       notice_has_access_desc: "Yes",
       notice_has_anti_retaliation: "Yes",
@@ -1296,9 +1276,9 @@ export const PANEL_CPPA_ADMT: PanelFixture[] = [
       access_verification_process:
         "The requester confirms their member number and government-issued ID in person, or the last four digits of their SSN and date of birth by phone.",
       access_logic_disclosure:
-        "Fairmont can describe, in general terms, that the tool considers share-account history, income, existing loan performance, and bureau tradelines, but has not yet built a per-applicant explanation showing which inputs moved a given recommendation.",
+        "Fairmont can describe, in general terms, that the tool considers share-account history, income, existing loan performance, and bureau tradelines, but has not yet built a per-applicant explanation showing which inputs moved a given band.",
       access_outcome_disclosure:
-        "The response states the approval band and rate tier the tool recommended and the loan officer's final decision.",
+        "The response states the approval band and rate tier the tool set, whether a loan officer flagged and corrected any underlying data error, and the resulting loan terms.",
       access_response_timeline: "Our process is not yet defined",
       access_trade_secret_policy: "Not yet defined; Fairmont has not established a trade-secret withholding policy for the scoring tool.",
 
@@ -1326,8 +1306,8 @@ export const PANEL_CPPA_ADMT: PanelFixture[] = [
         hi_stage: "Before the decision is issued",
         hi_trained: "Yes",
         hi_reviews_other_info: "Yes",
-        hi_authority_override: "Yes",
-        hi_override_rate: "About one recommendation in ten over the trailing twelve months",
+        hi_authority_override: "No",
+        hi_override_rate: "Not applicable — the officer may correct a data error in the account or bureau record but has no authority to move a confirmed band once the underlying data is accurate",
         other_factors: "Member relationship tenure and share-account balance trend",
         sole_use_attestation: "",
         nondiscrimination_testing: "",
@@ -1352,51 +1332,49 @@ export const PANEL_CPPA_ADMT: PanelFixture[] = [
 
       notice_element_text: {
         purpose:
-          "We use the Member Loan Scoring Tool to recommend an approval band and rate tier for your loan application based on your account history, income, and credit profile.",
+          "We use the Member Loan Scoring Tool to set an approval band and rate tier for your loan application based on your account history, income, and credit profile.",
         optout:
           "You can ask us questions about how your loan decision was made by calling or visiting a branch; the current onboarding notice does not yet give a dedicated opt-out link or clear step-by-step instructions.",
         access:
-          "You can ask us for an explanation of your loan recommendation by visiting any branch or calling Member Services at 1-800-555-0122.",
+          "You can ask us for an explanation of your loan band by visiting any branch or calling Member Services at 1-800-555-0122.",
         antiretaliation:
           "We will not deny your application, offer worse terms, or provide a lower level of service because you asked about your loan decision or asked for an explanation.",
         howworks_inputs: "",
         howworks_output:
-          "The tool returns a recommended approval band and rate tier; a loan officer reviews it with your full file and relationship history.",
+          "The tool returns an approval band and rate tier; a loan officer reviews it with your full file and relationship history before it is communicated, and can correct a data error but cannot move you into a different band once the data is confirmed accurate.",
         altprocess: "",
       },
       notice_full_text:
-        "MEMBER LOAN NOTICE (Fairmont Community Credit Union, published as part of the account-opening flow, undated)\n\nWhat we use it for. We use the Member Loan Scoring Tool to recommend an approval band and rate tier for your loan application based on your account history, income, and credit profile. The tool returns a recommended approval band and rate tier; a loan officer reviews it with your full file and relationship history.\n\nQuestions about your decision. You can ask us questions about how your loan decision was made by calling or visiting a branch, or ask for an explanation by visiting any branch or calling Member Services at 1-800-555-0122.\n\nNo retaliation. We will not deny your application, offer worse terms, or provide a lower level of service because you asked about your loan decision or asked for an explanation.",
+        "MEMBER LOAN NOTICE (Fairmont Community Credit Union, published as part of the account-opening flow, undated)\n\nWhat we use it for. We use the Member Loan Scoring Tool to set an approval band and rate tier for your loan application based on your account history, income, and credit profile. The tool returns an approval band and rate tier; a loan officer reviews it with your full file and relationship history before it is communicated, and can correct a data error but cannot move you into a different band once the data is confirmed accurate.\n\nQuestions about your decision. You can ask us questions about how your loan decision was made by calling or visiting a branch, or ask for an explanation by visiting any branch or calling Member Services at 1-800-555-0122.\n\nNo retaliation. We will not deny your application, offer worse terms, or provide a lower level of service because you asked about your loan decision or asked for an explanation.",
     },
   },
 
-  // ── p11 — Ridgeline Property Management Trust: housing, advisory
-  // review, vendor-supplied screening data, out of scope on the
-  // reviewer's authority... note: this fixture uses "Yes" authority. ─────
+  // ── p11 — Ridgeline Property Management Trust: housing decision excluded
+  // under § 7001(ddd)(2) — based solely on vacancy and receipt of payment. ─
   {
     id: "cppa-admt-p11-housing-authority-vendor",
     tool: "cppa-admt",
-    label: "Multi-site landlord tenant score — housing domain, reviewer with override authority, vendor screening data",
+    label: "Multi-site landlord unit-waitlist assignment — housing domain, excluded under § 7001(ddd)(2)",
     company: "Ridgeline Property Management Trust",
     sector: "Multi-family residential property management",
     geo: "us",
     summary:
-      "Ridgeline scores rental applications across its multi-site portfolio using a vendor-supplied credit and rental-history feed folded into an in-house model; a regional leasing director reviews every score and can override it, so the decision is out of scope on qualifying human review. Exercises: the housing domain with the § 7001(ddd)(2) basis answered 'other factors are considered', reviewer-with-authority human review, and a named data vendor whose documentation is only partially on file.",
+      "Ridgeline's Unit Availability Match Engine assigns each open rental unit to the next applicant on a site's waitlist based solely on the order a complete application and the required deposit and first month's rent were received relative to the unit becoming vacant; the Engine reads no credit, income, or screening data, so the § 7001(ddd)(2) basis question is answered 'Yes' and the decision is excluded from every § 7001(ddd) significant-decision category. Exercises: the housing domain's own categorical exclusion, a fully-automated assignment engine, and a named screening vendor whose report feeds a separate, non-ADMT step rather than the Engine itself.",
     intake: {
       organization_name: "Ridgeline Property Management Trust",
-      system_name: "Portfolio Tenant Score (PTS 2.0)",
-      system_type: "In-house statistical scoring model",
+      system_name: "Unit Availability Match Engine (UAME)",
+      system_type: "In-house rules engine",
       system_description:
-        "Every rental application across Ridgeline's 14-site portfolio is scored by the Portfolio Tenant Score model, which reads a credit-based rental-risk score purchased from Meadowlark Tenant Data Services, verified income against posted rent, and application-packet completeness. It returns a placement recommendation (Approve, Approve with Higher Deposit, Refer to Regional Director) and the inputs behind it. A regional leasing director reviews every recommendation, the applicant packet, and any written explanation supplied, and has authority to approve, adjust the deposit, or decline regardless of the recommendation.",
+        "Every open rental unit across Ridgeline's 14-site portfolio is offered by the Unit Availability Match Engine to the next applicant on that site's waitlist, in the order each applicant's complete application and the required security deposit and first month's rent were received relative to the unit becoming vacant. The Engine reads only the waitlist timestamp, the unit's vacancy date, and whether the deposit and first month's rent have been received; it does not read or score credit history, income, or any tenant-screening report when deciding whose name is offered the unit. After a unit is offered, Ridgeline separately runs a standard tenant-screening check — a credit-based rental-risk score and eviction-record search purchased from Meadowlark Tenant Data Services — and a leasing agent reviews that report against Ridgeline's written screening criteria; an applicant who fails that check loses the unit and it passes to the next name on the waitlist, but that screening review is a separate manual step and does not change which name the Engine offered first.",
       decision_domains: ["Housing (rental or purchase eligibility)"],
-      human_review:
-        "Yes — reviewer knows how to interpret output, reviews it plus other info, and has authority to change the decision",
+      human_review: "No — fully automated, no human review",
       training_data_use: "Yes",
       profiling_use: "Yes",
 
       notice_delivery: ["Included in our Notice at Collection", "Separate standalone Pre-use Notice"],
       notice_has_specific_purpose: "Yes",
       notice_purpose_text:
-        "We use the Portfolio Tenant Score to decide whether to approve your rental application, whether to require a higher security deposit, or whether to refer your application to a regional director.",
+        "We use the Unit Availability Match Engine to decide, among applicants on a site's waitlist, whose complete application and required deposit and first month's rent were received first relative to a unit becoming vacant, and to offer that unit to that applicant first.",
       notice_has_opt_out_desc: "Yes — with specific opt-out instructions",
       notice_has_access_desc: "Yes",
       notice_has_anti_retaliation: "Yes",
@@ -1413,36 +1391,36 @@ export const PANEL_CPPA_ADMT: PanelFixture[] = [
         "An opt-out received before processing begins prevents that processing (§ 7221(m))",
       ],
       opt_out_methods: ["Interactive online form linked from the Pre-use Notice", "Designated email address"],
-      opt_out_link_title: "Apply Without Automated Tenant Scoring",
+      opt_out_link_title: "Apply Without Automated Waitlist Matching",
       opt_out_no_cookie_banner: "Confirmed — we provide at least one ADMT-specific opt-out method in addition",
       opt_out_no_account_required: "Confirmed — no account required",
       opt_out_confirmation_mechanism:
         "An automated email confirms the opt-out within one business day from leasing@ridgelinepm.com, referencing the application ID.",
       opt_out_fairness_doc: "",
       opt_out_15_day_process:
-        "Opt-out requests route to the regional director for manual review, with a leasing decision issued within fifteen business days.",
+        "Opt-out requests route to the regional director, who manually places the applicant in waitlist position by received date and confirms placement within fifteen business days.",
 
       access_submission_methods:
         "Requests are accepted through the resident portal privacy-request form and by email to privacy@ridgelinepm.com.",
       access_verification_process:
         "The requester confirms the application ID and the property applied for, then completes a one-time code sent to the application email.",
       access_logic_disclosure:
-        "Ridgeline can describe the three inputs PTS uses (credit-based rental-risk score, income-to-rent ratio, packet completeness) and the recommendation returned; the vendor's underlying risk-score methodology is described only at a summary level.",
+        "Ridgeline can describe the three inputs the Engine uses (waitlist timestamp, the unit's vacancy date, and whether the deposit and first month's rent were received) and confirm that no credit, income, or screening data is read by the Engine when deciding whose name is offered a unit.",
       access_outcome_disclosure:
-        "The response states the recommendation returned, the date, and the leasing decision the regional director issued.",
+        "The response states the waitlist position and date the Engine offered the applicant a unit, and, where a subsequent screening check was run, whether the applicant passed it.",
       access_response_timeline: "Within 45 calendar days (standard)",
       access_trade_secret_policy:
-        "Meadowlark's risk-score methodology is withheld as the vendor's trade secret; Ridgeline supplies the summary-level explanation above.",
+        "Meadowlark's risk-score methodology used in the separate post-offer screening check is withheld as the vendor's trade secret; the Engine's own logic above uses no scored or trade-secret input and is disclosed in full.",
 
       ca_consumer_count: "11,400",
       third_party_admt:
-        "Yes — the credit-based rental-risk score is purchased from Meadowlark Tenant Data Services, a consumer reporting agency, under a standard data-license agreement dated 2025-10-01.",
+        "Yes — a credit-based rental-risk score and eviction-record search are purchased from Meadowlark Tenant Data Services, a consumer reporting agency, under a standard data-license agreement dated 2025-10-01, and used for the standard screening check performed after a unit is offered; the Unit Availability Match Engine itself does not read Meadowlark's report or any scoring input when assigning units.",
       admt_system_count: "1",
       affected_population_band: "10,001 – 100,000",
       role_roster: [
         "Privacy officer / DPO",
         "Legal counsel",
-        "Human reviewer",
+        "Consumer-request handler",
         "Vendor manager",
       ],
 
@@ -1456,63 +1434,56 @@ export const PANEL_CPPA_ADMT: PanelFixture[] = [
         v_appeal: "No",
         v_incident: "No",
         hosting: "Hybrid",
-        model_types: ["Statistical model"],
+        model_types: ["Rules engine"],
         decision_effects: ["Eligibility", "Provision"],
         decision_cadence: "Repeated",
-        sole_factor: "Material factor — heavily weighted alongside others",
+        sole_factor: "Sole factor — output alone determines the outcome",
         feeds_future_decisions: "No",
         solely_advertising: "No",
-        housing_decision_basis: "No — other factors are considered",
+        housing_decision_basis: "Yes — based solely on availability or vacancy, or on receipt of payment",
         decision_domains_other: "",
-        hi_reviewer_present: "Yes — on every decision",
-        hi_reviewer_role: "Regional Leasing Director",
-        hi_stage: "Before the decision is issued",
-        hi_trained: "Yes",
-        hi_reviews_other_info: "Yes",
-        hi_authority_override: "Yes",
-        hi_override_rate: "About one recommendation in twelve across the portfolio",
-        other_factors: "Verified income-to-rent ratio and the applicant's written explanation",
+        hi_reviewer_present: "No — fully automated",
         vendor_product: "Meadowlark Tenant Data Services — Rental Risk Score",
         vendor_training_rights: "Unsure — the standard data-license agreement does not address model-training rights",
         sole_use_attestation: "",
         nondiscrimination_testing: "",
         access_secure_transmission: "Encrypted self-service portal",
-        access_denial_basis: "Adverse leasing-decision reasons are disclosed in full to the applicant; no withholding applies to the outcome disclosure.",
+        access_denial_basis: "Adverse screening-check reasons are disclosed in full to the applicant; no withholding applies to the outcome disclosure.",
       },
 
       access_readiness: {
         b1_purpose_ready: "Yes — we can produce this today",
         b1_purpose_process: "The leasing office restates the published purpose paragraph from the current notice.",
-        b2_logic_ready: "Partially — we can produce some of it",
-        b2_logic_process: "Ridgeline can name the three inputs at a summary level; Meadowlark's underlying score methodology is not disclosed to Ridgeline.",
+        b2_logic_ready: "Yes — we can produce this today",
+        b2_logic_process: "Ridgeline can name all three of the Engine's own inputs (waitlist timestamp, vacancy date, deposit/rent receipt) in full; none of them is a vendor or trade-secret input.",
         b3_output_use_ready: "Yes — we can produce this today",
-        b3_output_use_process: "The application file records the recommendation and the director's decision.",
+        b3_output_use_process: "The application file records the waitlist position and the date a unit was offered.",
         b3_outcome_ready: "Yes — we can produce this today",
-        b3_outcome_process: "The leasing decision and any deposit adjustment are recorded in the application file.",
+        b3_outcome_process: "The offer date and, where a screening check was run, its outcome are recorded in the application file.",
         b3_human_role_ready: "Yes — we can produce this today",
-        b3_human_role_process: "The file names the regional director who reviewed the recommendation.",
+        b3_human_role_process: "The file confirms no leasing-office review occurred before the Engine's offer, and names the leasing agent who conducted any subsequent screening check.",
         b4_rights_ready: "Yes — we can produce this today",
         b4_rights_process: "The response template carries the anti-retaliation statement and a link to the resident privacy notice.",
       },
 
       notice_element_text: {
         purpose:
-          "We use the Portfolio Tenant Score to decide whether to approve your rental application, whether to require a higher security deposit, or whether to refer your application to a regional director.",
+          "We use the Unit Availability Match Engine to decide, among applicants on a site's waitlist, whose complete application and required deposit and first month's rent were received first relative to a unit becoming vacant, and to offer that unit to that applicant first.",
         optout:
-          "You can ask us to review your application without the Score. Use the link 'Apply Without Automated Tenant Scoring' or email leasing@ridgelinepm.com. We confirm within one business day and issue a manual-review decision within fifteen business days.",
+          "You can ask us to place you on the waitlist without the Engine. Use the link 'Apply Without Automated Waitlist Matching' or email leasing@ridgelinepm.com. We confirm within one business day and a regional director manually confirms your waitlist position within fifteen business days.",
         access:
-          "You can ask us for an explanation of your recommendation through the resident portal or by email; we respond within 45 calendar days.",
+          "You can ask us for an explanation of your waitlist position through the resident portal or by email; we respond within 45 calendar days.",
         antiretaliation:
-          "We will not deny your application, charge a higher deposit, or provide a lower level of service because you asked us to review your application without the Score or asked for an explanation.",
+          "We will not deny your application, change your waitlist position, or provide a lower level of service because you asked us to place you on the waitlist manually or asked for an explanation.",
         howworks_inputs:
-          "The Score uses a credit-based rental-risk score from Meadowlark Tenant Data Services, your income compared with the rent, and whether your application packet is complete.",
+          "The Engine uses only your waitlist timestamp, the vacant unit's availability date, and whether your deposit and first month's rent have been received. It does not read your credit history, income, or any screening report.",
         howworks_output:
-          "It returns a recommendation — Approve, Approve with Higher Deposit, or Refer to Regional Director; a regional leasing director reviews every recommendation and can override it.",
+          "It offers each open unit to the next name on the waitlist, in the order applications and payment were received. A separate, non-automated screening check using a credit and eviction report from Meadowlark Tenant Data Services runs after a unit is offered.",
         altprocess:
-          "If you opt out, a regional leasing director assesses your application manually from your packet and income documentation, without the Score, and issues the leasing decision within fifteen business days.",
+          "If you opt out, a regional director manually places and tracks your waitlist position from your application date and payment records, without the Engine, within fifteen business days.",
       },
       notice_full_text:
-        "PRE-USE NOTICE — AUTOMATED TENANT SCORING (Ridgeline Property Management Trust, published 2026-01-25, ridgelinepm.com/admt-notice)\n\nWhat we use it for. We use the Portfolio Tenant Score to decide whether to approve your rental application, whether to require a higher security deposit, or whether to refer your application to a regional director.\n\nHow it works. The Score uses a credit-based rental-risk score from Meadowlark Tenant Data Services, your income compared with the rent, and whether your application packet is complete. It returns a recommendation that a regional leasing director reviews and can override.\n\nYour right to opt out. You can ask us to review your application without the Score. Use the link 'Apply Without Automated Tenant Scoring' or email leasing@ridgelinepm.com. We confirm within one business day and issue a decision within fifteen business days.\n\nWhat happens instead. A regional leasing director assesses your application manually from your packet and income documentation, without the Score, within fifteen business days.\n\nYour right to an explanation. You can ask us for an explanation of your recommendation through the resident portal or by email. We respond within 45 calendar days.\n\nNo retaliation. We will not deny your application, charge a higher deposit, or provide a lower level of service because you opted out or asked for an explanation.\n\nQuestions. Privacy Officer, Ridgeline Property Management Trust, 700 Portfolio Lane, Suite 500, Denver, CO 80202 — privacy@ridgelinepm.com.",
+        "PRE-USE NOTICE — AUTOMATED WAITLIST MATCHING (Ridgeline Property Management Trust, published 2026-01-25, ridgelinepm.com/admt-notice)\n\nWhat we use it for. We use the Unit Availability Match Engine to decide, among applicants on a site's waitlist, whose complete application and required deposit and first month's rent were received first relative to a unit becoming vacant, and to offer that unit to that applicant first.\n\nHow it works. The Engine uses only your waitlist timestamp, the vacant unit's availability date, and whether your deposit and first month's rent have been received. It does not read your credit history, income, or any screening report. A separate, non-automated screening check using a credit and eviction report from Meadowlark Tenant Data Services runs after a unit is offered.\n\nYour right to opt out. You can ask us to place you on the waitlist without the Engine. Use the link 'Apply Without Automated Waitlist Matching' or email leasing@ridgelinepm.com. We confirm within one business day and a regional director manually confirms your waitlist position within fifteen business days.\n\nWhat happens instead. A regional director manually places and tracks your waitlist position from your application date and payment records, without the Engine, within fifteen business days.\n\nYour right to an explanation. You can ask us for an explanation of your waitlist position through the resident portal or by email. We respond within 45 calendar days.\n\nNo retaliation. We will not deny your application, change your waitlist position, or provide a lower level of service because you opted out or asked for an explanation.\n\nQuestions. Privacy Officer, Ridgeline Property Management Trust, 700 Portfolio Lane, Suite 500, Denver, CO 80202 — privacy@ridgelinepm.com.",
     },
   },
 
@@ -1662,57 +1633,43 @@ export const PANEL_CPPA_ADMT: PanelFixture[] = [
     },
   },
 
-  // ── p13 — Compass Point Recruiting Group, Inc.: hiring, reviewer with
-  // authority, vendor assessment tool, full opt-out (no exception). ──────
+  // ── p13 — Compass Point Recruiting Group, Inc.: hiring, fully automated
+  // threshold screen, vendor assessment tool, § 7221(b)(2) exception. ─────
   {
     id: "cppa-admt-p13-hiring-authority-full-optout",
     tool: "cppa-admt",
-    label: "Recruiting-firm skills assessment score — hiring domain, reviewer with override authority, full opt-out offered",
+    label: "Recruiting-firm skills assessment score — hiring domain, fully automated threshold screen, § 7221(b)(2) exception claimed",
     company: "Compass Point Recruiting Group, Inc.",
     sector: "Executive search and recruiting services",
     geo: "us",
     summary:
-      "Compass Point uses a vendor skills-assessment tool to score candidates it places with client employers; a senior recruiter reviews every score with full authority to override it before presenting a candidate, and the firm chooses to offer a full opt-out right rather than rely on the § 7221(b)(2) exception. Exercises: the hiring domain with reviewer-with-authority human review, a third-party assessment vendor, and the full-opt-out pathway chosen in a domain where an exception would also have been available.",
+      "Compass Point uses a vendor skills-assessment tool to automatically screen out candidates who score below a role's benchmark threshold, with no recruiter review before that removal; candidates who clear the threshold are then reviewed by a senior recruiter for presentation to a client employer, and the firm claims the § 7221(b)(2) hiring/admission exception supported by the vendor's documented bias testing. Exercises: the hiring domain with a fully-automated initial screening decision, a third-party assessment vendor, and the hiring/admission exception with its bias-testing evidence block.",
     intake: {
       organization_name: "Compass Point Recruiting Group, Inc.",
       system_name: "Candidate Skills Assessment Score (via SkillProof)",
       system_type: "Vendor-hosted psychometric assessment model",
       system_description:
-        "Every candidate who completes a Compass Point placement assessment is scored by SkillProof, a hosted psychometric assessment service from Insight Talent Systems LLC, which reads structured test responses covering role-relevant skills and returns a percentile score against the role's benchmark group. A senior recruiter reviews the score together with the candidate's resume, reference checks, and interview notes, and has full authority to present, hold, or decline to present a candidate to a client employer regardless of the SkillProof score.",
+        "Every candidate who completes a Compass Point placement assessment is scored by SkillProof, a hosted psychometric assessment service from Insight Talent Systems LLC, which reads structured test responses covering role-relevant skills and returns a percentile score against the role's benchmark group. A candidate who scores below the role's published benchmark threshold is automatically removed from consideration for that requisition and notified by SkillProof, with no recruiter review before that determination. A candidate who clears the threshold advances to a senior recruiter, who reviews the score together with the candidate's resume, reference checks, and interview notes and decides whether to present the candidate to a client employer.",
       decision_domains: ["Hiring or admission decisions"],
-      human_review:
-        "Yes — reviewer knows how to interpret output, reviews it plus other info, and has authority to change the decision",
+      human_review: "No — fully automated, no human review",
       training_data_use: "Yes",
       profiling_use: "Yes",
 
       notice_delivery: ["Included in our Notice at Collection", "Account-creation or onboarding flow"],
       notice_has_specific_purpose: "Yes",
       notice_purpose_text:
-        "We use the SkillProof assessment score to help our recruiters evaluate your role-relevant skills alongside your resume, references, and interview. It does not itself decide whether you are presented to a client employer.",
-      notice_has_opt_out_desc: "Yes — with specific opt-out instructions",
+        "We use the SkillProof assessment score to automatically screen candidates against a role's benchmark threshold and to help our recruiters evaluate the role-relevant skills of candidates who clear it, alongside their resume, references, and interview.",
+      notice_has_opt_out_desc: "We rely on an exception and the notice identifies the specific exception",
       notice_has_access_desc: "Yes",
       notice_has_anti_retaliation: "Yes",
       notice_has_how_it_works: "Yes — included inline in the notice",
-      notice_has_alternative_process: "Yes",
+      notice_has_alternative_process: "Not applicable — we rely on an opt-out exception",
       notice_timing: "At or before the point where we collect the personal information the ADMT processes",
 
-      opt_out_exception: "No exception — we provide a full opt-out right",
-      opt_out_handling_confirmations: [
-        "No identity verification is required to submit an opt-out request (§ 7221(f))",
-        "One option opts the consumer out of every use of ADMT we make for significant decisions (§ 7221(i))",
-        "We accept opt-out requests from an authorized agent with the consumer's signed permission (§ 7221(j))",
-        "We do not ask a consumer who opted out to consent again for at least 12 months (§ 7221(k))",
-        "An opt-out received before processing begins prevents that processing (§ 7221(m))",
-      ],
-      opt_out_methods: ["Designated email address", "Toll-free phone number"],
-      opt_out_link_title: "Skip the Skills Assessment Score",
-      opt_out_no_cookie_banner: "Confirmed — we provide at least one ADMT-specific opt-out method in addition",
-      opt_out_no_account_required: "Confirmed — no account required",
-      opt_out_confirmation_mechanism:
-        "The assigned recruiter confirms the opt-out by email within one business day and notes the candidate file so no SkillProof invitation is sent.",
-      opt_out_fairness_doc: "",
-      opt_out_15_day_process:
-        "An opted-out candidate is evaluated by the recruiter from resume, references, and interview alone, with the same placement timeline as assessed candidates.",
+      opt_out_exception:
+        "Hiring/admission exception (§ 7221(b)(2)) — ADMT used solely to assess ability; no unlawful discrimination",
+      opt_out_fairness_doc:
+        "Insight Talent Systems LLC's quarterly bias audit (report ITS-BIAS-2026Q2, dated 2026-06-15) is the fairness and non-discrimination testing documentation supporting this exception; it is retained in Compass Point's vendor file and summarized in the bias-testing block below.",
 
       access_submission_methods:
         "Requests are accepted through the candidate portal privacy-request form and by email to privacy@compasspointrecruiting.com.",
@@ -1721,7 +1678,7 @@ export const PANEL_CPPA_ADMT: PanelFixture[] = [
       access_logic_disclosure:
         "Compass Point supplies a plain-language explanation naming the assessment's general skill categories and the percentile score returned against the role's benchmark group; individual item-level scoring is withheld under the trade-secret policy below.",
       access_outcome_disclosure:
-        "The response states the percentile score returned and whether the recruiter presented the candidate to a client employer.",
+        "The response states the percentile score returned, whether the candidate was automatically removed from consideration for scoring below the threshold, and, if not, whether the recruiter presented the candidate to a client employer.",
       access_response_timeline: "Within 45 calendar days (standard)",
       access_trade_secret_policy:
         "SkillProof's item-level scoring weights are withheld as a trade secret of Insight Talent Systems LLC under Cal. Civ. Code § 3426.1(d); the general category and percentile explanation above is supplied in full.",
@@ -1756,18 +1713,21 @@ export const PANEL_CPPA_ADMT: PanelFixture[] = [
         feeds_future_decisions: "No",
         solely_advertising: "No",
         decision_domains_other: "",
-        hi_reviewer_present: "Yes — on every decision",
-        hi_reviewer_role: "Senior Recruiter",
-        hi_stage: "Before the decision is issued",
-        hi_trained: "Yes",
-        hi_reviews_other_info: "Yes",
-        hi_authority_override: "Yes",
-        hi_override_rate: "About one candidate in six is presented despite a below-benchmark score, based on strong references and interview performance",
-        other_factors: "Reference-check results and structured interview notes",
+        hi_reviewer_present: "No — fully automated",
+        other_factors: "Reference-check results and structured interview notes, considered by the recruiter for candidates who clear the automated threshold",
         vendor_product: "Insight Talent Systems LLC — SkillProof Assessment Platform",
         vendor_training_rights: "No — the agreement prohibits Insight Talent Systems from using Compass Point candidate data to train shared models",
-        sole_use_attestation: "",
-        nondiscrimination_testing: "",
+        sole_use_attestation: "Yes — solely to assess ability to perform",
+        nondiscrimination_testing: "Yes — documented testing record",
+        bias_protected_chars: ["Race", "Sex / gender", "Age", "National origin"],
+        bias_proxy_vars:
+          "Insight Talent Systems' bias audit reviewed test-completion time and native-language indicators as potential proxies for national origin and disability status; Compass Point removed completion-time weighting from the percentile calculation in 2026-03 as a result.",
+        bias_testing_cadence: "Pre-deployment + ongoing monitoring",
+        bias_last_test: "2026-06-15",
+        bias_next_test: "2026-12-15",
+        bias_adverse_impact: "No",
+        bias_outcome_summary:
+          "The 2026-06-15 quarterly audit by Insight Talent Systems LLC found no statistically significant adverse impact on the automated threshold outcome for any protected class tested, across 4,300 candidates assessed in the quarter; the full report (ITS-BIAS-2026Q2) is retained in Compass Point's vendor file.",
         access_secure_transmission: "Encrypted self-service portal",
         access_denial_basis: "Not applicable — the outcome disclosure is provided in full; no withholding applies.",
       },
@@ -1782,28 +1742,27 @@ export const PANEL_CPPA_ADMT: PanelFixture[] = [
         b3_outcome_ready: "Yes — we can produce this today",
         b3_outcome_process: "The placement outcome is recorded in the candidate file.",
         b3_human_role_ready: "Yes — we can produce this today",
-        b3_human_role_process: "The file names the recruiter who reviewed the score and the decision made.",
+        b3_human_role_process: "The file confirms whether the candidate was screened out automatically or, for candidates who cleared the threshold, names the recruiter who reviewed the score and the decision made.",
         b4_rights_ready: "Yes — we can produce this today",
         b4_rights_process: "The response template carries the anti-retaliation statement and a link to the candidate privacy notice.",
       },
 
       notice_element_text: {
         purpose:
-          "We use the SkillProof assessment score to help our recruiters evaluate your role-relevant skills alongside your resume, references, and interview. It does not itself decide whether you are presented to a client employer.",
+          "We use the SkillProof assessment score to automatically screen candidates against a role's benchmark threshold and to help our recruiters evaluate the role-relevant skills of candidates who clear it, alongside their resume, references, and interview.",
         optout:
-          "You can ask us to skip the assessment score. Use the link 'Skip the Skills Assessment Score' or email privacy@compasspointrecruiting.com. We confirm within one business day.",
+          "We rely on the § 7221(b)(2) hiring/admission exception: because SkillProof is used solely to assess your role-relevant ability and is tested for unlawful discrimination, we do not offer a separate opt-out right for this use.",
         access:
           "You can ask us for an explanation of your assessment score through the candidate portal or by email; we respond within 45 calendar days.",
         antiretaliation:
-          "We will not decline to present you to a client employer or provide a lower level of service because you asked us to skip the score or asked for an explanation.",
+          "We will not take an adverse action against you because you asked for an explanation of your assessment score.",
         howworks_inputs: "SkillProof reads your structured test responses covering role-relevant skills.",
         howworks_output:
-          "It returns a percentile score against the role's benchmark group; a senior recruiter reviews the score with your resume, references, and interview and decides whether to present you to a client.",
-        altprocess:
-          "If you opt out, the recruiter evaluates you from your resume, references, and interview alone, with the same placement timeline as assessed candidates.",
+          "It returns a percentile score against the role's benchmark group. If you score below the published threshold, you are automatically removed from consideration for that requisition and notified, with no recruiter review before that determination. If you clear the threshold, a senior recruiter reviews your score with your resume, references, and interview and decides whether to present you to a client.",
+        altprocess: "",
       },
       notice_full_text:
-        "PRE-USE NOTICE — CANDIDATE SKILLS ASSESSMENT (Compass Point Recruiting Group, Inc., published 2026-01-18, compasspointrecruiting.com/admt-notice)\n\nWhat we use it for. We use the SkillProof assessment score to help our recruiters evaluate your role-relevant skills alongside your resume, references, and interview. It does not itself decide whether you are presented to a client employer.\n\nHow it works. SkillProof reads your structured test responses covering role-relevant skills and returns a percentile score against the role's benchmark group. A senior recruiter reviews the score with your resume, references, and interview and decides whether to present you to a client.\n\nYour right to opt out. You can ask us to skip the assessment score. Use the link 'Skip the Skills Assessment Score' or email privacy@compasspointrecruiting.com. You do not need an account to opt out. We confirm within one business day.\n\nWhat happens instead. The recruiter evaluates you from your resume, references, and interview alone, with the same placement timeline as assessed candidates.\n\nYour right to an explanation. You can ask us for an explanation of your assessment score through the candidate portal or by email. We respond within 45 calendar days.\n\nNo retaliation. We will not decline to present you to a client employer or provide a lower level of service because you opted out or asked for an explanation.\n\nQuestions. Privacy Officer, Compass Point Recruiting Group, Inc., 88 Talent Square, Suite 900, Boston, MA 02110 — privacy@compasspointrecruiting.com.",
+        "PRE-USE NOTICE — CANDIDATE SKILLS ASSESSMENT (Compass Point Recruiting Group, Inc., published 2026-01-18, compasspointrecruiting.com/admt-notice)\n\nWhat we use it for. We use the SkillProof assessment score to automatically screen candidates against a role's benchmark threshold and to help our recruiters evaluate the role-relevant skills of candidates who clear it, alongside their resume, references, and interview.\n\nHow it works. SkillProof reads your structured test responses covering role-relevant skills and returns a percentile score against the role's benchmark group. If you score below the published threshold, you are automatically removed from consideration for that requisition and notified, with no recruiter review before that determination. If you clear the threshold, a senior recruiter reviews your score with your resume, references, and interview and decides whether to present you to a client.\n\nYour rights. We rely on the § 7221(b)(2) hiring/admission exception: because SkillProof is used solely to assess your role-relevant ability and is tested for unlawful discrimination, we do not offer a separate opt-out right for this use. You can ask us for an explanation of your assessment score through the candidate portal or by email to privacy@compasspointrecruiting.com; we respond within 45 calendar days. We will not take an adverse action against you because you asked for an explanation.\n\nQuestions. Privacy Officer, Compass Point Recruiting Group, Inc., 88 Talent Square, Suite 900, Boston, MA 02110 — privacy@compasspointrecruiting.com.",
     },
   },
 

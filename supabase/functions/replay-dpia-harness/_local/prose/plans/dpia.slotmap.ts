@@ -81,6 +81,12 @@ export const DPIA_SLOT_MAP: readonly DpiaSlotBinding[] = [
   // III. Risks and Measures (inside the composed [GENERATED] block)
   { slot: "safeguards", kind: "intake", source: "existing_safeguards", render: "list-as-prose",
     absent: "the sentence is dropped; the composer states no safeguards were recorded" },
+  // v4.14 (doc 275 §15 item 4, CEO-approved 2026-09-19) — the company's own
+  // free-text description of its safeguards, quoted verbatim in Section 5
+  // (Risk Assessment and Management), never scored: it must not change any
+  // determination.
+  { slot: "safeguardsOther", kind: "intake", source: "safeguards_other", render: "quoted-attributed",
+    absent: "the sentence is dropped" },
 
   // IV. Consultation and Sign-off
   { slot: "dpiaPreparedBy", kind: "intake", source: "dpia_prepared_by", render: "verbatim",

@@ -88,8 +88,12 @@ Deno.test("spine v4.6 — the slot inventory drops regimeName entirely", () => {
     // that never appears (see the v4.6.2 comment block in dpia.spine.ts).
     "OUTSTANDING_MATTERS",
     "VERSION_CLAUSE",
+    // v4.14 (doc 275 §15 items 1, 2, 4, 2026-09-19): Section 1 names the
+    // controller's contact and who prepared the assessment.
+    "controllerContact",
     "dataSubjectsViews",
     "description",
+    "dpiaTeam",
     "functionalDescription",
     // DOC 188 P6 (v4.10, 2026-09-05): the executive opener's instrument is
     // regime-selected through {gdprInstrument} (EU / UK / both) instead of
@@ -100,6 +104,8 @@ Deno.test("spine v4.6 — the slot inventory drops regimeName entirely", () => {
     "organizationName",
     "organizationName",
     "reasonsToConduct",
+    // v4.14: Section 5 quotes the company's own description of its safeguards.
+    "safeguardsOther",
     "supportingAssets",
   ]);
 });
@@ -111,7 +117,10 @@ Deno.test("spine v4.6 — the ratified wording edits are the shipped bytes", () 
   // as the Appendix A intro (replacing what was a "rule"-kind ToA block, which
   // never counted toward this "skeleton" filter) -- 16 -> 18.
   // DOC 252 §10 item 5 (2026-09-11) — v4.12 adds the Appendix B intro: 18 -> 19.
-  assertEquals(fixed.length, 19);
+  // v4.14 (doc 275 §15 items 1, 2, 4, 2026-09-19) — Section 1 adds the
+  // controller-contact and prepared-by blocks, Section 5 the
+  // {safeguardsOther} block: 19 -> 22.
+  assertEquals(fixed.length, 22);
   // RE-PIN BATCH 19b (doc 113 Part D S4.2, caught late by Batch 21a's
   // double-check — this file lives outside tests/edge/ and was missed by
   // every battery run since): the Art. 35(3) three-case enumeration
@@ -121,28 +130,33 @@ Deno.test("spine v4.6 — the ratified wording edits are the shipped bytes", () 
   // required in particular".
   assertStringIncludes(fixed[0], "Article 35(3) identifies the cases in which one is required in particular");
   assertStringIncludes(fixed[1], "Articles 24 and 28 require the controller to remain accountable for the processing");
-  assertStringIncludes(fixed[2], "Below, the company identifies the reasons the assessment was undertaken");
-  assertStringIncludes(fixed[3], "The assessment team and the approval process are reproduced as identified by the company.");
-  assertStringIncludes(fixed[4], "including the legitimate interest pursued by the controller where applicable");
-  assertStringIncludes(fixed[5], "On the nature, scope and context of the processing, the company has stated the following:");
+  // v4.14 (doc 275 §15 items 1, 2, 4, 2026-09-19): three new one-sentence
+  // blocks — indices 2, 5 and 15 — so every later index moved by 1, 2 or 3.
+  assertStringIncludes(fixed[2], "The controller's contact for this assessment is {controllerContact}.");
+  assertStringIncludes(fixed[5], "The company records that this assessment was prepared by “{dpiaTeam}”.");
+  assertStringIncludes(fixed[15], "The company also describes these safeguards in its own words: “{safeguardsOther}”.");
+  assertStringIncludes(fixed[3], "Below, the company identifies the reasons the assessment was undertaken");
+  assertStringIncludes(fixed[4], "The assessment team and the approval process are reproduced as identified by the company.");
+  assertStringIncludes(fixed[6], "including the legitimate interest pursued by the controller where applicable");
+  assertStringIncludes(fixed[7], "On the nature, scope and context of the processing, the company has stated the following:");
   // CEO item 1 (2026-08-21) -- the doubled "and" is gone: "...and, where
   // information is lacking, what remains..." not "...and, where information
   // is lacking, and what remains...".
   assertStringIncludes(
-    fixed[6],
+    fixed[8],
     "Each subsequent table states what {organizationName} has recorded, what that supports, and, where information is lacking, what remains to be established.",
   );
-  assertStringIncludes(fixed[7], "in addition to an Article 6 lawful basis");
+  assertStringIncludes(fixed[9], "in addition to an Article 6 lawful basis");
   // v4.6's new Section 2 block -- did not exist before this pass.
-  assertStringIncludes(fixed[8], "requires purpose limitation, data minimisation, accuracy, and storage limitation.");
-  assertStringIncludes(fixed[9], "Operational Compliance. The GDPR also requires the controller to address several operational compliance measures");
-  assertStringIncludes(fixed[10], "That analysis is informed by the Article 5 principles");
-  assertStringIncludes(fixed[11], "Article 35(7)(d) then requires the DPIA to identify the measures envisaged to address those risks");
-  assertStringIncludes(fixed[12], "Risk Assessments. The first register captures design risk");
-  assertStringIncludes(fixed[13], "Article 35(9) requires the controller, where appropriate, to seek the views of data subjects");
-  assertStringIncludes(fixed[14], "Article 35(11) also requires the controller, where necessary, to carry out a review");
-  assertStringIncludes(fixed[15], "the negative branch states that prior consultation is not required on this assessment's determination");
-  assertStringIncludes(fixed[16], "could not determine from the company's answers");
+  assertStringIncludes(fixed[10], "requires purpose limitation, data minimisation, accuracy, and storage limitation.");
+  assertStringIncludes(fixed[11], "Operational Compliance. The GDPR also requires the controller to address several operational compliance measures");
+  assertStringIncludes(fixed[12], "That analysis is informed by the Article 5 principles");
+  assertStringIncludes(fixed[13], "Article 35(7)(d) then requires the DPIA to identify the measures envisaged to address those risks");
+  assertStringIncludes(fixed[14], "Risk Assessments. The first register captures design risk");
+  assertStringIncludes(fixed[16], "Article 35(9) requires the controller, where appropriate, to seek the views of data subjects");
+  assertStringIncludes(fixed[17], "Article 35(11) also requires the controller, where necessary, to carry out a review");
+  assertStringIncludes(fixed[18], "the negative branch states that prior consultation is not required on this assessment's determination");
+  assertStringIncludes(fixed[19], "could not determine from the company's answers");
   // Appendix A intro (replaces the Table of Authorities). v4.6.1 (CEO-ratified
   // 2026-08-22): 3 columns, not 4 -- intake data and report language merge
   // into one Report Determination sentence per factor.
@@ -151,8 +165,8 @@ Deno.test("spine v4.6 — the ratified wording edits are the shipped bytes", () 
   // FIXED-PROSE HASH comment records exactly this ("the Appendix A intro lost
   // its internal-documentation final sentence"). Pin the current intro close
   // and the removal.
-  assertStringIncludes(fixed[17], "Every determination is drawn from the analysis already presented in this report, so nothing here is a new conclusion.");
-  assertEquals(fixed[17].includes("Internal field keys"), false);
+  assertStringIncludes(fixed[20], "Every determination is drawn from the analysis already presented in this report, so nothing here is a new conclusion.");
+  assertEquals(fixed[20].includes("Internal field keys"), false);
 
   const all = fixed.join("\n");
   // regimeName is gone entirely (CEO item 3a/3b context -- the citation-review
@@ -272,7 +286,9 @@ Deno.test("legacy registers without risk_class still render once, under Section 
 
 Deno.test("keyed tables land on the spine's own table block indices", () => {
   const keys = Object.keys(buildDpiaSkeletonTables({}, {}));
-  assert(keys.includes("section_0_overview:1"));
+  // v4.14: the controller-contact block sits at index 1, so the first
+  // table (processing_inventory.controllers) moved to index 2.
+  assert(keys.includes("section_0_overview:2"));
   assert(keys.includes("risk_register") === false, "surfaces must be keyed by section:index");
   for (const key of keys) {
     const [id, idx] = key.split(":");

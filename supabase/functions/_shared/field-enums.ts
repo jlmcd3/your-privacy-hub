@@ -188,8 +188,6 @@ const CYBER_INCIDENT_NOTIFICATION_OPTS = [
 // open_items is "<tool_type>:<keyPath>".
 export const FIELD_ENUM_MIRROR: Record<string, readonly string[]> = {
   // cppa_risk_assessment
-  "cppa_risk_assessment:impact_intake.likelihood": IMPACT_LIKELIHOOD_OPTS,
-  "cppa_risk_assessment:impact_intake.severity": IMPACT_SEVERITY_OPTS,
   "cppa_risk_assessment:impact_intake.benefitsOutweigh": IMPACT_BENEFITS_OUTWEIGH_OPTS,
   "cppa_risk_assessment:impact_intake.cyberGaps": IMPACT_CYBER_GAPS_OPTS,
   "cppa_risk_assessment:impact_intake.harmTypes": HARM_TYPES,

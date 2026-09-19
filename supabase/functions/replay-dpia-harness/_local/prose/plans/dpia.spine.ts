@@ -72,7 +72,26 @@
 // prose) is unchanged and only the basis-v2 serialization moves — the v4.8
 // precedent. The cover subtitle (assembler-side, not a spine constant) took
 // the Risk cover's form the same day.
-export const DPIA_SKELETON_VERSION = "dpia-v4.13-2026-09-17";
+// v4.14 (CEO-approved 2026-09-19, doc 275 §15 items 1, 2, 4): three
+// identification sentences added, each governed by the existing no-padding
+// law (a null slot drops its whole sentence, never a placeholder). (1)
+// Section 1's controller sentence gains a follow-on sentence naming the
+// controller's contact ({controllerContact}, already a live slot with no
+// prior spine user) as its own block. (2) Section 1's assessment-team
+// sentence gains a follow-on block recording who prepared the assessment,
+// quoted and attributed ({dpiaTeam}, likewise already live with no prior
+// spine user). Each is a one-sentence block so that a null slot drops the
+// whole block under the block-level conformance path.
+// (3) Section 5's safeguards paragraph gains a new skeleton block, inserted
+// BEFORE the [DETERMINATION LEAD] block (which stays the section's closing
+// paragraph per the PROMPT 9I S4-R1 rule), quoting the company's own words
+// on its safeguards via the NEW {safeguardsOther} slot (source
+// `safeguards_other`; quoted, never scored — it carries no determination).
+// Three skeleton-block text edits plus one new skeleton block; both hash
+// bases move.
+export const DPIA_SKELETON_VERSION = "dpia-v4.14-2026-09-19";
+/** v4.13 spine version — retained for the audit trail. */
+export const DPIA_SKELETON_VERSION_V413 = "dpia-v4.13-2026-09-17";
 /** v4.11 (CEO edit 2026-09-10: Section titles renumbered 1–7) — retained for the audit trail. */
 export const DPIA_SKELETON_VERSION_V411 = "dpia-v4.11-2026-09-10";
 
@@ -224,9 +243,31 @@ export const DPIA_SKELETON_CONTENT_HASH_V47 =
 /** v4.11 fixed prose under basis v1 — retained for the audit trail. */
 export const DPIA_SKELETON_CONTENT_HASH_V411 =
   "4e401fe574a8c4043974b8b61d87604dc1b5605051a7ffcee9eb49861103bc9a";
-/** v4.12 — DOC 252 §10 item 5: Appendix B adds one skeleton block. */
+
+/**
+ * v4.13 fixed prose under basis v1 — retained for the audit trail. This is
+ * the value the shipped file carried as `DPIA_SKELETON_CONTENT_HASH` before
+ * this v4.14 edit; its own trailing comment there read "v4.12 — DOC 252 §10
+ * item 5: Appendix B adds one skeleton block" together with "RE-PIN doc 263
+ * run 2 (2026-09-17): v4.13 — the Art. 35(11) sentence restated in the
+ * Article's terms" — the shipped file never separately retained a
+ * v4.12-only basis-v1 value between those two edits, so none is
+ * reconstructed here.
+ */
+export const DPIA_SKELETON_CONTENT_HASH_V413 =
+  "3bf33a376534b6ddb2b1db39c4e075a695037f5873e543e042d7906e953c3d57";
+
+/**
+ * FIXED-PROSE HASH (BASIS v1) at spine v4.14 — doc 275 §15 items 1, 2, 4
+ * (CEO-approved 2026-09-19): three skeleton-block text edits (the Section 1
+ * controller-contact and prepared-by sentences appended to two existing
+ * blocks) plus one new skeleton block (Section 5's {safeguardsOther}
+ * sentence). Recomputed with the same method as every prior encode
+ * (skeleton-block text, newline-joined, in document order; verified by
+ * reproducing the v4.13 value first).
+ */
 export const DPIA_SKELETON_CONTENT_HASH =
-  "3bf33a376534b6ddb2b1db39c4e075a695037f5873e543e042d7906e953c3d57" // RE-PIN doc 263 run 2 (2026-09-17): v4.13 — the Art. 35(11) sentence restated in the Article's terms;
+  "52b4ba5b2b6ed2d5199a164cecddd1192aced28121a6b9bc5d5204807992edaa";
 
 
 
@@ -316,12 +357,18 @@ export const DPIA_SKELETON_SECTIONS: readonly DpiaSkeletonSection[] = [
     title: "Section 1 — Overview of the Processing",
     blocks: [
       { kind: "skeleton", text: "This section identifies the controller, processors, planning information, assessment scope, materials, assessment team, and approval record. Article 35 places responsibility for the DPIA on the controller, while Articles 24 and 28 require the controller to remain accountable for the processing and to use processors that provide sufficient guarantees. {organizationName} is the controller of the processing being assessed, and the tables below identify the processors it has engaged and the particulars of the engagements. Where the company has not provided information, the absence of that information is noted rather than assumed." },
+      // v4.14 (doc 275 §15 item 1, CEO-approved 2026-09-19) — its own block so
+      // that a record without a contact drops the whole block (no-padding law).
+      { kind: "skeleton", text: "The controller's contact for this assessment is {controllerContact}." },
       { kind: "table", text: "processing_inventory.controllers" },
       { kind: "table", text: "processing_inventory.processors" },
       { kind: "table", text: "processing_inventory.planning" },
       { kind: "skeleton", text: "Below, the company identifies the reasons the assessment was undertaken, its scope, the materials relied upon, and the company's intention as to publication, if applicable." },
       { kind: "table", text: "assessment_particulars" },
       { kind: "skeleton", text: "The assessment team and the approval process are reproduced as identified by the company." },
+      // v4.14 (doc 275 §15 item 2, CEO-approved 2026-09-19) — its own block so
+      // that a record without a named team drops the whole block.
+      { kind: "skeleton", text: "The company records that this assessment was prepared by “{dpiaTeam}”." },
       { kind: "table", text: "assessment_team" },
       { kind: "table", text: "validation_approval" },
     ],
@@ -398,6 +445,12 @@ export const DPIA_SKELETON_SECTIONS: readonly DpiaSkeletonSection[] = [
       { kind: "table", text: "risk_register.incident" },
       { kind: "table", text: "risk_register" },
       { kind: "generated", text: "[GENERATED] From the typed risk register: each risk with its likelihood and severity, the measure that answers it, and the residual position, attributed throughout; the renderer draws the table, and the prose analyses only what bears on the decision. The safeguards the company has recorded: {safeguards - as prose}." },
+      // v4.14 item 3 (doc 275 §15 item 4, CEO-approved 2026-09-19) — the
+      // company's own free-text description of its safeguards, quoted and
+      // never scored: it carries no determination and must not move one.
+      // Inserted BEFORE the [DETERMINATION LEAD] block so that block stays
+      // the section's closing paragraph (PROMPT 9I S4-R1).
+      { kind: "skeleton", text: "The company also describes these safeguards in its own words: “{safeguardsOther}”." },
       { kind: "lead", text: "[DETERMINATION LEAD] One sentence identifying the most significant residual risk after measures." },
     ],
   },
@@ -585,11 +638,27 @@ export const DPIA_SPINE_HASH_V410 =
 export const DPIA_SPINE_HASH_V411 =
   "311ae6ccc157e346c634cd7bf506ee4a6b4b3daf0611f533438a3661c8ab196e";
 
-/** v4.12 spine hash — DOC 252 §10 item 5 (CEO-ruled 2026-09-11): Appendix B
- * (Enforcement Precedents) added; one new skeleton block, so BOTH bases move.
- * Method verified by reproducing the v4.11 value first. */
+/**
+ * v4.12/v4.13 spine hash (basis v2) — retained for the audit trail. This is
+ * the value the shipped file carried as `DPIA_SPINE_HASH` before the v4.14
+ * edit below; its own trailing comment there read "v4.12 spine hash — DOC
+ * 252 §10 item 5 (CEO-ruled 2026-09-11): Appendix B (Enforcement
+ * Precedents) added; one new skeleton block, so BOTH bases move" together
+ * with "RE-PIN doc 263 run 2 (2026-09-17): v4.13" — the shipped file never
+ * separately retained a v4.12-only basis-v2 value between those two edits,
+ * so none is reconstructed here.
+ */
+export const DPIA_SPINE_HASH_V413 =
+  "4e3ddee67cbd0e5c3b7d545a1d4684bab592f7286fe4a234d3e1f57c01c37587";
+
+/**
+ * v4.14 SPINE HASH (BASIS v2) — doc 275 §15 items 1, 2, 4 (CEO-approved
+ * 2026-09-19): three skeleton-block text edits plus one new skeleton block
+ * (Section 5's {safeguardsOther} sentence), so BOTH bases move. This is the
+ * shipped pin. Method verified by reproducing the v4.13 value first.
+ */
 export const DPIA_SPINE_HASH =
-  "4e3ddee67cbd0e5c3b7d545a1d4684bab592f7286fe4a234d3e1f57c01c37587" // RE-PIN doc 263 run 2 (2026-09-17): v4.13;
+  "fc0a18b5b8710e9b548a9276a1f885422c1fd3ec2fee6138428735d77b08f090";
 
 /** The v4.5.1 spine under basis v2 — retained for the audit trail. */
 export const DPIA_SPINE_HASH_V451 =

@@ -507,8 +507,6 @@ export const CPPA_RISK_PERFECT: GoldenCase[] = [
       // exceptions_intake — none claimed (truthful; the key is omitted).
 
       impact_intake: {
-        likelihood: "Possible",
-        severity: "Moderate",
         benefitsOutweigh: "Yes",
         cyberGaps: "No",
         harmTypes: ["Economic harm", "Unlawful discrimination"],
@@ -990,8 +988,6 @@ export const CPPA_RISK_PERFECT: GoldenCase[] = [
       material_change_since_prior: "No",
 
       impact_intake: {
-        likelihood: "Possible",
-        severity: "Moderate",
         benefitsOutweigh: "Yes",
         cyberGaps: "No",
         harmTypes: [
