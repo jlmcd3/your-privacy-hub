@@ -93,6 +93,27 @@ function computeCppaScopeResult(input: Record<string, unknown>): Record<string, 
   return { inScope, cyberAuditRequired, admtRequired, sensitiveRequired, riskAssessmentRequired };
 }
 
+// ─── Row-first helper ─────────────────────────────────────────────────────────
+// generate-dpa / generate-ir-playbook / check-biometric-compliance reject any
+// non-service caller that does not reference an existing row (403 forbidden).
+// The harness runs as a signed-in admin, so it creates the owned row itself.
+
+async function createOwnedTestRow(
+  table: "dpa_documents" | "ir_playbooks" | "biometric_assessments",
+  intake: Record<string, unknown>,
+  userId: string,
+  log: (msg: string) => void,
+): Promise<string> {
+  log(`Inserting ${table}…`);
+  const { data, error } = await (supabase as any)
+    .from(table)
+    .insert({ user_id: userId, status: "pending", intake_data: intake })
+    .select("id")
+    .single();
+  if (error || !data?.id) throw new Error(`${table} insert: ${error?.message ?? "no id"}`);
+  return data.id as string;
+}
+
 // ─── Polling helper ───────────────────────────────────────────────────────────
 
 async function pollUntilComplete(
