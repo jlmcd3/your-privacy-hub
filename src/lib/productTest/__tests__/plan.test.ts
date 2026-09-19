@@ -18,6 +18,8 @@ import {
   summaryFromDocuments,
   toolSummary,
   wantsMessyVariants,
+  admtSectionForKey,
+  notReachedSections,
 } from "../plan";
 import type { PanelTool, Variant } from "../types";
 
@@ -268,5 +270,31 @@ describe("summaryFromDocuments — from the document rows' own columns (lead fix
     expect(s.checks_passed).toBe(95);
     expect(s.critical).toBe(1);
     expect(s.high).toBe(2);
+  });
+});
+
+describe("ADMT not-reached gate (run 6001444d)", () => {
+  it("maps notice, opt-out, access and vendor keys to their sections and leaves scope keys ungated", () => {
+    expect(admtSectionForKey("notice_purpose_text")).toBe("notice");
+    expect(admtSectionForKey("opt_out_methods")).toBe("optout");
+    expect(admtSectionForKey("appeal_reviewer_authority")).toBe("optout");
+    expect(admtSectionForKey("access_trade_secret_policy")).toBe("access");
+    expect(admtSectionForKey("admt_detail.vendor_status")).toBe("vendor");
+    expect(admtSectionForKey("admt_detail.v_incident")).toBe("vendor");
+    expect(admtSectionForKey("third_party_admt")).toBe("vendor");
+    expect(admtSectionForKey("human_review")).toBeNull();
+    expect(admtSectionForKey("admt_detail.hi_reviewer_present")).toBeNull();
+    expect(admtSectionForKey("role_roster")).toBeNull();
+  });
+  it("reads the Not reached stubs from a rendered skeleton and nothing else", () => {
+    const skeleton = { sections: [
+      { id: "scope", paragraphs: [{ text: "On the Company's reported facts the System is out of scope." }] },
+      { id: "notice", paragraphs: [{ text: "Not reached. On the Company's reported facts the System is outside Article 11 for this decision (Section 2), so the Pre-use Notice requirements are not assessed in this report." }] },
+      { id: "optout", paragraphs: [{ text: "Not reached, for the reason stated in Section 3: the opt-out and exception requirements are not assessed in this report." }] },
+      { id: "vendor", paragraphs: [{ text: "The Company does not use a third-party ADMT." }] },
+    ] };
+    expect([...notReachedSections(skeleton)].sort()).toEqual(["notice", "optout"]);
+    expect(notReachedSections(undefined).size).toBe(0);
+    expect(notReachedSections({ sections: "nope" }).size).toBe(0);
   });
 });

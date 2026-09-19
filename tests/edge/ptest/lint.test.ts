@@ -183,6 +183,29 @@ Deno.test("L-LEADIN — a colon lead-in followed by prose or ending its section 
   assert(l[0].quote.endsWith("this:") && l[1].quote.endsWith("section:"));
 });
 
+Deno.test("L-LEADIN — a lead-in answered by prose items with different openers, closed by the next lettered sub-heading, is the announced list (run 6001444d)", () => {
+  const d = doc([...CLEAN_SECTIONS, { id: "l", title: "3. Lead-ins", paragraphs: [
+    "F. Benefits. Here, the Company has identified the following benefits:",
+    "The consumer benefit carries material weight: the Company identifies “faster checkout”.",
+    "No business benefit is identified, and none is credited.",
+    "The other-stakeholder benefit carries limited weight: the Company identifies “fewer disputes”.",
+    "G. Material privacy risks. The record identifies two.",
+    "The dangling one is this:",
+    "One paragraph of prose.",
+    "Another paragraph of prose.",
+    "Yet another paragraph.",
+    "Still more prose here.",
+    "Further prose follows.",
+    "More text again.",
+    "Additional prose here.",
+    "Nearly the last paragraph.",
+    "Finally the ninth paragraph.",
+  ] }]);
+  const l = hitsFor("L-LEADIN", lintDocument(d, BARE).hits);
+  assertEquals(l.length, 1, JSON.stringify(l));
+  assert(l[0].quote.endsWith("is this:"));
+});
+
 Deno.test("L-ENUM — snake_case tokens, UPPER_SNAKE, runtime values, unfilled slots and UUIDs fire; URLs and e-mails do not", () => {
   const d = doc([...CLEAN_SECTIONS, { id: "e", title: "3. Enums", paragraphs: [
     "The value q4_pi_categories leaked, and so did NOT_RECORDED and undefined and {entity_name} and 3f2504e0-4f89-11d3-9a0c-0305e82c3301.",

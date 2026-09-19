@@ -31,6 +31,8 @@ import {
   toolSummary,
   wantsMessyVariants,
   type FixturePick,
+  admtSectionForKey,
+  notReachedSections,
 } from "./plan";
 import type {
   CheckRow,
@@ -334,6 +336,15 @@ export async function startRun(rawSettings: ProductTestSettings, opts: StartRunO
 
     const goldenDoc = members.map((id) => localDocs.get(id)).find((d) => d && d.variant_id === "golden" && d.status === "graded" && d.document_hash);
     if (!goldenDoc) return;
+    // ADMT: keys feeding a section the scope determination switched off
+    // ("Not reached") are unchecked, not defects (plan.ts admtSectionForKey).
+    let notReached = new Set<string>();
+    if (w.tool === "cppa-admt") {
+      try {
+        const { data } = await (supabase as any).from(DOCS_TABLE).select("report_data").eq("id", goldenDoc.id).maybeSingle();
+        notReached = notReachedSections((data?.report_data as { skeleton_document?: unknown } | null)?.skeleton_document);
+      } catch { /* no gate; the check runs as before */ }
+    }
     for (const id of members) {
       const d = localDocs.get(id);
       const item = workByDocId.get(id);
@@ -345,6 +356,9 @@ export async function startRun(rawSettings: ProductTestSettings, opts: StartRunO
       // answered in a fixture and legitimately have no effect.
       if (!item.variant.expectations.must_report_not_recorded.length) continue;
       const identical = d.document_hash === goldenDoc.document_hash;
+      const gatedSection = w.tool === "cppa-admt"
+        ? item.variant.removed_keys.map(admtSectionForKey).find((sec) => sec && notReached.has(sec)) ?? null
+        : null;
       const row = {
         run_id: runId,
         document_id: d.id,
@@ -354,11 +368,13 @@ export async function startRun(rawSettings: ProductTestSettings, opts: StartRunO
         check_id: "fidelity.answered_key_never_surfaces",
         family: "fidelity",
         severity: "high",
-        passed: !identical,
+        passed: gatedSection ? true : !identical,
         block_key: item.variant.removed_keys.join(","),
         quote: null,
         expected: `removing the answered key "${item.variant.removed_keys.join(",")}" changes the document`,
-        actual: identical ? "document identical to golden — the key had no effect" : "document differs from golden",
+        actual: gatedSection
+          ? `unchecked: the "${gatedSection}" section this key feeds is not reached on this record (Section 2 finds the System outside Article 11)`
+          : identical ? "document identical to golden — the key had no effect" : "document differs from golden",
         rule_ref: "doc272-6.2",
         status: "open",
         class: null,
@@ -368,7 +384,7 @@ export async function startRun(rawSettings: ProductTestSettings, opts: StartRunO
         const { data, error } = await (supabase as any).from(CHECKS_TABLE).insert(row).select("*").single();
         if (error) throw error;
         surfaceChecks.push(data as CheckRow);
-        if (identical) say(`✖ answered key never surfaces — ${w.tool} · ${w.fixture.id} · ${item.variant.removed_keys.join(",")}`);
+        if (identical && !gatedSection) say(`✖ answered key never surfaces — ${w.tool} · ${w.fixture.id} · ${item.variant.removed_keys.join(",")}`);
       } catch (e) {
         say(`⚠ surface check row failed to write for ${k} — ${(e as Error).message}`);
       }

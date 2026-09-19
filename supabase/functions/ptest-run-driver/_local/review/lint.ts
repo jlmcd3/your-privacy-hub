@@ -473,9 +473,28 @@ function lintLeadins(doc: RenderedSkeletonDocument): LintHit[] {
       // one benefit, then the next lettered sub-heading. parallelItems needs
       // two items; one item closed by the next heading (or the section end)
       // is still the list the lead-in announced.
-      const oneItemThenHeading = !!next && !next.table && !HEADING_SHAPED_RE.test(next.text ?? "") &&
-        (!after || (!after.table && LETTERED_HEADING_RE.test(after.text ?? "")));
-      const ok = !!next && (!!next.table || LIST_SHAPED_RE.test(next.text ?? "") || parallelItems(next, s.paragraphs[i + 2]) || headingThenList || oneItemThenHeading);
+      // Generalised 2026-09-19 (Product Test run 6001444d, Risk thin-one
+      // a4-benefit variants): the T2 benefit paragraphs open "The consumer
+      // benefit …" beside "No business benefit is identified …" when one
+      // narrative is removed, so the first words no longer match and
+      // parallelItems cannot see the list. A run of one to eight prose
+      // paragraphs after the lead-in, closed by the next lettered sub-heading
+      // or the section end, is the enumeration the lead-in announced.
+      let runEnd = i + 1;
+      while (runEnd < s.paragraphs.length) {
+        const q = s.paragraphs[runEnd];
+        if (q.table || typeof q.text !== "string") break;
+        if (HEADING_SHAPED_RE.test(q.text) || LETTERED_HEADING_RE.test(q.text)) break;
+        // Another lead-in ends the run and is not a closer: the items it
+        // announces belong to it.
+        if (q.text.trimEnd().endsWith(":")) break;
+        runEnd += 1;
+      }
+      const runLength = runEnd - (i + 1);
+      const closer = s.paragraphs[runEnd];
+      const itemsThenHeading = runLength >= 1 && runLength <= 8 &&
+        (!closer || (!closer.table && typeof closer.text === "string" && LETTERED_HEADING_RE.test(closer.text)));
+      const ok = !!next && (!!next.table || LIST_SHAPED_RE.test(next.text ?? "") || parallelItems(next, s.paragraphs[i + 2]) || headingThenList || itemsThenHeading);
       if (!ok) {
         out.push(hit("L-LEADIN", "dangling_lead_in", "defect", { section_id: s.id, block_key: `${s.id}#p${i}` }, text.slice(-160),
           next ? "lead-in is followed by prose, not a table or list" : "lead-in is the last paragraph of its section"));

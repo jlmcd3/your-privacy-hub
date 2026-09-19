@@ -182,6 +182,16 @@ export const CYBER_LINT_PROFILE: LintProfile = {
     // "controls without evidence" renders it on nine components (Product Test
     // run 3d8ae582, 34 hits). Same clause-library class.
     /^Next action: The description \(.*\) is not itself a testable artifact; retain the underlying evidence/,
+    // Product Test run 6001444d (2026-09-19). (a) "Evidence identified." is
+    // the per-component list of the evidence types the Company ticked; two
+    // components that ticked the same types render the same list, and on the
+    // thin-one-controls-notes variant nine of them do. A factual list, honest
+    // per component. (b) "Recorded remediation owner: …" closes every
+    // readiness action by ruling D1D2B3B8-CY1 (2026-08-28: the live batch
+    // named the owner once and left every action unassigned on its face);
+    // sixteen actions carry the same recorded owner on purpose.
+    /^Evidence identified\./,
+    /^Recorded remediation owner: /,
   ],
   labelPairs: [],
   emptyCellExemptTables: [/^signature:/, /^cover:/],

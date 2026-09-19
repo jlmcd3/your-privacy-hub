@@ -295,6 +295,34 @@ export function overallSummary(perTool: Readonly<Record<string, ToolSummary>>): 
 
 // ─── Launch bars (doc 272 §6 table) ────────────────────────────────────────────
 
+/**
+ * ADMT v2 renders Sections 3-6 as "Not reached" stubs when Section 2 finds the
+ * System outside Article 11 (admt-v2-assemble.ts NOT_REACHED_STUB). An answered
+ * key that feeds one of those sections then legitimately has no effect on the
+ * document, so the never-surfaces check must not read it as a defect (Product
+ * Test run 6001444d, 2026-09-19: seventeen such keys on the out-of-scope p01).
+ * Returns the section id the key feeds, or null when the key is not gated.
+ */
+export function admtSectionForKey(key: string): "notice" | "optout" | "access" | "vendor" | null {
+  if (/^notice_/.test(key)) return "notice";
+  if (/^(opt_out_|appeal_|bias_|opt_out_exception$)/.test(key)) return "optout";
+  if (/^access_/.test(key)) return "access";
+  if (/^(admt_detail\.(vendor_|v_)|third_party_admt|vendor_)/.test(key)) return "vendor";
+  return null;
+}
+
+/** Section ids whose first paragraph is a "Not reached" stub in a rendered skeleton document. */
+export function notReachedSections(skeleton: unknown): Set<string> {
+  const out = new Set<string>();
+  const sections = (skeleton as { sections?: unknown })?.sections;
+  if (!Array.isArray(sections)) return out;
+  for (const s of sections as Array<{ id?: unknown; paragraphs?: Array<{ text?: unknown }> }>) {
+    const first = Array.isArray(s.paragraphs) ? s.paragraphs[0] : undefined;
+    if (typeof s.id === "string" && typeof first?.text === "string" && /^Not reached\b/.test(first.text)) out.add(s.id);
+  }
+  return out;
+}
+
 export const LAUNCH_BARS = {
   documentPassGolden: 1.0, // 100%
   documentPassMessy: 0.98, // 98%

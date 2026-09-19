@@ -746,7 +746,7 @@ export function buildDetermination(
     outcome = "undetermined_on_the_record";
     status = "record_insufficient";
     const names = [...new Set(open)].map(factorLabel);
-    const openInfoNeeded = [
+    const openInfoItems = [
       ...new Set(
         [
           expectations.information_needed,
@@ -767,7 +767,17 @@ export function buildDetermination(
             : undefined,
         ].filter(Boolean) as string[],
       ),
-    ].join(" ");
+    ];
+    const openInfoNeeded = openInfoItems.join(" ");
+    // Product Test run 6001444d (2026-09-19, three LIA thin-one variants):
+    // each item above opens with the internal field path ("purpose_details.
+    // interest_statement — the interest pursued …") so the machine-readable
+    // information_needed keeps its anchor; the customer-facing sentence must
+    // not. The path prefix is removed and the item starts with a capital.
+    const openInfoDisplay = openInfoItems
+      .map((item) => item.replace(/^[a-z_]+(?:\.[a-z_]+)+(?:\s*(?:,|and)\s*[a-z_]+(?:\.[a-z_]+)+)*\s+—\s+/u, ""))
+      .map((item) => item.charAt(0).toUpperCase() + item.slice(1))
+      .join(" ");
     // BATCH d573cc4f (2026-09-12, LIA6-04, ChatGPT + Claude joint review) —
     // subject-verb agreement: "1 of the elements ... are not established"
     // when exactly one element is open.
@@ -783,7 +793,7 @@ export function buildDetermination(
     // the reader at a block that this outcome never renders. It now names
     // the missing information inline instead.
     rawWhy =
-      `The determination is open rather than answered either way: ${names.length} of the elements the assessment turns on — ${names.join(", ")} — ${names.length === 1 ? "is" : "are"} not established on the information provided. What would establish ${names.length === 1 ? "it" : "them"}: ${openInfoNeeded} ${conditions.verbatim}`;
+      `The determination is open rather than answered either way: ${names.length} of the elements the assessment turns on — ${names.join(", ")} — ${names.length === 1 ? "is" : "are"} not established on the information provided. What would establish ${names.length === 1 ? "it" : "them"}: ${openInfoDisplay} ${conditions.verbatim}`;
     information_needed = openInfoNeeded;
   } else if (failing.length > 0) {
     outcome = "available_only_with_mitigations";

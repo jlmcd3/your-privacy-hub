@@ -1239,7 +1239,13 @@ export function renderLiaToa(ledger: readonly string[], assembledBody: string): 
   const bodyCites = (c: string): boolean => {
     if (assembledBody.includes(c)) return true;
     const bare = bareLiaPinpoint(c);
-    return bare !== c && assembledBody.includes(bare);
+    if (bare !== c && assembledBody.includes(bare)) return true;
+    // Product Test run 6001444d (2026-09-19): the typed deliverables cite the
+    // Article 5 principles in the abbreviated house form ("GDPR Art. 5(1)(c)"),
+    // which the full-form test above never matched, so a body citation could
+    // go unlisted. The abbreviated pinpoint counts as the same citation.
+    const abbreviated = bare.replace(/^Article /, "Art. ");
+    return abbreviated !== bare && assembledBody.includes(abbreviated);
   };
   const citedAll = [...new Set(ledger.filter((c) => c && bodyCites(c)))];
   // DOC 252 B4 (CEO-ruled 2026-09-11) — guidance is listed at PINPOINT
@@ -1941,6 +1947,13 @@ export function assembleLiaSkeletonDocument(
       "Article 12 GDPR",
       "Article 13 GDPR",
       "Article 14 GDPR",
+      // Product Test run 6001444d (2026-09-19, LIA thin-one data_minimised):
+      // the necessity and purpose-limitation standards cite Art. 5(1)(b),
+      // 5(1)(c) and the accountability record Art. 5(2); offered in the house
+      // form, kept out unless the body cites them.
+      "Article 5(1)(b) GDPR",
+      "Article 5(1)(c) GDPR",
+      "Article 5(2) GDPR",
       ...persuasive.ledger,
       // DOC 207 TRACK 3b — a rule clause rendered into a test lead
       // (renderRuleClause) cites the SAME way; its citation must be
