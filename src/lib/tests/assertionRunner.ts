@@ -93,6 +93,27 @@ function computeCppaScopeResult(input: Record<string, unknown>): Record<string, 
   return { inScope, cyberAuditRequired, admtRequired, sensitiveRequired, riskAssessmentRequired };
 }
 
+// ─── Row-first helper ─────────────────────────────────────────────────────────
+// generate-dpa / generate-ir-playbook / check-biometric-compliance reject any
+// non-service caller that does not reference an existing row (403 forbidden).
+// The harness runs as a signed-in admin, so it creates the owned row itself.
+
+async function createOwnedTestRow(
+  table: "dpa_documents" | "ir_playbooks" | "biometric_assessments",
+  intake: Record<string, unknown>,
+  userId: string,
+  log: (msg: string) => void,
+): Promise<string> {
+  log(`Inserting ${table}…`);
+  const { data, error } = await (supabase as any)
+    .from(table)
+    .insert({ user_id: userId, status: "pending", intake_data: intake })
+    .select("id")
+    .single();
+  if (error || !data?.id) throw new Error(`${table} insert: ${error?.message ?? "no id"}`);
+  return data.id as string;
+}
+
 // ─── Polling helper ───────────────────────────────────────────────────────────
 
 async function pollUntilComplete(
@@ -314,20 +335,24 @@ export async function generateForTool(
     recordId = (output as Record<string, unknown>)?.sessionId as string;
 
   } else if (test.toolId === "biometric") {
+    // ROW-FIRST LAW (2026-08-31): check-biometric-compliance / generate-dpa /
+    // generate-ir-playbook answer 403 to any non-service caller that does not
+    // reference an existing row. Create the owned row first, then invoke with
+    // assessment_id (admin bypass in requireEntitlement grants it).
+    const rowId = await createOwnedTestRow("biometric_assessments", test.testInput, userId, addLog);
     addLog("Invoking check-biometric-compliance…");
-    const { data, error } = await invokeWithRetry(test.edgeFunction, { ...test.testInput, user_id: userId }, combinedSignal);
+    const { data, error } = await invokeWithRetry(test.edgeFunction, { ...test.testInput, user_id: userId, assessment_id: rowId }, combinedSignal);
     if (error) throw error;
     output = data;
-    recordId = (data as Record<string, unknown>)?.id as string;
+    recordId = ((data as Record<string, unknown>)?.id as string) ?? rowId;
     addLog(`✓ Complete — id: ${recordId}`);
 
   } else if (test.toolId === "dpa") {
+    const rowId = await createOwnedTestRow("dpa_documents", test.testInput, userId, addLog);
     addLog("Invoking generate-dpa…");
-    const { data, error } = await invokeWithRetry(test.edgeFunction, { ...test.testInput, user_id: userId }, combinedSignal);
+    const { error } = await invokeWithRetry(test.edgeFunction, { ...test.testInput, user_id: userId, assessment_id: rowId }, combinedSignal);
     if (error) throw error;
-    const d = data as Record<string, unknown>;
-    if (!d?.id) throw new Error("generate-dpa returned no id");
-    recordId = d.id as string;
+    recordId = rowId;
     addLog(`Polling dpa_documents (id: ${recordId})…`);
     await pollUntilComplete("dpa_documents", recordId, "complete", test.pollConfig!.maxPolls, test.pollConfig!.intervalMs, addLog, combinedSignal);
     const { data: row } = await (supabase as any).from("dpa_documents").select("document_text, report_data").eq("id", recordId).single();
@@ -335,12 +360,11 @@ export async function generateForTool(
     addLog(`✓ Complete — ${(row?.document_text ?? "").length} chars`);
 
   } else if (test.toolId === "ir-playbook") {
+    const rowId = await createOwnedTestRow("ir_playbooks", test.testInput, userId, addLog);
     addLog("Invoking generate-ir-playbook…");
-    const { data, error } = await invokeWithRetry(test.edgeFunction, { ...test.testInput, user_id: userId }, combinedSignal);
+    const { error } = await invokeWithRetry(test.edgeFunction, { ...test.testInput, user_id: userId, assessment_id: rowId }, combinedSignal);
     if (error) throw error;
-    const d = data as Record<string, unknown>;
-    if (!d?.id) throw new Error("generate-ir-playbook returned no id");
-    recordId = d.id as string;
+    recordId = rowId;
     addLog(`Polling ir_playbooks (id: ${recordId})…`);
     await pollUntilComplete("ir_playbooks", recordId, "complete", test.pollConfig!.maxPolls, test.pollConfig!.intervalMs, addLog, combinedSignal);
     const { data: row } = await (supabase as any).from("ir_playbooks").select("playbook_text, report_data").eq("id", recordId).single();
