@@ -348,16 +348,15 @@ export function buildVariants(
     const mustNotInclude: string[] = [];
     for (const a of c.assertions) {
       // Only literal-safe patterns are carried into the substring-based
-      // must_contain/must_not_contain expectations the grading side checks;
-      // `must_cite` is a verbatim substring so it always qualifies.
-      // Patterns with regex metacharacters, and `jurisdiction_resolved`
-      // (a structural check, not a string), are intentionally NOT carried
-      // over — grading these fully would mean re-implementing evaluateGolden
-      // against a regex, which fidelity.ts does not do (see its module
-      // header). This is a documented simplification.
-      if (a.kind === "must_cite") mustInclude.push(a.citation);
-      else if (a.kind === "must_include" && /^[\w\s.,'’"()%$&/–-]+$/.test(a.pattern)) mustInclude.push(a.pattern);
-      else if (a.kind === "must_not_include" && /^[\w\s.,'’"()%$&/–-]+$/.test(a.pattern)) mustNotInclude.push(a.pattern);
+      // must_not_contain expectation the grading side checks. The registry's
+      // `must_include` / `must_cite` assertions are NOT carried (lead
+      // correction 2026-09-18, Product Test run 3d8ae582): they were authored
+      // against the MODEL-era outputs and pin phrases those products used
+      // ("outside this tool's current corpus" for the UK Art. 22 case), which
+      // the deterministic products do not say; two false failures on LIA. A
+      // stale `must_not_include` phrase is harmless (it simply never appears),
+      // so those are kept as the degradation guards they were written to be.
+      if (a.kind === "must_not_include" && /^[\w\s.,'’"()%$&/–-]+$/.test(a.pattern)) mustNotInclude.push(a.pattern);
     }
     variants.push({
       variant_id: `${fixtureId}__authored-${c.id}`,

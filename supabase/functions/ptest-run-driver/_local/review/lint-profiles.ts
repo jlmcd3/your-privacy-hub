@@ -176,6 +176,12 @@ export const CYBER_LINT_PROFILE: LintProfile = {
     /^None recorded, so an auditor would test the assertion rather than accept it\./,
     /^No testable material is identified; a finding would rest primarily on management assertion/,
     /^Next action: Supply a record entry for this component; the record names the recorded entry for related components but not this one\./,
+    // The evidence-retention recommendation template (cyber-recommendations.ts
+    // "not itself a testable artifact") repeats verbatim for every component
+    // whose evidence is a bare description — the authored messy case
+    // "controls without evidence" renders it on nine components (Product Test
+    // run 3d8ae582, 34 hits). Same clause-library class.
+    /^Next action: The description \(.*\) is not itself a testable artifact; retain the underlying evidence/,
   ],
   labelPairs: [],
   emptyCellExemptTables: [/^signature:/, /^cover:/],
