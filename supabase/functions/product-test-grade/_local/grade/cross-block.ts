@@ -269,7 +269,9 @@ export const TOA_ALLOWLIST: Readonly<Partial<Record<ProductTestTool, readonly st
   // Art. 37: the outstanding-matters table cites "GDPR Art. 37" as the
   // authority for a missing DPO detail on a thin record (run 6a7e6c84);
   // same class, pending the matrix ruling.
-  "dpia": ["Art. 9", "Art. 10", "Art. 12", "Art. 20", "Art. 21", "Art. 22", "Art. 24", "Art. 37", "Art. 46"],
+  // Art. 17 (erasure): cited when the retention period is blank (run 8e0f2e5c,
+  // blank-required-retention-period on four fixtures); same class.
+  "dpia": ["Art. 9", "Art. 10", "Art. 12", "Art. 17", "Art. 20", "Art. 21", "Art. 22", "Art. 24", "Art. 37", "Art. 46"],
 };
 
 /** A body mention that DENIES a provision ("Article 44 was omitted from the

@@ -27,6 +27,7 @@ import {
   planFixturePicks,
   selectVariantsByKind,
   stabilitySeverityFor,
+  summaryFromDocuments,
   toolSummary,
   wantsMessyVariants,
   type FixturePick,
@@ -39,6 +40,7 @@ import type {
   ProductTestSettings,
   RunRow,
   RunSummary,
+  ToolSummary as ToolSummaryT,
   Variant,
 } from "./types";
 
@@ -529,27 +531,192 @@ export async function fetchRunDocuments(runId: string): Promise<DocumentRow[]> {
 
 const PAGE = 1000;
 
+/** Check ids the PAGE writes (not the grading function): they are not
+ *  counted in a document row's check columns, so the summary adds them. */
+export const PAGE_CHECK_IDS: ReadonlySet<string> = new Set(["stability.hash-identical", "fidelity.answered_key_never_surfaces"]);
+
 /**
- * Every check row of a run. Paged (lead fix 2026-09-18): the client's
- * default cap is 1,000 rows, and a 200-document messy run carries ~10,000
- * checks, so the first messy run's five failures sat beyond the cap and the
- * page and export showed "0 of 1000".
+ * Keyset-paged read of check rows (lead fix 2026-09-18, run 8e0f2e5c): a
+ * 1,196-document run carried 34,818 check rows; offset paging with an ORDER
+ * BY over that many rows, re-run on every 4-second poll, hit the database
+ * statement timeout ("canceling statement due to statement timeout") and
+ * the page lost the run. Rows are now read by `id > last` in pages of 1,000,
+ * and the live page reads only what it shows (see fetchFailedChecks).
  */
-export async function fetchRunChecks(runId: string): Promise<CheckRow[]> {
+async function fetchChecksWhere(runId: string, filter: (q: any) => any): Promise<CheckRow[]> {
   const out: CheckRow[] = [];
-  for (let from = 0; ; from += PAGE) {
-    const { data, error } = await (supabase as any)
-      .from(CHECKS_TABLE)
-      .select("*")
-      .eq("run_id", runId)
-      .order("id", { ascending: true })
-      .range(from, from + PAGE - 1);
+  let lastId = 0;
+  for (;;) {
+    const { data, error } = await filter(
+      (supabase as any).from(CHECKS_TABLE).select("*").eq("run_id", runId).gt("id", lastId),
+    ).order("id", { ascending: true }).limit(PAGE);
     if (error) throw new Error(`product_test_checks read: ${error.message}`);
     const rows = (data ?? []) as CheckRow[];
     out.push(...rows);
     if (rows.length < PAGE) break;
+    lastId = rows[rows.length - 1].id;
   }
   return out;
+}
+
+/** Every check row of a run — for the export and the offline archive only. */
+export function fetchRunChecks(runId: string): Promise<CheckRow[]> {
+  return fetchChecksWhere(runId, (q) => q);
+}
+
+/** Only the failed rows — what the failures table shows. */
+export function fetchFailedChecks(runId: string): Promise<CheckRow[]> {
+  return fetchChecksWhere(runId, (q) => q.eq("passed", false));
+}
+
+/** Only the page-written rows (stability, answered-key-never-surfaces),
+ *  passed or failed — the summary needs them because the document rows'
+ *  check columns do not include them. */
+export function fetchPageChecks(runId: string): Promise<CheckRow[]> {
+  return fetchChecksWhere(runId, (q) => q.in("check_id", [...PAGE_CHECK_IDS]));
+}
+
+// ─── Resume (lead fix 2026-09-18, run 8e0f2e5c) ─────────────────────────────
+//
+// The driver lives in the browser tab. If the tab closes, reloads or loses
+// the page, the pending queue freezes with the run still "running". A
+// resumed run takes every document still pending, generating or failed,
+// rebuilds its variant (the variants call is deterministic, so the same
+// tool + fixture yields the same variant ids), and runs generate → grade
+// over them with the same worker pool. Cross-copy checks (stability,
+// answered-key-never-surfaces) need a fixture's whole group and are not
+// recomputed on a resume; the export says which documents were resumed.
+
+export async function resumeRun(runId: string, opts: StartRunOptions): Promise<RunHandle> {
+  const runRow = await fetchRun(runId);
+  if (!runRow) throw new Error(`resumeRun: run ${runId} not found`);
+  const settings = runRow.settings;
+  const concurrency = Math.max(1, Math.min(8, Math.round(settings?.concurrency ?? 3) || 3));
+  const all = await fetchRunDocuments(runId);
+  const todo = all.filter((d) => d.status === "pending" || d.status === "generating" || d.status === "failed" || d.status === "generated");
+  if (!todo.length) throw new Error("resumeRun: nothing to resume — every document is graded");
+
+  const logLines: string[] = [...(runRow.log ?? [])];
+  let lastFlush = 0;
+  let flushTimer: ReturnType<typeof setTimeout> | null = null;
+  const flushLog = async (force = false) => {
+    const since = Date.now() - lastFlush;
+    if (!force && since < LOG_FLUSH_MS) {
+      if (!flushTimer) flushTimer = setTimeout(() => { flushTimer = null; void flushLog(true); }, LOG_FLUSH_MS - since);
+      return;
+    }
+    lastFlush = Date.now();
+    try { await (supabase as any).from(RUNS_TABLE).update({ log: logLines, status: "running" }).eq("id", runId); } catch { /* reporting only */ }
+  };
+  const say = (line: string) => {
+    logLines.push(`${new Date().toLocaleTimeString()}  ${line}`);
+    opts.onLog?.(line);
+    void flushLog();
+  };
+  say(`Run ${runId} resumed — ${todo.length} document(s) still to generate or grade (${all.length - todo.length} already graded).`);
+  await (supabase as any).from(RUNS_TABLE).update({ status: "running" }).eq("id", runId);
+  opts.onRunUpdate?.({ id: runId, status: "running" });
+
+  const abortController = new AbortController();
+  let paused = false;
+  let pauseResolve: (() => void) | null = null;
+  let pausePromise: Promise<void> = Promise.resolve();
+  const waitIfPaused = async () => { if (paused) await pausePromise; };
+  const pause = () => { if (paused) return; paused = true; pausePromise = new Promise((r) => { pauseResolve = r; }); say("Paused."); };
+  const resume = () => { if (!paused) return; paused = false; pauseResolve?.(); pauseResolve = null; say("Resumed."); };
+  const stop = () => { resume(); abortController.abort(); say("Stop requested."); };
+
+  // Rebuild the variants per (tool, fixture) the pending documents need.
+  const variantByDoc = new Map<string, { fixture: PanelFixture; variant: Variant }>();
+  const pairs = new Map<string, { tool: PanelTool; fixture: PanelFixture; needsMessy: boolean }>();
+  for (const d of todo) {
+    const tool = d.tool as PanelTool;
+    const fixture = PANEL_BY_TOOL[tool]?.find((f) => f.id === d.fixture_id);
+    if (!fixture) { say(`⚠ ${d.tool} · ${d.fixture_id}: fixture no longer in the panel — skipped`); continue; }
+    const key = `${tool}#${fixture.id}`;
+    const cur = pairs.get(key) ?? { tool, fixture, needsMessy: false };
+    if (d.variant_id !== "golden") cur.needsMessy = true;
+    pairs.set(key, cur);
+  }
+  for (const { tool, fixture, needsMessy } of pairs.values()) {
+    let variants: Variant[] = [goldenVariant(fixture.intake)];
+    if (needsMessy) {
+      try {
+        variants = [...variants, ...(await fetchVariants(tool, fixture.id, fixture.intake, abortController.signal)).filter((v) => v.variant_id !== "golden")];
+      } catch (e) {
+        say(`⚠ variants failed for ${tool} · ${fixture.id} — ${(e as Error).message}; its messy documents stay pending.`);
+      }
+    }
+    for (const d of todo) {
+      if (d.tool !== tool || d.fixture_id !== fixture.id) continue;
+      const v = variants.find((x) => x.variant_id === d.variant_id);
+      if (v) variantByDoc.set(d.id, { fixture, variant: v });
+      else say(`⚠ ${tool} · ${fixture.id} · ${d.variant_id}: variant not rebuilt — stays pending.`);
+    }
+  }
+  const workItems: WorkItem[] = todo.flatMap((d) => {
+    const found = variantByDoc.get(d.id);
+    return found ? [{ doc: d, tool: d.tool as PanelTool, fixture: found.fixture, variant: found.variant }] : [];
+  });
+
+  const localDocs = new Map<string, DocumentRow>(all.map((d) => [d.id, d]));
+  const updateDoc = async (id: string, patch: Record<string, unknown>) => {
+    const cur = localDocs.get(id);
+    if (cur) { const next = { ...cur, ...patch } as DocumentRow; localDocs.set(id, next); opts.onDocumentUpdate?.(next); }
+    try { await (supabase as any).from(DOCS_TABLE).update(patch).eq("id", id); } catch (e) { say(`⚠ document ${id.slice(0, 8)} write failed — ${(e as Error).message}`); }
+  };
+  const panelCompaniesByTool = new Map<PanelTool, string[]>();
+  for (const t of new Set(workItems.map((w) => w.tool))) panelCompaniesByTool.set(t, PANEL_BY_TOOL[t].map((f) => f.company));
+
+  let cursor = 0;
+  const runWorker = async () => {
+    while (cursor < workItems.length) {
+      if (abortController.signal.aborted) return;
+      await waitIfPaused();
+      if (abortController.signal.aborted) return;
+      const { doc, tool, fixture, variant } = workItems[cursor++];
+      const label = `${tool} · ${fixture.id} · ${variant.variant_id} · copy ${doc.copy_index} (resumed)`;
+      try {
+        say(`▶ ${label} — generating…`);
+        await updateDoc(doc.id, { status: "generating", error: null });
+        const gen = await generateDocument(tool, variant.intake, { userId: opts.userId, signal: abortController.signal, log: (l) => say(`  ${label}: ${l}`) });
+        await updateDoc(doc.id, { status: "generated", source_table: gen.sourceTable, source_row_id: gen.sourceRowId });
+        const graded = await gradeDocument({ runId, documentId: doc.id, tool, fixtureId: fixture.id, variantId: variant.variant_id, intake: variant.intake, output: gen.output, expectations: variant.expectations, panelCompanies: panelCompaniesByTool.get(tool) ?? [] }, abortController.signal);
+        const s = graded.summary;
+        await updateDoc(doc.id, { status: "graded", document_hash: s.document_hash, checks_total: s.total, checks_failed: s.failed, critical: s.critical, high: s.high, editorial: s.editorial, document_pass: s.document_pass, completed_at: nowIso() });
+        say(`✔ ${label} — graded: ${s.passed}/${s.total} — document ${s.document_pass ? "PASS" : "FAIL"}`);
+      } catch (e) {
+        const msg = (e as Error).message;
+        await updateDoc(doc.id, { status: "failed", error: msg, completed_at: nowIso() });
+        say(`✖ ${label} — FAILED: ${msg}`);
+      }
+    }
+  };
+
+  const done = (async (): Promise<RunRow> => {
+    const workers = Array.from({ length: Math.min(concurrency, workItems.length) }, () => runWorker());
+    await Promise.all(workers);
+    const docs = Array.from(localDocs.values());
+    let pageChecks: CheckRow[] = [];
+    try { pageChecks = await fetchPageChecks(runId); } catch { /* summary degrades to columns only */ }
+    const byTool: RunSummary["byTool"] = {};
+    const perTool: Record<string, ToolSummaryT> = {};
+    for (const tool of new Set(docs.map((d) => d.tool as PanelTool))) {
+      const ts = summaryFromDocuments(docs.filter((d) => d.tool === tool), pageChecks.filter((c) => c.tool === tool));
+      byTool[tool] = ts;
+      perTool[tool] = ts;
+    }
+    const summary: RunSummary = { overall: overallSummary(perTool), byTool };
+    const unfinished = docs.some((d) => d.status === "pending" || d.status === "generating");
+    const finalStatus = abortController.signal.aborted || unfinished ? "stopped" : "complete";
+    say(`Run ${finalStatus} after resume — ${summary.overall.documents} document(s), ${summary.overall.checks_passed}/${summary.overall.checks_total} checks passed, document pass rate ${(summary.overall.document_pass_rate * 100).toFixed(1)}%.`);
+    await flushLog(true);
+    await (supabase as any).from(RUNS_TABLE).update({ status: finalStatus, summary, log: logLines }).eq("id", runId);
+    opts.onRunUpdate?.({ id: runId, status: finalStatus, summary });
+    return { ...runRow, status: finalStatus, summary, log: logLines } as RunRow;
+  })();
+
+  return { runId, pause, resume, stop, isPaused: () => paused, done };
 }
 
 /** The CEO's free-text report on a run: what a check did not catch (doc 275). */

@@ -222,6 +222,54 @@ export function toolSummary(docs: readonly DocLike[], checks: readonly CheckLike
   };
 }
 
+/** Document rows carry the grading function's per-document check columns. */
+export interface DocWithColumns extends DocLike {
+  checks_total?: number | null;
+  checks_failed?: number | null;
+  critical?: number | null;
+  high?: number | null;
+  editorial?: number | null;
+}
+
+/**
+ * Summary from the document rows' own check columns plus the page-written
+ * check rows (stability, answered-key-never-surfaces), which those columns
+ * do not include. Lead fix 2026-09-18 (run 8e0f2e5c): the page no longer
+ * loads every check row of a live run to compute this; the columns are the
+ * grading function's own roll-up, written with the grade.
+ */
+export function summaryFromDocuments(docs: readonly DocWithColumns[], pageChecks: readonly CheckLike[]): ToolSummary {
+  const scored = docs.filter((d) => d.document_pass !== null || d.status === "failed");
+  const passedDocs = scored.filter((d) => d.document_pass === true && d.status !== "failed").length;
+  let total = 0, failed = 0, critical = 0, high = 0, editorial = 0;
+  for (const d of docs) {
+    total += d.checks_total ?? 0;
+    failed += d.checks_failed ?? 0;
+    critical += d.critical ?? 0;
+    high += d.high ?? 0;
+    editorial += d.editorial ?? 0;
+  }
+  for (const c of pageChecks) {
+    total += 1;
+    if (!c.passed) {
+      failed += 1;
+      if (c.severity === "critical") critical += 1;
+      else if (c.severity === "high") high += 1;
+      else editorial += 1;
+    }
+  }
+  return {
+    documents: docs.length,
+    document_pass_rate: rate(passedDocs, scored.length),
+    checks_total: total,
+    checks_passed: total - failed,
+    check_pass_rate: rate(total - failed, total),
+    critical,
+    high,
+    editorial,
+  };
+}
+
 export function overallSummary(perTool: Readonly<Record<string, ToolSummary>>): ToolSummary {
   const all = Object.values(perTool);
   const documents = all.reduce((a, s) => a + s.documents, 0);

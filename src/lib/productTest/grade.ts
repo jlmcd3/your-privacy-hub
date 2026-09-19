@@ -27,11 +27,18 @@ async function invokeWithRetry(
 
     const { data, error } = await supabase.functions.invoke(fn, { body });
 
-    if (
-      error &&
-      (error.message?.includes("429") || (error as any)?.status === 429) &&
-      attempt < RATE_LIMIT_BACKOFFS_MS.length
-    ) {
+    // Retry on a rate limit AND on a transient failure of the grading
+    // function itself (lead fix 2026-09-18, run 8e0f2e5c: four documents
+    // failed on "Edge Function returned a non-2xx status code" / "Failed to
+    // send a request to the Edge Function" during a brief outage). Grading
+    // is deterministic and idempotent for a (run, document) pair, so a retry
+    // is safe.
+    const msg = String(error?.message ?? "");
+    const transient = !!error && (
+      msg.includes("429") || (error as any)?.status === 429 ||
+      /non-2xx|Failed to send a request|Failed to fetch|network|ECONN|5\d\d/i.test(msg)
+    );
+    if (transient && attempt < RATE_LIMIT_BACKOFFS_MS.length) {
       const delay = RATE_LIMIT_BACKOFFS_MS[attempt];
       await new Promise<void>((resolve, reject) => {
         const timer = setTimeout(resolve, delay);

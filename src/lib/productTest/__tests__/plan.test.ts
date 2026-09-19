@@ -15,6 +15,7 @@ import {
   planFixturePicks,
   selectVariantsByKind,
   stabilitySeverityFor,
+  summaryFromDocuments,
   toolSummary,
   wantsMessyVariants,
 } from "../plan";
@@ -248,5 +249,24 @@ describe("toolSummary — failed generation (lead fix 2026-09-18, run 72e9a63c)"
   it("all documents failed to generate gives 0%, not a vacuous 100%", () => {
     const ts = toolSummary([{ document_pass: null, status: "failed" }], []);
     expect(ts.document_pass_rate).toBe(0);
+  });
+});
+
+describe("summaryFromDocuments — from the document rows' own columns (lead fix 2026-09-18, run 8e0f2e5c)", () => {
+  it("sums the grading function's columns and adds the page-written rows", () => {
+    const docs = [
+      { document_pass: true, status: "graded", checks_total: 48, checks_failed: 0, critical: 0, high: 0, editorial: 0 },
+      { document_pass: false, status: "graded", checks_total: 48, checks_failed: 2, critical: 1, high: 1, editorial: 0 },
+      { document_pass: null, status: "pending" },
+      { document_pass: null, status: "failed" },
+    ];
+    const page = [{ passed: true, severity: "high" as const }, { passed: false, severity: "high" as const }];
+    const s = summaryFromDocuments(docs, page);
+    expect(s.documents).toBe(4);
+    expect(s.document_pass_rate).toBeCloseTo(1 / 3); // pending excluded; failed counts as failed
+    expect(s.checks_total).toBe(98);
+    expect(s.checks_passed).toBe(95);
+    expect(s.critical).toBe(1);
+    expect(s.high).toBe(2);
   });
 });

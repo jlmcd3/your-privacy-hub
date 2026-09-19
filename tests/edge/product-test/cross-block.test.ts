@@ -150,3 +150,19 @@ Deno.test("cross-block: a lowercase 'art. 9' long-form row in the authorities ta
   assert(c);
   assertEquals(c!.passed, true, `expected covered; got ${c!.actual}`);
 });
+
+// A one-item enumeration closed by the next lettered sub-heading is the list the lead-in announced (run 8e0f2e5c, Risk thin-one).
+Deno.test("cross-block: a lead-in followed by one item and then a lettered sub-heading does not fail L-LEADIN", () => {
+  const d = {
+    _typed: "skeleton-document@so-wire-in" as const,
+    spine_version: "test",
+    title: "t", subtitle: "s",
+    sections: [{ id: "iii_analysis", title: "3. Analysis", paragraphs: [
+      { kind: "skeleton", text: "F. Benefits. Here, the Company has identified the following benefits:", key: "iii_analysis#p0" },
+      { kind: "generated", text: "The consumer benefit is faster service at checkout, as the Company describes it.", key: "iii_analysis#p1" },
+      { kind: "skeleton", text: "G. Material privacy risks. Section 7152(a)(5) requires the assessment to identify the negative impacts.", key: "iii_analysis#p2" },
+    ] }],
+  };
+  const hits = checkCrossBlock("cppa-risk", { skeleton_document: d }).filter((x) => x.check_id === "lint.L-LEADIN" && !x.passed);
+  assertEquals(hits.length, 0, JSON.stringify(hits));
+});

@@ -29,14 +29,14 @@ import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/component
 import { ChevronDown } from "lucide-react";
 
 import {
-  fetchRecentRuns, fetchRun, fetchRunChecks, fetchRunDocuments, startRun, updateCheck, updateRunLeadNote,
+  fetchFailedChecks, fetchPageChecks, fetchRecentRuns, fetchRun, fetchRunChecks, fetchRunDocuments, resumeRun, startRun, updateCheck, updateRunLeadNote,
   type RunHandle,
 } from "@/lib/productTest/run";
 import { buildLeadSummary } from "@/lib/productTest/leadSummary";
 import { buildScoreMatrix, formatDelta } from "@/lib/productTest/scoreMatrix";
 import {
   DEFAULT_TOOLS, MAX_COPIES, MIN_COPIES, TOOL_GROUPS, VARIANT_KIND_ORDER,
-  clampCopies, evaluateLaunchBars, toolSummary, wantsMessyVariants,
+  clampCopies, evaluateLaunchBars, summaryFromDocuments, wantsMessyVariants,
 } from "@/lib/productTest/plan";
 import { buildRunMarkdown, downloadMarkdown, runExportFilename } from "@/lib/productTest/exportMarkdown";
 import type {
@@ -73,7 +73,7 @@ const STATUS_OPTIONS: CheckStatus[] = ["open", "fixed-pending-deploy", "cleared"
 const CLASS_OPTIONS: CheckClass[] = ["product", "fixture", "check", "ceo-decision"];
 
 const LOG_LIMIT = 500;
-const POLL_MS = 4_000;
+const POLL_MS = 10_000; // lead fix 2026-09-18: lighter, less frequent polls (run 8e0f2e5c)
 
 function pct(n: number): string {
   return `${(n * 100).toFixed(1)}%`;
@@ -152,7 +152,11 @@ export default function ProductTest() {
       handle.done.then(async (finalRun) => {
         setActiveRun(finalRun);
         setRunHandle(null);
-        try { setChecks(await fetchRunChecks(finalRun.id)); } catch { /* checks table read is best-effort here */ }
+        try {
+          const [failed, page] = await Promise.all([fetchFailedChecks(finalRun.id), fetchPageChecks(finalRun.id)]);
+          setChecks(failed);
+          setPageChecks(page);
+        } catch { /* checks table read is best-effort here */ }
         void refreshRecent();
       });
     } catch (e) {
@@ -160,6 +164,53 @@ export default function ProductTest() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.id, tools, copies, repeatSameFixture, variantKinds, mergeDocument]);
+
+  // ── Resume (lead fix 2026-09-18, run 8e0f2e5c) ──────────────────────────
+  // The driver is this tab. A run whose tab closed keeps its pending
+  // documents; Resume rebuilds their variants and runs generate → grade
+  // over them with the same pool. Cross-copy checks are not recomputed.
+  const resumable = useMemo(
+    () => !!activeRun && !runHandle && documents.some((d) => d.status === "pending" || d.status === "generating" || d.status === "failed" || d.status === "generated"),
+    [activeRun, runHandle, documents],
+  );
+  const resumeNow = useCallback(async () => {
+    if (!user?.id || !activeRun) return;
+    liveRunIdRef.current = activeRun.id;
+    setPaused(false);
+    try {
+      const handle = await resumeRun(activeRun.id, {
+        userId: user.id,
+        onLog: (line) => setLogLines((prev) => [...prev, line].slice(-LOG_LIMIT)),
+        onDocumentUpdate: mergeDocument,
+        onRunUpdate: (r) => setActiveRun((prev) => (prev ? { ...prev, ...r } as RunRow : (r as RunRow))),
+      });
+      setRunHandle(handle);
+      setActiveRunId(handle.runId);
+      handle.done.then(async (finalRun) => {
+        setActiveRun(finalRun);
+        setRunHandle(null);
+        try {
+          const [failed, page] = await Promise.all([fetchFailedChecks(finalRun.id), fetchPageChecks(finalRun.id)]);
+          setChecks(failed);
+          setPageChecks(page);
+        } catch { /* best effort */ }
+        void refreshRecent();
+      });
+    } catch (e) {
+      setLogLines((prev) => [...prev, `Resume failed — ${(e as Error).message}`].slice(-LOG_LIMIT));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id, activeRun, mergeDocument]);
+
+  // Planned size, for the warning under the Run button: the tab drives the
+  // run, and 1,196 documents in one run is what stalled run 8e0f2e5c.
+  const plannedEstimate = useMemo(() => {
+    const base = tools.length * clampCopies(copies);
+    const perFixtureMessy = (variantKinds.includes("thin-one") ? 25 : 0) + (variantKinds.includes("blank-required") ? 10 : 0) +
+      (variantKinds.includes("contradict") ? 3 : 0) + (variantKinds.includes("thin-all") ? 1 : 0) +
+      (variantKinds.includes("authored") ? 3 : 0) + (variantKinds.includes("wrong-regime") ? 1 : 0);
+    return base * (1 + perFixtureMessy);
+  }, [tools, copies, variantKinds]);
 
   const pauseResume = useCallback(() => {
     if (!runHandle) return;
@@ -176,19 +227,34 @@ export default function ProductTest() {
   }, []);
   useEffect(() => { void refreshRecent(); }, [refreshRecent]);
 
-  const loadRun = useCallback(async (runId: string) => {
+  // Page-written check rows (stability, answered-key-never-surfaces), passed
+  // or failed; the document rows' check columns do not include them.
+  const [pageChecks, setPageChecks] = useState<CheckRow[]>([]);
+  const loadInFlight = useRef(false);
+
+  // Reads only what the page shows: the run row, the document rows (their
+  // check columns carry the totals), the FAILED check rows and the
+  // page-written rows. Lead fix 2026-09-18 (run 8e0f2e5c): reading every
+  // check row on every poll hit the database statement timeout at ~35,000
+  // rows and the page lost the run. The export still reads everything.
+  const loadRun = useCallback(async (runId: string, opts?: { keepHandle?: boolean }) => {
+    if (loadInFlight.current) return;
+    loadInFlight.current = true;
     try {
-      const [run, docs, checkRows] = await Promise.all([fetchRun(runId), fetchRunDocuments(runId), fetchRunChecks(runId)]);
+      const [run, docs, failed, page] = await Promise.all([fetchRun(runId), fetchRunDocuments(runId), fetchFailedChecks(runId), fetchPageChecks(runId)]);
       if (!run) return;
       setActiveRun(run);
       setActiveRunId(run.id);
       documentsRef.current = new Map(docs.map((d) => [d.id, d]));
       setDocuments(docs);
-      setChecks(checkRows);
+      setChecks(failed);
+      setPageChecks(page);
       setLogLines((run.log ?? []).slice(-LOG_LIMIT));
-      setRunHandle(null);
+      if (!opts?.keepHandle) setRunHandle(null);
     } catch (e) {
       setLogLines((prev) => [...prev, `Run load failed — ${(e as Error).message}`].slice(-LOG_LIMIT));
+    } finally {
+      loadInFlight.current = false;
     }
   }, []);
 
@@ -207,9 +273,10 @@ export default function ProductTest() {
     if (!activeRunId) return;
     const isLive = activeRun?.status === "running" || !activeRun;
     if (!isLive) return;
-    const id = setInterval(() => { void loadRun(activeRunId); }, POLL_MS);
+    // While this tab drives the run, keep its handle across polls.
+    const id = setInterval(() => { void loadRun(activeRunId, { keepHandle: !!runHandle }); }, POLL_MS);
     return () => clearInterval(id);
-  }, [activeRunId, activeRun?.status, loadRun]);
+  }, [activeRunId, activeRun?.status, loadRun, runHandle]);
 
   // ── Results (section e) ─────────────────────────────────────────────────
   const messy = useMemo(() => wantsMessyVariants(variantKinds), [variantKinds]);
@@ -219,14 +286,14 @@ export default function ProductTest() {
     return tools.map((tool) => {
       const fromSummary = byToolFromSummary?.[tool];
       const ts = fromSummary
-        ?? toolSummary(
+        ?? summaryFromDocuments(
           documents.filter((d) => d.tool === tool),
-          checks.filter((c) => c.tool === tool).map((c) => ({ passed: c.passed, severity: c.severity })),
+          pageChecks.filter((c) => c.tool === tool).map((c) => ({ passed: c.passed, severity: c.severity })),
         );
       const bars = evaluateLaunchBars(ts, messy);
       return { tool, ts, bars };
     });
-  }, [tools, documents, checks, activeRun, messy]);
+  }, [tools, documents, pageChecks, activeRun, messy]);
 
   // ── Failures (section f) ────────────────────────────────────────────────
   const [filterTool, setFilterTool] = useState<string>("all");
@@ -409,6 +476,11 @@ export default function ProductTest() {
             {busy && (
               <Button variant="destructive" onClick={stopRun}>Stop</Button>
             )}
+            {resumable && (
+              <Button variant="secondary" disabled={!user?.id} onClick={() => void resumeNow()} title="Generate and grade the documents this run still has pending, generating or failed">
+                Resume run
+              </Button>
+            )}
             {!!activeRun && (
               <Button variant="outline" onClick={exportRun}>Export markdown</Button>
             )}
@@ -416,6 +488,11 @@ export default function ProductTest() {
               {activeRun ? `Run ${activeRun.id.slice(0, 8)} · ${activeRun.status}` : "No run yet"}
             </span>
           </div>
+          {!busy && plannedEstimate > 300 && (
+            <p className="text-xs text-amber-700">
+              About {plannedEstimate} documents planned. This tab drives the run; keep it open and awake. Above a few hundred documents, prefer smaller runs (fewer products or copies per run), or use Resume if the tab is lost.
+            </p>
+          )}
         </CardContent>
       </Card>
 
