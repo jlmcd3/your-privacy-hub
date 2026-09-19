@@ -689,7 +689,7 @@ export default function ProductTest() {
                 >
                   <span className="font-mono">{r.id.slice(0, 8)}</span>{" "}
                   <span className="text-muted-foreground">{new Date(r.created_at).toLocaleString()} · {r.status}</span>
-                  {r.summary && (
+                  {r.summary?.overall && (
                     <span className="text-muted-foreground">
                       {" "}· {r.summary.overall.documents} docs · doc pass {pct(r.summary.overall.document_pass_rate)} · check pass {pct(r.summary.overall.check_pass_rate)}
                     </span>
