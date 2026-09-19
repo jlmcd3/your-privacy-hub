@@ -268,6 +268,27 @@ export function buildReasonableExpectations(
       "balancing_details.reasonable_expectation — whether the data subjects would have expected this specific use at the point the data were collected, answered against the collection circumstances already recorded.";
   }
 
+  // DOC 275 §19.1 row 11 (CEO-approved 2026-09-19) — purpose_details.
+  // stated_purpose_status bears on this factor through Recital 47's "what
+  // the data subject has been told at the time and in the context of
+  // collection": transparency (Arts. 13/14) is not one of the three limbs,
+  // so it never decides this factor's own verdict, set above. A published
+  // notice only SUPPORTS the finding; unpublished wording does not yet
+  // support it, and the condition to publish is raised separately (the
+  // information_needed item three-part-test-typed.ts adds for this same
+  // field, rendered as a numbered Section V condition).
+  const statedPurposeStatus = str(get(intake, "purpose_details.stated_purpose_status"));
+  if (statedPurposeStatus === "Published in our current privacy notice") {
+    application +=
+      " The purpose is published in the Company's current privacy notice, which supports the expectation.";
+  } else if (
+    statedPurposeStatus === "Proposed wording — not yet published" ||
+    statedPurposeStatus === "Not yet drafted"
+  ) {
+    application +=
+      " The purpose is not yet published to the people concerned, so it does not yet support their expectation; the Company should publish it before relying on legitimate interests.";
+  }
+
   return {
     standard: std.verbatim,
     standard_citation: std.citation || "GDPR Recital 47",
@@ -514,6 +535,15 @@ export function buildDetermination(
   // presence only, so "Purpose test: Not met" could sit beside "Legitimate
   // interests is available"). Pure over the intake; no ordering dependency.
   const legitimacy = buildInterestLegitimacy(intake);
+  // DOC 275 §19.1 row 9 (CEO-approved 2026-09-19) — necessity_details.
+  // achievable_without_personal_data: "Yes" is the Company's own affirmative
+  // statement that the purpose could be achieved without personal data, so
+  // personal data is not necessary for it (EDPB Guidelines 3/2019 ¶24; EDPB
+  // Opinion 28/2024 ¶73–74; CJEU C-621/22 KNLTB). Read once here, alongside
+  // the necessity finding, and used below in place of the usual
+  // presence/completeness read of the alternatives comparison.
+  const achievableWithoutPersonalData = str(get(intake, "necessity_details.achievable_without_personal_data"))
+    .toLowerCase();
   const harm = str(get(intake, "balancing_details.potential_harm"));
   const safeguards = arr(get(intake, "balancing_details.safeguards"));
   // DOC 259A §5.5 (CEO 2026-09-11, ChatGPT v3 LIA3-03) — a completed DPIA or
@@ -578,7 +608,16 @@ export function buildDetermination(
   }
 
   // ── necessity ──
-  if (!altsListed) {
+  // DOC 275 §19.1 row 9 — an affirmative "Yes" answer legitimately FAILS
+  // necessity: it is the Company's own fact establishing that personal data
+  // is not necessary, not the silence the degradation law below (the
+  // alternatives-comparison branches) exists to protect against. The
+  // alternatives comparison is not reached — it would be moot once personal
+  // data itself is not necessary for the purpose.
+  const necessityDefeated = achievableWithoutPersonalData.startsWith("yes");
+  if (necessityDefeated) {
+    failing.push("necessity");
+  } else if (!altsListed) {
     open.push("necessity");
     mitigations.push({
       factor: "necessity",
@@ -738,6 +777,15 @@ export function buildDetermination(
           ? `${lowerFirst(failedSubTest.label)} is recorded as not met (${firstSentence(failedSubTest.reasoning).replace(/\.$/, "")})`
           : "the interest as stated does not qualify as legitimate"
       }, and no balance can be struck for an interest that does not qualify. ${conditions.verbatim} The mitigation below states what would bring the interest within the first condition; once it is recorded, the assessment is to be performed anew.`;
+  } else if (necessityDefeated) {
+    // DOC 275 §19.1 row 9 — the second cumulative condition fails on the
+    // Company's own statement, before balancing is reached. Unlike a failing
+    // legitimacy or balance, no mitigation reaches the point: nothing is
+    // adopted alongside the processing to make personal data necessary for
+    // a purpose the Company itself says does not need it.
+    outcome = "legitimate_interests_not_available";
+    rawWhy =
+      `Legitimate interests is not available for this processing as recorded: the Company states that this purpose could be achieved without personal data, so processing personal data is not necessary for it, and Article 6(1)(f) is not available on that basis. ${necessityAnchor.verbatim}`;
   } else if (child.determination === "children_in_scope" && materialHarm) {
     outcome = "legitimate_interests_not_available";
     rawWhy =

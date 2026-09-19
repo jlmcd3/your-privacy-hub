@@ -1326,6 +1326,13 @@ export function runRiskFactorEngine(
   // ratified per-risk a6_safeguards model); read solely so the report can
   // explain WHY nothing is credited when no per-risk row exists.
   const generalSafeguardsText = clause((intake.impact_intake as Bag | undefined)?.safeguards);
+  // DOC 275 §19.1 row 3 (CEO-approved 2026-09-19) — impact_intake.cyberGaps
+  // (form: "Have you identified cybersecurity gaps relevant to this
+  // processing?"). A known gap is a source/cause of the unauthorised-access
+  // negative impact (§ 7152(a)(5)) and a safeguards deficiency (§ 7152(a)(6));
+  // read once here and consumed at both places, plus the § 4.D follow-up.
+  // Never moves a likelihood, severity, credit, rating, or disposition.
+  const cyberGaps = s((intake.impact_intake as Bag | undefined)?.cyberGaps);
   // DOC 154 (code review, item 4) — "material" means High or Critical. The
   // former materialPathways fallback ("if none reach High, the top level
   // present") promoted LOW risks to material on an all-Low record, so an
@@ -1680,6 +1687,14 @@ export function runRiskFactorEngine(
   }
 
   const followUps: string[] = [];
+  // DOC 275 §19.1 row 3 (CEO-approved 2026-09-19) — a "Yes" cyberGaps answer
+  // asks for the record to be completed (name the gaps, name the safeguard
+  // that answers each one); it never changes a rating by itself.
+  if (cyberGaps === "Yes") {
+    followUps.push(
+      "Describe the identified cybersecurity gaps and the safeguard that answers each one",
+    );
+  }
   // DOC 139 (2026-09-02) — external legal review on doc 137/138 (row
   // us-ds2-mtjlerdl-tti856): q15_sensitive_pi (Yes/No) and the q4 category
   // inventory (filtered against CA_SPI_CATEGORY_KEYS, the statutory taxonomy)
@@ -4465,6 +4480,10 @@ export function runRiskFactorEngine(
   tables["iv_determination:1"] = buildRiskLedgerTable(pathways, "risk_ledger", unassessed);
   if (pathways.length) {
     const ranked = rankPathways(pathways);
+    // DOC 275 §19.1 row 3 — whether the cyberGaps source sentence actually
+    // printed on any risk paragraph below, so the block's own provenance
+    // can cite the intake field only when the sentence is really there.
+    const cyberGapsSourceCited = cyberGaps === "Yes" && ranked.some((p) => /^\(A\)/.test(p.harm));
     const paras = ranked.map((p) => {
       // Annex T1 opening — the Company's own clauses in quotation marks
       // (v5.2 register: their casing is theirs, not the sentence's).
@@ -4473,6 +4492,12 @@ export function runRiskFactorEngine(
       // rides in the paragraph beside the cause (doc 143 §B row E: § 7152
       // (a)(5) promises "sources and causes", which previously existed only
       // in the appendix register).
+      // DOC 275 §19.1 row 3 (CEO-approved 2026-09-19) — a "Yes" cyberGaps
+      // answer is a recorded source of THIS risk only: the (A) unauthorised-
+      // access/destruction/use/modification/disclosure/loss-of-availability
+      // category. One sentence, one INTAKE source; no rating is touched.
+      const isUnauthorizedAccessHarm = /^\(A\)/.test(p.harm);
+      const citeCyberGapsSource = isUnauthorizedAccessHarm && cyberGaps === "Yes";
       const opening = [
         `${p.harm}. `,
         p.data ? `The Company identifies ${qPassage(p.data)}` : `The Company identifies this risk`,
@@ -4480,6 +4505,9 @@ export function runRiskFactorEngine(
         p.cause ? `: ${qPassage(p.cause)}` : "",
         ". ",
         p.source ? `The source the Company records is ${qPassage(p.source)}. ` : "",
+        citeCyberGapsSource
+          ? "The Company reports that it has identified cybersecurity gaps relevant to this processing, which is a source of this risk. "
+          : "",
         `The Company assesses the likelihood as ${p.likelihood.toLowerCase()} and the severity as ${p.severity.toLowerCase()}, and the risk is rated ${p.materiality} before safeguards.`,
       ].join("").replace(/\s+,/g, ",").replace(/\s+:/g, ":").replace(/\s{2,}/g, " ");
       // DOC 144 (doc 143 §C sweep) — safeguard noun phrases quoted.
@@ -4593,12 +4621,41 @@ export function runRiskFactorEngine(
         } as not yet assessed, and § 7152(a)(5) requires the assessment to identify the negative impacts in each category or record that none applies`,
       );
     }
+    // DOC 275 §19.1 row 3 (CEO-approved 2026-09-19) — § 7152(a)(6) safeguards
+    // sub-part, printed after the (a)(5) risk paragraphs above (never before,
+    // per the CEO's ordering): a known cybersecurity gap is a deficiency in
+    // safeguards unless a recorded a6 safeguard names the gaps or the (A)
+    // unauthorised-access category, in which case it is credited above. A
+    // "No" is stated as a fact so it no longer reads like an unanswered
+    // question; a blank answer prints nothing. This never moves a rating.
+    let cyberGapsSafeguardsCited = false;
+    if (cyberGaps === "Yes") {
+      const namesTheGaps = safeguardRows.some((g) =>
+        /gap/i.test(s(g.safeguard)) || safeguardHarms(g).some((h) => /^\(A\)/.test(h))
+      );
+      closers.push(
+        namesTheGaps
+          ? "The Company reports identified cybersecurity gaps relevant to this processing and records the safeguards above against them."
+          : "The Company reports identified cybersecurity gaps relevant to this processing; no safeguard directed at those gaps is recorded.",
+      );
+      cyberGapsSafeguardsCited = true;
+    } else if (cyberGaps === "No") {
+      closers.push(
+        "The Company reports that it has not identified cybersecurity gaps relevant to this processing.",
+      );
+      cyberGapsSafeguardsCited = true;
+    }
     put(
       "iv_determination:2",
       "risk_paragraphs",
       "B",
       [...paras, ...closers].join("\n\n"),
-      ["INTAKE:a5_harm_pathways", "INTAKE:a6_safeguards", "INTAKE:risk_interdependency_check"],
+      [
+        "INTAKE:a5_harm_pathways",
+        "INTAKE:a6_safeguards",
+        "INTAKE:risk_interdependency_check",
+        ...(cyberGapsSourceCited || cyberGapsSafeguardsCited ? ["INTAKE:impact_intake.cyberGaps"] : []),
+      ],
       ["11 CCR § 7152(a)(5)", "11 CCR § 7152(a)(6)"],
     );
     put(

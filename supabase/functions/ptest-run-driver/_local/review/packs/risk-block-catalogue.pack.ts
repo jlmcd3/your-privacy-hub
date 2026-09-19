@@ -1039,6 +1039,7 @@ export const RISK_BLOCK_CATALOGUE: BlockCatalogue = {
       "sources": [
         "INTAKE:a5_harm_pathways",
         "INTAKE:a6_safeguards",
+        "INTAKE:impact_intake.cyberGaps",
         "INTAKE:risk_interdependency_check"
       ],
       "authorities": [

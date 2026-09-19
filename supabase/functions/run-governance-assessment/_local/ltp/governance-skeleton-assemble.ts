@@ -224,6 +224,33 @@ function labelled(map: Record<string, string>, value: string): string | null {
   return map[value] ?? lower(value);
 }
 
+// DOC 275 §19.1 row 6 (2026-09-19, CEO-approved) — F10's Article 3
+// territorial-scope facts (territorial_scope_basis), read but never surfaced
+// to the customer. Article 3 decides whether the GDPR applies at all, so the
+// bases the company selected belong in the FIRST substantive section, ahead
+// of every obligation assessed after it. "None of these" and "Unsure" are
+// the field's own exclusive, non-substantive options (TERRITORIAL_SCOPE_EXCLUSIVE
+// in the intake contract) — not a basis, so they read as unselected here.
+const TERRITORIAL_SCOPE_BASIS_LABELS: Record<string, string> = {
+  "Established in the EU or EEA": "Established in the EU or EEA",
+  "Established in the UK": "Established in the UK",
+  "We offer goods or services to people in the EU or UK": "offers goods or services to people in the EU or UK",
+  "We monitor the behaviour of people in the EU or UK": "monitors the behaviour of people in the EU or UK",
+};
+
+function whyGdprAppliesClause(intake: Bag): string {
+  const selected = arr(intake.territorial_scope_basis)
+    .map((b) => TERRITORIAL_SCOPE_BASIS_LABELS[b])
+    .filter((b): b is string => Boolean(b));
+  // No trailing period: this clause is always the tail of a sentence-level
+  // slot whose fixed skeleton literal supplies the final "." (organisation_and_data's
+  // "{EU_UK_SENTENCE}. The categories..." — the byte-pinned skeleton text).
+  const value = selected.length
+    ? selected.join("; ")
+    : "Not stated — this assessment proceeds on the Company's instruction that the GDPR applies to it";
+  return `Why the GDPR applies: ${value}`;
+}
+
 const TRANSFERS_OCCUR = /^(Yes|Unsure)/i;
 
 function technicalControlsSentence(intake: Bag): string {
@@ -276,11 +303,24 @@ export function buildGovernanceSlotValues(intake: Bag): SlotValues {
     // PANEL GOV-3 (2026-08-30) — this value begins a sentence; when the
     // org-name fallback ("the company") fills it, the sentence used to open
     // lowercase. Real names are proper nouns and pass through unchanged.
+    //
+    // DOC 275 §19.1 row 6 — the Article 3 "Why the GDPR applies" fact rides
+    // this same sentence-level slot as a second sentence, so it renders
+    // together with (or, on the rare unanswered-eu_uk_data record, in place
+    // of) the residency sentence rather than needing a new skeleton slot —
+    // this section's fixed prose is hash-pinned and carries no other place
+    // for it. eu_uk_data is "required: always" in the intake contract, so
+    // the drop-the-whole-sentence branch below is a defensive fallback, not
+    // the normal path; even there, Article 3 is foundational enough that the
+    // basis sentence still renders on its own rather than disappearing with it.
     EU_UK_SENTENCE: isNA(euUk)
-      ? null
+      ? whyGdprAppliesClause(intake)
       : /^Yes/i.test(euUk)
-      ? `${org.charAt(0).toUpperCase()}${org.slice(1)} has indicated that it processes the personal data of individuals in the EU or the UK`
-      : `${org.charAt(0).toUpperCase()}${org.slice(1)} has indicated that it does not process the personal data of individuals in the EU or the UK`,
+      ? `${org.charAt(0).toUpperCase()}${org.slice(1)} has indicated that it processes the personal data of individuals in the EU or the UK. ${whyGdprAppliesClause(intake)}`
+      // Lead review (2026-09-19): a company that says it does not process EU
+      // or UK personal data is not told "Why the GDPR applies"; the clause
+      // follows only when it nonetheless selected a basis.
+      : `${org.charAt(0).toUpperCase()}${org.slice(1)} has indicated that it does not process the personal data of individuals in the EU or the UK${arr(intake.territorial_scope_basis).some((b) => b in TERRITORIAL_SCOPE_BASIS_LABELS) ? `. ${whyGdprAppliesClause(intake)}` : ""}`,
     dataCategories: asProse(arr(intake.data_categories).map(lower)) || null,
     SPECIAL_CATEGORY_CLAUSE: /^Yes/i.test(s(intake.special_category)) && specialList.length
       ? `, including the special categories ${asProse(specialList.map(lower))}, which engage Article 9`
@@ -497,6 +537,40 @@ function domainSeverityPhrase(report: Bag, needle: RegExp): string {
   return gap ? `assessed with severity ${sev} — ${gap.replace(/\.$/, "")}` : `assessed with severity ${sev}`;
 }
 
+// DOC 275 §19.1 rows 8/9 (2026-09-19, CEO-approved) — dsr_rights_tested and
+// dpia_ai_coverage are already composed into current_state by subjectRights()
+// and dpiaStatus() (governance-domain-tables.ts) as the sentence(s) after the
+// domain's first sentence — the DOC 162 record-fact tail — but subject_rights
+// and dpia_status match neither OPERATIONAL_DOMAINS nor VENDOR_DOMAINS, so
+// domainProse() never composes them and the tail never reached the customer:
+// the domain surfaced only as a crosswalk-verdict word. This reads the SAME
+// current_state the domain table already composed and returns everything
+// after its first sentence, verbatim (never inventing text), for the caller
+// to state at the point that domain's finding already appears. Additive
+// only — decides nothing; where the tail is absent, the caller's text is
+// unchanged.
+const DSR_DOMAIN_NEEDLE = /individual.?s.?rights|data.?subject.?rights|\bdsr\b/i;
+const DPIA_DOMAIN_NEEDLE = /dpia/i;
+
+// Lead review (2026-09-19): the tail is ONE sentence — the first sentence
+// after the finding's opener that states the record fact (`fact` must match
+// it). The DPIA finding's current_state carries the WP248 trigger-candidates
+// paragraph after the AI-coverage sentence; that paragraph is the domain's
+// analysis, not a record fact, and stays where the domain table puts it.
+function domainRecordFactTail(report: Bag, needle: RegExp, fact: RegExp): string {
+  const d = domainEntries(report).find((x) => needle.test(`${s(x.domain_name)} ${s(x.domain)}`));
+  if (!d) return "";
+  const rest = afterFirstSentence(s(d.current_state)).trim();
+  if (!rest) return "";
+  const sentence = firstSentence(rest).trim();
+  if (!sentence || !fact.test(sentence)) return "";
+  return lower(sentence.replace(/\.$/, ""));
+}
+
+function withRecordFactTail(base: string, tail: string): string {
+  return tail ? `${base} — ${tail}` : base;
+}
+
 // DOC 139 (2026-09-02) — FIX 2: `dpo.verdict` is a roll-up across
 // designation_trigger / position_and_independence / task_coverage (see
 // buildDpoDetermination, governance-deliverables/build.ts). By that
@@ -542,11 +616,28 @@ function icoCrosswalkRows(report: Bag): Array<[string, string]> {
     // doc 263 run 1 (2026-09-17, batch eac083a5 f27) — only a domain that
     // assesses rights handling may fill this row; the bare word "rights"
     // matched the notice domain.
-    ["Individuals' rights", domainSeverityPhrase(report, /individual.?s.?rights|data.?subject.?rights|\bdsr\b/i)],
+    //
+    // DOC 275 §19.1 row 8 — the rights the company records as tested (DOC
+    // 162 tail on subject_rights' current_state) reaches the customer here,
+    // at the one point this domain's finding is stated.
+    ["Individuals' rights", withRecordFactTail(
+      domainSeverityPhrase(report, DSR_DOMAIN_NEEDLE),
+      domainRecordFactTail(report, DSR_DOMAIN_NEEDLE, /tested/i),
+    )],
     ["Transparency", domainSeverityPhrase(report, /privacy.?notice|notice/i)],
     ["Records of processing and lawful basis", art30Read],
     ["Contracts and data sharing", domainSeverityPhrase(report, /vendor|contract/i)],
-    ["Risks and DPIAs", s(risk.verdict) ? `the risk-calibration finding is ${verdictPhrase(s(risk.verdict))}` : domainSeverityPhrase(report, /dpia/i)],
+    // DOC 275 §19.1 row 9 — the DPIA AI-coverage tail (DOC 162 tail on
+    // dpia_status' current_state) reaches the customer here regardless of
+    // which branch built the row: the risk-calibration verdict ordinarily
+    // takes this row (Article 24(1) risk calibration is a different, and
+    // usually populated, determination), so the DPIA record fact is stated
+    // as an additive continuation either way, never changing the verdict
+    // shown.
+    ["Risks and DPIAs", withRecordFactTail(
+      s(risk.verdict) ? `the risk-calibration finding is ${verdictPhrase(s(risk.verdict))}` : domainSeverityPhrase(report, DPIA_DOMAIN_NEEDLE),
+      domainRecordFactTail(report, DPIA_DOMAIN_NEEDLE, /\bAI\b/),
+    )],
     ["Records management and security", domainSeverityPhrase(report, /submission|security/i)],
     ["Breach response and monitoring", domainSeverityPhrase(report, /incident/i)],
   ];
@@ -608,11 +699,17 @@ function composeDpoBody(report: Bag): string {
   return parts.join("\n\n");
 }
 
-function composeTransfersBody(report: Bag): string {
+function composeTransfersBody(report: Bag, intake: Bag): string {
   const t = (report.transfer_analysis ?? {}) as Bag;
   const parts = [s(t.record_fact), s(t.application)].filter(Boolean).map(repairRegister);
   const vendor = composeDomains(report, VENDOR_DOMAINS);
   if (vendor) parts.push(vendor);
+  // DOC 275 §19.1 row 7 (2026-09-19, CEO-approved) — processor_count is
+  // Article 28 record fact, conditional on the record using processors;
+  // stated once, immediately after the vendor-domain prose it belongs beside.
+  const processorCount = s(intake.processor_count);
+  // The Company's own text may close with a stop (the golden does); one stop, ours.
+  if (processorCount) parts.push(`The Company reports its processors as: ${processorCount.replace(/[.\s]+$/u, "")}.`);
   return parts.join("\n\n");
 }
 
@@ -1201,7 +1298,7 @@ export function assembleGovernanceSkeletonDocument(
       "The Article 28 and Chapter V position the company has described",
       "The Article 28 and Chapter V position rests on the answers set out below.",
     ),
-    "processors_and_transfers:2": composeTransfersBody(report),
+    "processors_and_transfers:2": composeTransfersBody(report, intake),
 
     "the_determination:0": ratingLead(report, org),
     "the_determination:1": composeDeterminationBody(report, intake),

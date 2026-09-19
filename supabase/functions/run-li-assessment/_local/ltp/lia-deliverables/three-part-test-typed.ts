@@ -148,7 +148,19 @@ export function purposeVerdict(u4: LiaUpgrade4Deliverables): TestVerdict {
 // alternative, every one carrying a recorded inadequacy reason. Anything
 // less degrades to "uncertain", never "fails" (an unexplained alternative is
 // a gap in the record, not proof a viable less intrusive means was declined).
-export function necessityVerdict(u4: LiaUpgrade4Deliverables): TestVerdict {
+// DOC 275 §19.1 row 9 (CEO-approved 2026-09-19) — necessity_details.
+// achievable_without_personal_data is the necessity limb ITSELF (step 2 of
+// Article 6(1)(f)): where the Company's own record states the purpose could
+// be achieved without personal data, the processing is not necessary and
+// Article 6(1)(f) is not available on that basis (EDPB Guidelines 3/2019
+// ¶24; EDPB Opinion 28/2024 ¶73–74; CJEU C-621/22 KNLTB). This is an
+// AFFIRMATIVE company statement, not the silence the comment above protects
+// against, so — uniquely — it is the one fact that can legitimately fail
+// necessity. "No" and "Not assessed"/blank leave this function's existing
+// alternatives-comparison logic exactly as it read before.
+export function necessityVerdict(u4: LiaUpgrade4Deliverables, intake: Bag): TestVerdict {
+  const achievable = s(bag(intake.necessity_details).achievable_without_personal_data).toLowerCase();
+  if (achievable.startsWith("yes")) return "fails";
   const finding = u4.alternatives_considered as unknown as Bag;
   const alternatives = Array.isArray(finding.alternatives) ? finding.alternatives as Bag[] : [];
   if (!alternatives.length) return "uncertain";
@@ -517,9 +529,29 @@ export function buildThreePartTestTyped(report: Bag, intake: Bag): LiaTypedStage
   const precedent = bag(report.precedent_class_posture) as unknown as PrecedentClassFinding;
 
   const pv = purposeVerdict(u4);
-  const nv = necessityVerdict(u4);
+  const nv = necessityVerdict(u4, intake);
   const bv = balancingVerdict(expectations, child, u4, intake);
   const weighing = composeBalancingAnalysis(bv, expectations, child, u4, intake);
+
+  // DOC 275 §19.1 row 9 — the necessity_test analysis sentence for the
+  // achievable_without_personal_data answer. "Yes" replaces the
+  // alternatives-comparison sentence outright (it is moot once personal
+  // data itself is not necessary); "No" leaves that sentence in place and
+  // quotes the Company's own rationale onto it, verbatim and attributed;
+  // "Not assessed"/blank changes nothing here (handled below, in
+  // information_needed, only where no corpus rule already covers the gap).
+  const necessityDetails = bag(intake.necessity_details);
+  const achievableWithoutPersonalData = s(necessityDetails.achievable_without_personal_data).toLowerCase();
+  const achievableRationale = s(necessityDetails.achievable_without_personal_data_rationale);
+  const NECESSITY_FAILS_SENTENCE =
+    "The Company states that this purpose could be achieved without personal data. Processing personal data is therefore not necessary for it, and Article 6(1)(f) is not available on that basis.";
+  const necessityAnalysis = achievableWithoutPersonalData.startsWith("yes")
+    ? NECESSITY_FAILS_SENTENCE
+    : `${stop(s((u4.alternatives_considered as unknown as Bag).application))}${
+      achievableWithoutPersonalData.startsWith("no") && achievableRationale
+        ? ` The Company explains why personal data is required: “${achievableRationale}”.`
+        : ""
+    }`;
 
   // ── The ePrivacy hard gate (outcome override, never a weight). ──────────
   const foreclosed = gate.li_foreclosed_for_covered_processing === true;
@@ -596,8 +628,8 @@ export function buildThreePartTestTyped(report: Bag, intake: Bag): LiaTypedStage
     },
     necessity_test: {
       verdict: nv,
-      analysis: stop(s((u4.alternatives_considered as unknown as Bag).application)),
-      risk_factors: [],
+      analysis: necessityAnalysis,
+      risk_factors: nv === "fails" ? ["personal data is not necessary to achieve the stated purpose"] : [],
       supporting_factors: nv === "passes" ? ["less intrusive alternatives are recorded with the reasons they were not adopted"] : [],
       // DOC 142 — the open question states the concrete fact needed: the
       // finding's own information_needed names the specific unexplained
@@ -677,6 +709,46 @@ export function buildThreePartTestTyped(report: Bag, intake: Bag): LiaTypedStage
   }
   // ADM regime note rides through the existing finding; no extra ask here.
   void adm;
+
+  // DOC 275 §19.1 row 9 — "Not assessed"/blank. The existing corpus rule
+  // lia/rule/necessity-anonymised-alternative (corpus/maps/lia-rules.ts)
+  // already raises this as a require_condition for product_improvement and
+  // research_analytics records once rule-pass.ts runs (it triggers on the
+  // same "Not assessed" sentinel rule-states.ts substitutes for a null
+  // answer) — not duplicated here. Every OTHER record class has no rule
+  // covering the gap, so the ask is added directly.
+  if (achievableWithoutPersonalData === "" || achievableWithoutPersonalData === "not assessed") {
+    const useCaseClass = s(precedent.use_case_class) || resolveLiaUseCase(intake);
+    if (useCaseClass !== "product_improvement" && useCaseClass !== "research_analytics") {
+      information_needed.push({
+        field: "necessity_details.achievable_without_personal_data",
+        dimensions:
+          "whether this purpose could be achieved without personal data, or with anonymised or synthetic data; if it could, personal data would not be necessary for it",
+        provision: "EDPB Guidelines 3/2019, ¶24; EDPB Opinion 28/2024, ¶73–74",
+        enables: "the necessity test",
+      });
+    }
+  }
+
+  // DOC 275 §19.1 row 11 — purpose_details.stated_purpose_status bears on
+  // reasonable expectations through Recital 47 (what the data subject has
+  // been told), not on any of the three limbs directly (transparency under
+  // Arts. 13/14 is not one of them). A published notice only SUPPORTS the
+  // expectations finding (buildReasonableExpectations, build.ts) and never
+  // flips its verdict; an unpublished one adds this condition, rendered as
+  // a numbered Section V condition by collectLiaConditions.
+  const statedPurposeStatus = s(bag(intake.purpose_details).stated_purpose_status);
+  if (
+    statedPurposeStatus === "Proposed wording — not yet published" ||
+    statedPurposeStatus === "Not yet drafted"
+  ) {
+    information_needed.push({
+      field: "purpose_details.stated_purpose_status",
+      dimensions: "Publish the stated purpose in the privacy notice before relying on legitimate interests.",
+      provision: "GDPR Arts. 13(1)(c), 14(1)(c)",
+      enables: "the balancing test",
+    });
+  }
 
   return { three_part_test, information_needed, determination_override, eprivacy_foreclosed: foreclosed };
 }
